@@ -56,6 +56,14 @@ jobs:
         if: env.CLOUDFLARE_API_TOKEN != ''
         run: npm ci
 
+      # build-fonts.mjs shells out to `python -m fontTools.subset`, which is not an npm
+      # dependency and is not on the runner. Pinned to the versions that produced the
+      # faces the site was QA'd with: subsetting output is bytes, and different bytes are
+      # a different service-worker precache hash.
+      - name: Install fontTools
+        if: env.CLOUDFLARE_API_TOKEN != ''
+        run: python -m pip install --quiet "fonttools[woff]==4.64.0" "brotli==1.2.0"
+
       # Generated, never committed: build-fonts.mjs derives the six WOFF2 faces from the
       # TTF originals in source-assets/fonts/, which ARE in the repository.
       - name: Build fonts

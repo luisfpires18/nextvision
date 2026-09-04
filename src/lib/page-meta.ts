@@ -207,7 +207,7 @@ export function projectDescription(project: {
   const suffix = locale === 'en'
     ? `${project.categoryName}, ${project.year}. A Next Vision Films project.`
     : `${project.categoryName}, ${project.year}. Um projeto da Next Vision Films.`;
-  return `${project.title} — ${suffix}`;
+  return `${project.title}. ${suffix}`;
 }
 
 /** The five preserved archives. Noindex, so this exists for humans arriving on old links. */

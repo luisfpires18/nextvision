@@ -55,7 +55,7 @@ const still = next ? imageProps(`projects/${next.slug}/poster`, { sizes: '(min-w
 
     <p class="pj-next__foot metaline">
       {previous
-        ? <a href={previous.href}>{`${t('ui.previous', locale)} — ${previous.title}`}</a>
+        ? <a href={previous.href}>{`${t('ui.previous', locale)}: ${previous.title}`}</a>
         : <span></span>}
       <a href={pagePath('portfolio', locale)}>{say(PORTFOLIO.all, locale)}</a>
     </p>

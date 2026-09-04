@@ -35,7 +35,7 @@ nothing; a preloaded font was never used. Three regression checks now run inside
 cannot be emulated with the available tooling. Their code path (loader never armed) is the
 repeat-visit path, which was verified.
 
-**Step 14 — GitHub, CI/CD and handover ✅ DONE, with one blocker.** The repository is
+**Step 14 — GitHub, CI/CD and handover ✅ COMPLETE.** The repository is
 `luisfpires18/nextvision` (private). Public history is ONE root commit, `Initial Commit`;
 `master` and `dev` start at the same SHA. Two Cloudflare Workers, and they cannot overwrite
 each other: `dev` -> `next-vision-films` (staging), `master` ->
@@ -53,15 +53,28 @@ clean checkout **cannot build the site at all**: `media/dist/` is gitignored and
 from R2, read-only and hash-verified. The full CI recipe was then run in a clean worktree
 and passed.
 
+**CI/CD is live and was proved end to end.** All four repository secrets are set, and a
+push to `dev` ran checkout -> `npm ci` -> fontTools -> `fonts:build` -> `media:pull` ->
+`npm run verify` -> deploy in 1m21s, green. It deployed Worker `next-vision-films`
+(version `ff6cf3fb`), and `next-vision-films-production` still **does not exist on the
+account** — the cleanest possible proof that staging and production cannot overwrite each
+other. Smoke-tested on the live URL: 8 routes 200, a media rendition 200, and the Step-14
+copy fix visible in the served HTML. Repository merge settings are configured through the
+API: merge commits ON, squash OFF, rebase OFF, auto-merge OFF, no required reviews.
+
+**One defect, found only by running it.** `npm run fonts:build` shells out to
+`python -m fontTools.subset`, which is not an npm dependency and is not on the runner, so
+the first credentialed run died with `ModuleNotFoundError` before it reached the mirror.
+The script had always documented the requirement; nothing enforced it, because a developer
+machine that installed it once never notices again. Both workflows now install it, pinned
+to the versions that produced the QA'd faces.
+
 Not started: DNS cutover, the newsletter endpoint (D18).
 
 ---
 
 ## BLOCKED
 
-- [ ] **Cloudflare API token for GitHub Actions** — repository secret `CLOUDFLARE_API_TOKEN`. Minimum permission: Account -> **Workers Scripts: Edit**. Nothing else — no zone, no DNS, no R2 write. Without it BOTH workflows deliberately do nothing and pass green, so no push fails and no deploy happens. It is the only thing between the current state and automatic deployment.
-- [ ] **Read-only R2 keys for GitHub Actions** — `R2_ACCESS_KEY_ID` / `R2_SECRET_ACCESS_KEY`, R2 -> **Object Read only**, bucket `nvf-media`. CI cannot rebuild `media/dist/` (the sources are gitignored and 646 MB), so it fetches the 384 renditions instead. Without them `npm run media:pull` fails loudly and nothing is deployed — a build with no media must never ship.
-- [ ] **`CLOUDFLARE_ACCOUNT_ID` as a repository secret** — `c87adf05b555c1ff52167b53030b8e39`. Not a credential; it is the account to deploy into and the R2 endpoint host.
 - [ ] **Turnstile production keys** — site key + `TURNSTILE_SECRET_KEY`. Unset, `/api/contact/` refuses every submission with `503`. Needs the owners' Cloudflare account.
 - [ ] **Cloudflare Web Analytics site token** — `PUBLIC_ANALYTICS_TOKEN`. Unset, no beacon is emitted at all. Created under **Manage site → JS snippet**; the token, not the snippet, is what we need. (Phase 14)
 - [ ] **Outstanding masters / weak media** — M1–M9 in `docs/SMASH_MEDIA_INVENTORY.md` §6. Longest lead time in the project; nothing is upscaled to hide it.
@@ -88,5 +101,5 @@ Not started: DNS cutover, the newsletter endpoint (D18).
 - [ ] **Content-Security-Policy** — the required origins are recorded (`ARCHITECTURE.md` §9). There IS a Worker now, so the blocker is gone and only the work remains; `_headers` currently carries one rule, the adapter's immutable `Cache-Control` for `/_astro/*`.
 - [ ] **Phase 11b reviewed copy/SEO proposals** — permitted as diffs against the archive, never applied silently.
 - [ ] **DNS cutover and a custom domain** — not started, by instruction (Step 15). Both Workers live on `workers.dev` and need neither.
-- [ ] **`media:pull`'s network path is unexercised.** The no-op and hash-check paths were run; the R2 GET was not, because this machine has no R2 read keys. It reuses the same SigV4 signer that already uploaded 384 objects and 645.95 MB, and `getObject` is that signer's `request()` with method GET — but it has not been run against the bucket.
+
 - [ ] **Staging is publicly reachable and not robots-blocked.** Every canonical points at `https://www.nextvisionfilms.com/…`, which is what keeps the workers.dev copy from competing with the real site; no staging-only `X-Robots-Tag` was added, because an artefact that behaves differently from the one that ships is not a staging artefact.
