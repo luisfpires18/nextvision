@@ -9,33 +9,45 @@ that way) or `CLAUDE.md` (the rules). It says what to do, and what will refuse y
 
 Two long-lived branches. Nothing else is permanent.
 
-- **`dev`** — where work happens. Every push deploys to **staging**.
+- **`dev`** — the **default branch**, and where all work starts. Every push deploys to **staging**.
 - **`master`** — what is released. Every push deploys to **production**.
 
+`dev` is GitHub's default, so a fresh `git clone` lands on it and a new branch created in
+the web UI forks from it. Nothing needs to be selected.
+
 ```bash
-git checkout dev
+git switch dev
+git pull
 # …work…
 npm run verify                 # the same gate CI runs. Run it before you commit.
 git commit -m "feat: …"
 git push origin dev            # -> CI verify -> staging Worker
 ```
 
-Promoting to production is a decision, not an automation:
+**Direct commits on `dev` are the normal workflow.** Feature branches are optional and
+worth it only when a change is long enough to want isolating:
 
 ```bash
-git checkout master
+git switch dev && git pull
+git switch -c feature/whatever
+# …work, then merge back into dev, which deploys staging…
+```
+
+Promoting to production is a decision, not an automation. Either a PR from `dev` to
+`master` merged with **Merge pull request** (the button gives a merge commit; squash and
+rebase are disabled on the repository), or locally:
+
+```bash
+git switch master && git pull
 git merge --no-ff dev          # a NORMAL MERGE COMMIT, always
 git push origin master         # -> CI verify -> production Worker
-git checkout dev
+git switch dev
 ```
 
 `--no-ff` is the point: `dev -> master` must leave a visible merge commit, so the history
-shows what was released and when. **Never** squash or rebase that merge. Repository
-settings already have merge commits enabled and squash/rebase merging disabled (§9).
+shows what was released and when. **Never** squash or rebase that merge.
 
-Avoid committing directly on `master`. There is no branch protection and no required
-review, because this is a one-developer repository and governance nobody asked for is
-governance nobody follows — but the flow above is what keeps `master` meaning "released".
+No development happens on `master`. It only ever receives merges from `dev`.
 
 ---
 
@@ -223,18 +235,40 @@ None of these are faked, and none of them can be switched on from here.
 
 ---
 
-## 9. Repository merge settings
+## 9. Repository settings, and the protection that is not available
 
-Already configured through the API, and recorded here because a dashboard click can undo
-them. Settings → General → Pull Requests:
+Configured through the API, and recorded here because a dashboard click can undo them:
 
+- **Default branch** — `dev`
 - **Allow merge commits** — ON
 - **Allow squash merging** — OFF
 - **Allow rebase merging** — OFF
 - **Allow auto-merge** — OFF
 
-A PR is a convenient way to merge `dev -> master`, but no review is required and nothing
+A PR is a convenient way to merge `dev -> master`; no review is required and nothing
 merges itself. You decide when.
+
+**Branch protection is NOT configured, because this plan cannot have it.** Both the
+branch-protection and the ruleset APIs answer, for a private repository on GitHub Free:
+
+    403  Upgrade to GitHub Pro or make this repository public to enable this feature.
+
+So "no deletion, no force-push" on `dev` and `master` cannot be enforced on the server.
+Two exits, whenever you want them: **GitHub Pro**, or making the repository public — and
+public would publish the archived source data and the internal project documents along
+with the site, so it is not a small decision.
+
+Until then the rules are enforced on the CLIENT, by `scripts/hooks/pre-push`. Enable it
+once per clone:
+
+```bash
+git config core.hooksPath scripts/hooks
+```
+
+It refuses to delete `dev` or `master`, and refuses any push to them that is not a
+fast-forward. It protects the machine that has it installed and nothing else, and
+`--no-verify` bypasses it deliberately — a hook you cannot bypass is a hook that locks you
+out of your own repository. It is what is available, not a substitute for the real thing.
 
 ---
 

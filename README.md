@@ -16,7 +16,11 @@ npm **>= 9.6.5**, one lockfile.
 
 ## Getting started
 
+The default branch is **`dev`** — a clone lands there, and that is where work starts.
+`master` is the release branch and only ever receives merges from `dev`.
+
 ```bash
+git config core.hooksPath scripts/hooks   # refuses force-push/deletion of dev and master
 npm install
 npm run fonts:build      # the six WOFF2 faces — generated, not committed
 npm run media:pull       # restore media/dist/ from R2 (needs read-only R2 keys)
@@ -56,12 +60,15 @@ Manual deploys are **emergency tooling, not the normal workflow** — normally y
 Two long-lived branches, and one merge commit between them:
 
 ```
-work locally on dev  ->  git push origin dev   ->  CI verify  ->  STAGING Worker
-                                                                        |
-when you decide it is ready:  merge dev -> master (a normal merge commit)
-                                                                        |
-                                git push origin master ->  CI verify ->  PRODUCTION Worker
+dev (default)  ->  git push origin dev      ->  CI verify  ->  STAGING Worker
+                                                                     |
+when you decide it is ready:  PR dev -> master, merged as a merge commit
+                                                                     |
+                              push reaches master ->  CI verify  ->  PRODUCTION Worker
 ```
+
+Direct commits on `dev` are normal; feature branches are optional and merge back into
+`dev`. Nothing is developed on `master`.
 
 | Branch | Workflow | Cloudflare Worker | URL |
 |---|---|---|---|
