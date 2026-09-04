@@ -1404,9 +1404,59 @@ file change.
 Verify gates the deploy because a failing step ends the job. CI deploys the application
 only: it never syncs, uploads or deletes anything in R2.
 
-### 18.6 What is still needed
+### 18.6 Credentials, and the two defects only a credentialed run could find
 
 Four repository secrets, and the minimum permission for each, are in `HANDOVER.md` §3.
-`CLOUDFLARE_API_TOKEN` needs Account -> Workers Scripts: Edit and nothing else — no zone,
-no DNS, no R2 write. Until it exists, automatic deployment is the one part of step 14 that
-is not live.
+`CLOUDFLARE_API_TOKEN` carries Account -> Workers Scripts: Edit and nothing else — no zone,
+no DNS, no R2 write — and the R2 key is Object Read only on `nvf-media` alone. The wrangler
+OAuth session CANNOT create either (`403`, code 9109 on `/user/tokens/permission_groups`),
+so both were made in the dashboard and entered at `gh secret set`'s hidden prompt. That
+detail matters: **PowerShell 5.1 cannot pipe a secret to a native executable** — it prepends
+a UTF-8 BOM and appends CRLF, measured at 11 bytes for a 6-byte string, and the BOM survives
+a `--body` trim. Git Bash pipes clean. `gh`'s own prompt avoids the question entirely.
+
+Two defects, both invisible until a run had credentials:
+
+1. **`fonts:build` shells out to `python -m fontTools.subset`.** Not an npm dependency, not
+   on the runner, so the first credentialed run died with `ModuleNotFoundError` before it
+   reached the mirror. The script had always documented the requirement; nothing enforced
+   it, because a developer machine that installed it once never notices again. Both
+   workflows now install it, version-pinned — subsetting produces bytes, and different
+   bytes are a different service-worker precache hash.
+
+2. **`media:pull` had no retry.** A later run fetched 350 of 384 objects and then failed
+   with a bare `fetch failed` after 5m39s: one transient socket took the whole staging
+   deploy red. Now 30 s per attempt, four attempts, backoff — and a hash mismatch is never
+   retried, because those bytes arrived and were wrong.
+
+### 18.7 The branch model, and the protection GitHub Free will not sell
+
+`dev` is the GitHub **default branch**: a clone lands on it, and a branch made in the web UI
+forks from it. `master` receives only merges from `dev`. Repository settings allow merge
+commits and disable squash, rebase and auto-merge, so the PR button can only produce the
+visible merge commit the model depends on.
+
+Branch protection was asked for and **cannot be configured**: for a private repository on
+GitHub Free, both `/branches/{b}/protection` and `/rulesets` answer
+
+    403  Upgrade to GitHub Pro or make this repository public to enable this feature.
+
+Confirmed by retrying with an explicit payload — a plan limit, not a token scope. The two
+rules that matter are therefore enforced on the CLIENT by `scripts/hooks/pre-push`
+(`git config core.hooksPath scripts/hooks`): no deletion of `dev` or `master`, and no push
+to either that is not a fast-forward. Tested by breaking it — deletion refused, a real
+non-fast-forward to `master` refused, a fast-forward and an unprotected branch both allowed.
+`--no-verify` bypasses it deliberately, because a hook that cannot be bypassed locks you out
+of your own repository. It protects one machine and is not a substitute for the real thing.
+
+### 18.8 Both Workers, measured
+
+| Branch | Worker | Version | Result |
+|---|---|---|---|
+| `dev` | `next-vision-films` | `a6b1a246` | run `33920024531`, success, 1m10s |
+| `master` | `next-vision-films-production` | `5793e05f` | run `33918496298` from PR #1, success, 1m27s |
+
+Production smoke test: 7 routes 200, a media rendition 200, a missing route 404, the contact
+endpoint refusing an Origin-less POST with 403, and canonicals still pointing at
+`https://www.nextvisionfilms.com/` — which is what keeps both workers.dev copies from
+competing with the live site. No domain, no DNS, no bucket made public.

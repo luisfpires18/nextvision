@@ -237,15 +237,22 @@ build the site at all: `media/dist/` is gitignored and `media:build` needs 646 M
 gitignored sources, so `npm run verify` failed at `validate:media` with 0 of 384 renditions.
 `npm run media:pull` fetches them from R2, read-only and hash-verified.
 
-**The site is deployed.** One Worker, `next-vision-films`, on the COMPANY account
-(`c87adf05…8e39`), serving from Workers Static Assets at
-`https://next-vision-films.next-vision-films.workers.dev`. **No custom domain, no DNS, no
-secret and no owner input were needed** — every unset variable already had a defined, safe
-meaning, which is what made a zero-credential staging deploy possible at all. `npm run
-deploy` is `verify && wrangler deploy`, so nothing reaches the edge that has not passed all
-eleven validators; `npm run preview:cloudflare` runs the BUILT Worker under workerd, which
-is the only local surface where the asset handler, `_headers`, `_redirects` and the 404
-fallthrough behave as they do in production.
+**The site is deployed twice, and neither deployment has a domain.** Both Workers are on
+the COMPANY account (`c87adf05…8e39`), both serve from Workers Static Assets:
+
+| Branch | Worker | URL |
+|---|---|---|
+| `dev` (default) | `next-vision-films` | `https://next-vision-films.next-vision-films.workers.dev` |
+| `master` | `next-vision-films-production` | `https://next-vision-films-production.next-vision-films.workers.dev` |
+
+The staging deploy needed **no custom domain, no DNS, no secret and no owner input** —
+every unset variable already had a defined, safe meaning, which is what made a
+zero-credential deploy possible at all. **Deployment is now CI**: push `dev` for staging,
+merge `dev -> master` for production. `npm run deploy:staging` / `deploy:production` remain
+as emergency tooling and both run the full `verify` first, so nothing reaches the edge that
+has not passed all eleven validators. `npm run preview:cloudflare` runs the BUILT Worker
+under workerd, which is the only local surface where the asset handler, `_headers`,
+`_redirects` and the 404 fallthrough behave as they do in production.
 
 Staging refuses the contact form with `503 not-configured` and **cannot be configured into
 pretending otherwise**: `IS_DEV` is false in every build, so the development sink cannot
@@ -340,12 +347,22 @@ FULL: 384 delivery objects in `nvf-media`, 102 source files / 645.95 MB in the p
 delivery needs DNS. The empty personal-account buckets are a manual cleanup item. Record:
 `docs/MEDIA_PIPELINE.md` §9.
 
-**Next phases, not started:** GitHub remote and handover (step 14), DNS cutover and a
-custom domain, the NEWSLETTER endpoint (D18). The site IS installable, IS deployed, and
-HAS passed QA on the deployed URL.
+**CI/CD is live, and `dev` is the GitHub default branch.** All four repository secrets are
+set; a push to `dev` runs checkout -> `npm ci` -> fontTools -> `fonts:build` ->
+`media:pull` -> `npm run verify` -> deploy in about 1m15s. PR #1 promoted `dev` to `master`
+and deployed production, which smoke-tests clean. **Branch protection is impossible on this
+plan** — both the branch-protection and the ruleset APIs answer `403 Upgrade to GitHub Pro
+or make this repository public` for a private repo on GitHub Free — so no-deletion and
+no-force-push are enforced client-side by `scripts/hooks/pre-push`
+(`git config core.hooksPath scripts/hooks`), which protects only the machine that has it.
 
-Do not redesign, deploy, touch DNS, make a bucket public, create a database or CMS, or
-create a GitHub repository until the user explicitly says to.
+**Next phases, not started:** Step 15 — DNS cutover, the custom domain and the media
+hostname — and the NEWSLETTER endpoint (D18). The site IS installable, IS deployed to both
+Workers, and HAS passed QA on the deployed URL.
+
+Do not redesign, touch DNS, attach a domain, make a bucket public, or create a database or
+CMS until the user explicitly says to. Deploying is now a push; deploying to PRODUCTION is
+a deliberate `dev -> master` merge and nothing else may trigger it.
 
 Standing rules that outlive this phase:
 
@@ -528,6 +545,15 @@ Standing rules that outlive this phase:
     `nvf-source-archive`, and every file verified against the manifest's SHA-256 BEFORE it
     is written. CI runs it, and a missing mirror fails the build rather than shipping a
     site with no images.
+
+28. **A restore that dies on one bad socket is not a restore** (step 14). The first CI run
+    to fetch the whole mirror got 350 of 384 objects and then failed with a bare
+    `fetch failed` after five minutes — one transient error against R2 took the entire
+    deploy red, and the five minutes says the socket hung rather than refused. `media:pull`
+    now gives each object a 30 s per-attempt timeout and four attempts with backoff. A HASH
+    MISMATCH is deliberately never retried: those bytes were delivered and they were wrong,
+    and asking again would only hide it — the same doctrine as §14 and §16, applied to a
+    download.
 
 ## 10.1 Stack, as actually installed
 
