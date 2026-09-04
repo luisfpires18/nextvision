@@ -122,7 +122,7 @@ const isCurrentPage = (id: PageId): boolean => {
             return (
               <span class="site-nav__lang-off" lang={l} aria-disabled="true">
                 <span aria-hidden="true">{LOCALE_SHORT[l]}</span>
-                <span class="visually-hidden">{`${label} — ${t('lang.noTranslation', l)}`}</span>
+                <span class="visually-hidden">{`${label} (${t('lang.noTranslation', l)})`}</span>
               </span>
             );
           }
