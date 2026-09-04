@@ -31,8 +31,7 @@ git checkout dev
 
 `--no-ff` is the point: `dev -> master` must leave a visible merge commit, so the history
 shows what was released and when. **Never** squash or rebase that merge. Repository
-settings should have merge commits enabled and squash/rebase merging disabled
-(§9 — one manual setting).
+settings already have merge commits enabled and squash/rebase merging disabled (§9).
 
 Avoid committing directly on `master`. There is no branch protection and no required
 review, because this is a one-developer repository and governance nobody asked for is
@@ -72,13 +71,17 @@ Manual deploys are emergency tooling. The normal path is `git push`.
 
 ## 3. What CI does, and what it needs
 
-Both workflows: checkout → Node 22 → `npm ci` → `fonts:build` → `media:pull` →
+Both workflows: checkout → Node 22 → `npm ci` → fontTools → `fonts:build` → `media:pull` →
 `npm run verify` → deploy. A failing verify ends the job, so nothing reaches the edge that
-has not passed all eleven validators.
+has not passed all eleven validators. A push to `dev` takes about 1m20s end to end.
 
-Until `CLOUDFLARE_API_TOKEN` exists as a repository secret, **both workflows do nothing and
-pass green** with a notice, rather than failing on every push. Add the secrets and they
-engage with no file change.
+fontTools is installed by the workflow because `fonts:build` shells out to
+`python -m fontTools.subset`, which is not an npm dependency. It is version-pinned: font
+subsetting produces bytes, and different bytes are a different service-worker precache hash.
+
+**All four secrets are set and the pipeline is live.** If `CLOUDFLARE_API_TOKEN` is ever
+removed, both workflows fall back to doing nothing and passing green with a notice, rather
+than failing on every push.
 
 Repository secrets (Settings → Secrets and variables → Actions):
 
@@ -220,9 +223,10 @@ None of these are faked, and none of them can be switched on from here.
 
 ---
 
-## 9. The one manual GitHub setting
+## 9. Repository merge settings
 
-Settings → General → Pull Requests:
+Already configured through the API, and recorded here because a dashboard click can undo
+them. Settings → General → Pull Requests:
 
 - **Allow merge commits** — ON
 - **Allow squash merging** — OFF

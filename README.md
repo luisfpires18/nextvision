@@ -68,7 +68,7 @@ when you decide it is ready:  merge dev -> master (a normal merge commit)
 | `dev` | `.github/workflows/staging.yml` | `next-vision-films` | `https://next-vision-films.next-vision-films.workers.dev` |
 | `master` | `.github/workflows/production.yml` | `next-vision-films-production` | `https://next-vision-films-production.next-vision-films.workers.dev` |
 
-A failing `npm run verify` stops the deploy. Staging is never deployed from `master` and
+Both pipelines are live. A failing `npm run verify` stops the deploy. Staging is never deployed from `master` and
 production is never deployed from `dev` — they are two separate workflow files precisely
 so that no condition decides which Worker gets overwritten.
 
