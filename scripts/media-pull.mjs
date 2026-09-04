@@ -41,6 +41,21 @@ import { r2Config, getObject } from './media/r2.mjs';
 
 const CHECK_ONLY = process.argv.includes('--check');
 const CONCURRENCY = 8;
+
+/**
+ * Retries, because a restore that dies on one bad socket is not a restore.
+ *
+ * The first CI run to exercise this fetched 350 of 384 objects and then failed with a
+ * bare `fetch failed` after five minutes — one transient error against R2, and the whole
+ * deploy went red. Nothing was wrong with the object or the credentials.
+ *
+ * So each object gets a per-attempt TIMEOUT (a hung socket is the failure that cost the
+ * five minutes) and bounded retries with backoff. A hash mismatch is NOT retried: those
+ * bytes were delivered and they were wrong, and asking again would only hide it.
+ */
+const ATTEMPTS = 4;
+const ATTEMPT_TIMEOUT_MS = 30_000;
+const BACKOFF_MS = [500, 1500, 4000];
 const log = (...a) => console.log(...a);
 
 const sha256 = (buffer) => crypto.createHash('sha256').update(buffer).digest('hex');
@@ -104,9 +119,22 @@ async function main() {
     for (;;) {
       const r = queue.shift();
       if (!r) return;
-      const body = await getObject(cfg, r.path);
+      let body = null;
+      for (let attempt = 1; attempt <= ATTEMPTS; attempt += 1) {
+        try {
+          body = await getObject(cfg, r.path, { signal: AbortSignal.timeout(ATTEMPT_TIMEOUT_MS) });
+          break;
+        } catch (error) {
+          if (attempt === ATTEMPTS) {
+            throw new Error(`${r.path}: ${ATTEMPTS} attempts failed — ${error.message}`);
+          }
+          console.log(`  retrying ${r.path} (attempt ${attempt} failed: ${error.message})`);
+          await new Promise((resolve) => { setTimeout(resolve, BACKOFF_MS[attempt - 1]); });
+        }
+      }
       // Verified BEFORE it is written. A restore that can write bytes it did not check
-      // is a way to poison the mirror from the network.
+      // is a way to poison the mirror from the network. Not retried: these bytes arrived
+      // and they were wrong, and asking again would only hide that.
       if (body.length !== r.bytes || sha256(body) !== r.sha256) {
         throw new Error(
           `${r.path}: bytes from R2 do not match the manifest ` +
