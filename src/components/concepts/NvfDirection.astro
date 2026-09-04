@@ -1,0 +1,333 @@
+---
+/**
+ * NVF DIRECTION — refined proposal. INTERNAL, noindex.
+ *
+ * Contact Sheet's editorial system with Projection as a cinematic MODE inside it.
+ * See src/styles/concepts/nvf-direction.css for the organising idea.
+ *
+ * All copy and media are real and preserved. Nothing invented.
+ * This is a DESIGN DIRECTION PROTOTYPE, not the homepage.
+ */
+import ConceptLayout from '../../layouts/ConceptLayout.astro';
+import { projects, copy, categories, heroFilm, bySlug } from '../../lib/concept-data.ts';
+import '../../styles/concepts/nvf-direction.css';
+
+// Featured work breaks the grid. Chosen for having a usable preview clip, so the
+// rhythm change is felt rather than described.
+const featureOne = bySlug('nvf-vs-filmin-details')!;
+const featureTwo = bySlug('helder-praia')!;
+
+// Everything else, in the order the grid's proportion pattern reads best.
+const gridProjects = projects.filter((p) => p.slug !== featureOne.slug && p.slug !== featureTwo.slug);
+
+const NAV = [
+  { key: 'portfolio', label: copy.nav.portfolio, href: '#work', current: true },
+  { key: 'about', label: copy.nav.about, href: '#about' },
+  { key: 'services', label: copy.nav.services, href: '#about' },
+  { key: 'contact', label: copy.nav.contact, href: '#contact' },
+];
+---
+
+<ConceptLayout concept="nvf-direction" title="NVF Direction" lerp={0.09}>
+  {/* Stripe 1/4 — scroll progress */}
+  <div class="nd-progress" data-progress aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+
+  <header class="nd-header">
+    <a class="nd-brand" href="/__concepts/">Next Vision Films</a>
+    <nav class="nd-nav" data-menu aria-label="Principal">
+      {NAV.map((n) => (
+        <a href={n.href} aria-current={n.current ? 'page' : undefined}>{n.label}</a>
+      ))}
+      <span class="nd-lang"><span aria-current="true">PT</span> / <span>EN</span></span>
+    </nav>
+    <button class="nd-burger" data-menu-toggle aria-expanded="false">Menu</button>
+  </header>
+
+  <main class="c-main">
+    {/* ─── 1 · HERO — film first, branding restrained ─────────────────────── */}
+    <section class="nd-hero nd-dark" data-ground="dark" aria-label="Next Vision Films">
+      <div class="nd-hero__media">
+        <video src={heroFilm.src} poster={heroFilm.poster} autoplay muted loop playsinline aria-hidden="true"></video>
+      </div>
+
+      <div class="nd-hero__foot">
+        <div>
+          {/* Real preserved copy, set at caption weight. The old site shouted these
+              same words; here they support the footage instead of competing with it. */}
+          <h1 class="nd-hero__line">
+            {copy.heroLine1}<b>{copy.heroLine2}</b>
+          </h1>
+          <p class="nd-hero__meta" style="margin-block-start:var(--space-4)">
+            <span>Produtora audiovisual</span><span>Portugal</span><span>{projects.length} projetos</span>
+          </p>
+        </div>
+        <button class="nd-sound" type="button" data-sound aria-pressed="false">Ligar som</button>
+      </div>
+    </section>
+
+    {/* ─── 2 · EDITORIAL — the ground lifts to cream ──────────────────────── */}
+    <section class="nd-section nd-cream" data-ground="cream" id="work" aria-labelledby="work-h">
+      <div class="nd-wide">
+        <p class="nd-eyebrow">Trabalho</p>
+        <h2 class="nd-h2" id="work-h" data-reveal>{copy.workLine1} {copy.workLine2}</h2>
+        <p class="nd-body nd-dim" style="margin-block-start:var(--space-5)" data-reveal>{copy.workBody}</p>
+      </div>
+    </section>
+
+    {/* ─── 3 · FEATURED — breaks full width, ground goes dark ─────────────── */}
+    <section class="nd-feature nd-dark" data-ground="dark" aria-labelledby="f1-title">
+      <div class="nd-feature__inner">
+        <div class="nd-feature__head">
+          <h3 class="nd-feature__title" id="f1-title">{featureOne.title}</h3>
+          <p class="nd-feature__meta">{featureOne.category} · {featureOne.date}</p>
+        </div>
+        <button
+          class={`nd-feature__frame cat-${featureOne.categoryToken}`}
+          data-preview data-open-project={featureOne.slug}
+          aria-label={`Ver ${featureOne.title}`}
+        >
+          <img src={featureOne.poster} alt={`Fotograma de ${featureOne.title}`} width="1200" height="675" fetchpriority="high" decoding="async" />
+          <video data-src={featureOne.preview} poster={featureOne.poster} muted loop playsinline preload="none" aria-hidden="true"></video>
+          <span class="nd-open">Ver projeto</span>
+        </button>
+        {featureOne.tagline && <p class="nd-body nd-dim">{featureOne.tagline}</p>}
+      </div>
+    </section>
+
+    {/* ─── 4 · PORTFOLIO — editorial browsing, varied proportion ──────────── */}
+    <section class="nd-section nd-cream" data-ground="cream" aria-labelledby="grid-h">
+      <div class="nd-wide">
+        <p class="nd-eyebrow">Portfólio</p>
+        <h2 class="nd-h2" id="grid-h" style="margin-block-end:var(--space-6)">Todos os projetos</h2>
+
+        <div class="nd-filters" role="group" aria-label="Filtrar por categoria">
+          <button type="button" data-filter="all" aria-pressed="true">Tudo</button>
+          {categories.map((c) => (
+            <button type="button" data-filter={c.name} aria-pressed="false">{c.name}</button>
+          ))}
+        </div>
+
+        <div class="nd-grid" data-grid>
+          {gridProjects.map((p) => (
+            <article class={`nd-item cat-${p.categoryToken}`} data-category={p.category}>
+              <button
+                class="nd-item__frame"
+                data-preview={p.preview ? '' : undefined}
+                data-open-project={p.slug}
+                aria-label={`Ver ${p.title}`}
+              >
+                <img src={p.poster} alt={`Fotograma de ${p.title}`} width="1200" height="675" loading="lazy" decoding="async" />
+                {p.preview && <video data-src={p.preview} poster={p.poster} muted loop playsinline preload="none" aria-hidden="true"></video>}
+              </button>
+              <h3 class="nd-item__title">{p.title}</h3>
+              <p class="nd-item__meta">
+                <span class="nd-item__dot" aria-hidden="true"></span>
+                <span>{p.category}</span><span>{p.date}</span>
+              </p>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    {/* ─── 5 · SECOND FEATURE — different proportion, dark again ──────────── */}
+    <section class="nd-feature nd-dark" data-ground="dark" aria-labelledby="f2-title">
+      <div class="nd-feature__inner">
+        <button
+          class={`nd-feature__frame cat-${featureTwo.categoryToken}`}
+          style="--ratio:16/9"
+          data-preview data-open-project={featureTwo.slug}
+          aria-label={`Ver ${featureTwo.title}`}
+        >
+          <img src={featureTwo.poster} alt={`Fotograma de ${featureTwo.title}`} width="1200" height="675" loading="lazy" decoding="async" />
+          <video data-src={featureTwo.preview} poster={featureTwo.poster} muted loop playsinline preload="none" aria-hidden="true"></video>
+          <span class="nd-open">Ver projeto</span>
+        </button>
+        <div class="nd-feature__head">
+          <h3 class="nd-feature__title" id="f2-title">{featureTwo.title}</h3>
+          <p class="nd-feature__meta">{featureTwo.category} · {featureTwo.date}</p>
+        </div>
+      </div>
+    </section>
+
+    {/* ─── 6 · IDENTITY — short, editorial, cream ─────────────────────────── */}
+    <section class="nd-section nd-cream" data-ground="cream" id="about" aria-labelledby="about-h">
+      <div class="nd-wide">
+        <p class="nd-eyebrow">Sobre</p>
+        <div class="nd-narrow">
+          <h2 class="nd-h2" id="about-h" data-reveal>{copy.aboutLead}</h2>
+          <p class="nd-body" style="margin-block-start:var(--space-5)" data-reveal>{copy.aboutBody}</p>
+          <p class="nd-body nd-dim" style="margin-block-start:var(--space-4)" data-reveal>{copy.aboutBody2}</p>
+        </div>
+      </div>
+    </section>
+
+    {/* ─── 7 · CLOSE — back to dark ───────────────────────────────────────── */}
+    <section class="nd-footer nd-dark" data-ground="dark" id="contact">
+      <div class="nd-wide">
+        <p class="nd-eyebrow">{copy.footerTitle}</p>
+        <a class="nd-footer__email" href={`mailto:${copy.footerEmail}`}>{copy.footerEmail}</a>
+        <div class="nd-footer__row">
+          <span>{copy.copyright}</span>
+          <span>Instagram · YouTube · WhatsApp</span>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  {/* ─── THE SIGNATURE: editorial frame → projection ──────────────────────── */}
+  <div class="nd-viewer" data-viewer role="dialog" aria-modal="true" aria-labelledby="viewer-title" aria-hidden="true">
+    <div class="nd-viewer__stage" data-viewer-stage>
+      <div class="nd-viewer__inner">
+        <img data-viewer-img src="" alt="" />
+        <video data-viewer-video muted loop playsinline preload="none" aria-hidden="true"></video>
+      </div>
+      <button class="nd-viewer__close" type="button" data-viewer-close>Fechar</button>
+    </div>
+    <div class="nd-viewer__bar">
+      <div>
+        <h2 class="nd-viewer__title" id="viewer-title" data-viewer-title></h2>
+        <p class="nd-viewer__tag" data-viewer-tag></p>
+      </div>
+      <p class="nd-viewer__meta" data-viewer-meta></p>
+    </div>
+  </div>
+
+  <script>
+    import { projects } from '../../lib/concept-data.ts';
+
+    const root = document.documentElement;
+    const body = document.body;
+    // Declared before the scroll handler so an open viewer can hold the ground dark.
+    let viewerOpen = false;
+
+    /* ── ground follows the section in view ──────────────────────────────────
+       This is the editorial↔cinematic mechanism, and it IS the identity: an attribute
+       swap, with CSS doing the fade.
+
+       Driven by ONE rAF-throttled scroll handler rather than IntersectionObserver.
+       Two reasons. A scroll listener is needed anyway for the progress stripe, so this
+       is one mechanism instead of two. And IO is not guaranteed to fire — background
+       tabs, embedded webviews, some privacy modes — where a silent failure would pin
+       the ground to dark and the cream editorial half of the design would never appear
+       at all. The identity cannot depend on an observer that might not run. */
+    const grounds = [...document.querySelectorAll<HTMLElement>('section[data-ground]')];
+    const bars = document.querySelectorAll<HTMLElement>('[data-progress] i');
+
+    let queued = false;
+    const paint = () => {
+      queued = false;
+
+      if (grounds.length && !viewerOpen) {
+        const mid = window.scrollY + window.innerHeight / 2;
+        let current = grounds[0]!;
+        for (const s of grounds) {
+          if (s.offsetTop <= mid) current = s; else break;
+        }
+        const next = current.dataset['ground'] ?? 'cream';
+        if (body.dataset['ground'] !== next) body.dataset['ground'] = next;
+      }
+
+      // Stripe 1 of 4: scroll progress.
+      if (bars.length) {
+        const max = document.documentElement.scrollHeight - window.innerHeight;
+        const p = max > 0 ? Math.min(1, Math.max(0, window.scrollY / max)) : 0;
+        bars.forEach((b, i) => {
+          b.style.transform = `scaleX(${Math.min(1, Math.max(0, p * bars.length - i))})`;
+        });
+      }
+    };
+    const onScroll = () => { if (!queued) { queued = true; requestAnimationFrame(paint); } };
+    addEventListener('scroll', onScroll, { passive: true });
+    addEventListener('resize', onScroll, { passive: true });
+    // Lenis drives its own scroll and does not always emit a native scroll event, so
+    // subscribe to it as well when it is running. Belt and braces: whichever fires,
+    // the ground keeps up.
+    const lenis = (window as unknown as { __nvfLenis?: { on(e: string, cb: () => void): void } }).__nvfLenis;
+    lenis?.on('scroll', onScroll);
+    paint();
+
+
+    /* ── hero sound: opt-in, state reported ──────────────────────────────── */
+    const sound = document.querySelector<HTMLButtonElement>('[data-sound]');
+    const heroVideo = document.querySelector<HTMLVideoElement>('.nd-hero__media video');
+    sound?.addEventListener('click', () => {
+      if (!heroVideo) return;
+      heroVideo.muted = !heroVideo.muted;
+      sound.setAttribute('aria-pressed', String(!heroVideo.muted));
+      sound.textContent = heroVideo.muted ? 'Ligar som' : 'Desligar som';
+    });
+
+    /* ── filters — real DOM, announced, works with the grid server-rendered ─ */
+    const fbtns = document.querySelectorAll<HTMLButtonElement>('[data-filter]');
+    const items = document.querySelectorAll<HTMLElement>('[data-category]');
+    fbtns.forEach((btn) => btn.addEventListener('click', () => {
+      const want = btn.dataset['filter'];
+      fbtns.forEach((b) => b.setAttribute('aria-pressed', String(b === btn)));
+      items.forEach((it) => { it.hidden = !(want === 'all' || it.dataset['category'] === want); });
+    }));
+
+    /* ── THE SIGNATURE: frame → projection ───────────────────────────────
+       Tap or click (not hover) so it works identically on touch, and Escape /
+       focus return so it works from the keyboard. */
+    const viewer = document.querySelector<HTMLElement>('[data-viewer]');
+    const vStage = document.querySelector<HTMLElement>('[data-viewer-stage]');
+    const vImg = document.querySelector<HTMLImageElement>('[data-viewer-img]');
+    const vVideo = document.querySelector<HTMLVideoElement>('[data-viewer-video]');
+    const vTitle = document.querySelector<HTMLElement>('[data-viewer-title]');
+    const vTag = document.querySelector<HTMLElement>('[data-viewer-tag]');
+    const vMeta = document.querySelector<HTMLElement>('[data-viewer-meta]');
+    const vClose = document.querySelector<HTMLButtonElement>('[data-viewer-close]');
+    let lastFocus: HTMLElement | null = null;
+    let prevGround = 'cream';
+
+    const open = (slug: string, trigger: HTMLElement) => {
+      const p = projects.find((x) => x.slug === slug);
+      if (!p || !viewer) return;
+      lastFocus = trigger;
+      prevGround = body.dataset['ground'] ?? 'cream';
+
+      if (vImg) { vImg.src = p.poster; vImg.alt = `Fotograma de ${p.title}`; }
+      if (vTitle) vTitle.textContent = p.title;
+      if (vTag) vTag.textContent = p.tagline ?? '';
+      if (vMeta) vMeta.textContent = `${p.category} · ${p.date}`;
+      if (vVideo && vStage) {
+        vStage.dataset['playing'] = 'false';
+        if (p.preview && root.dataset['motion'] !== 'minimal') {
+          vVideo.src = p.preview;
+          vVideo.play().then(() => { vStage.dataset['playing'] = 'true'; }).catch(() => { /* poster stands in */ });
+        } else {
+          vVideo.removeAttribute('src');
+        }
+      }
+
+      viewerOpen = true;
+      viewer.dataset['open'] = 'true';
+      viewer.setAttribute('aria-hidden', 'false');
+      body.dataset['ground'] = 'dark';
+      body.style.overflow = 'hidden';
+      vClose?.focus();
+    };
+
+    const close = () => {
+      if (!viewer) return;
+      viewerOpen = false;
+      viewer.dataset['open'] = 'false';
+      viewer.setAttribute('aria-hidden', 'true');
+      body.dataset['ground'] = prevGround;
+      body.style.overflow = '';
+      if (vVideo) { vVideo.pause(); vVideo.removeAttribute('src'); vVideo.load(); }
+      lastFocus?.focus();
+    };
+
+    document.querySelectorAll<HTMLElement>('[data-open-project]').forEach((el) => {
+      el.addEventListener('click', () => open(el.dataset['openProject'] ?? '', el));
+    });
+    vClose?.addEventListener('click', close);
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && viewer?.dataset['open'] === 'true') close();
+    });
+
+    document.addEventListener('astro:before-swap', () => { body.style.overflow = ''; }, { once: true });
+  </script>
+</ConceptLayout>

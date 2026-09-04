@@ -1,0 +1,70 @@
+---
+/**
+ * /obrigado/ — PHASE 10.
+ *
+ * A state, not a destination. It carries the published message, one way onward, and
+ * nothing else: elaborating a success screen is designing for a moment nobody looks at
+ * for more than two seconds.
+ *
+ * PHASE 13 wired it, and ONLY the server may reach it. `/api/contact/` answers
+ * `303 -> /obrigado/` when, and only when, a delivery provider has reported that the
+ * message went; an unconfigured provider produces a 503 and a visible failure instead.
+ * Nothing on /contactos/ links here, and `npm run validate:routes` fails the build if
+ * anything ever does. The page still makes no claim of its own — it reproduces what the
+ * live page says — but it is now shown only to people for whom that claim is true.
+ *
+ * `a sua mensagem` is formal where the rest of the site is informal (`a tua história`).
+ * That inconsistency is the live site's own and is preserved (decision D10, audit §3.7).
+ *
+ * PHASE 11 answers the question Phase 10 left open: this page is `noindex, follow` now.
+ * It is a form's success state, it says so in its own first sentence, and nobody looking
+ * for a film production company is served by landing on it. `follow`, because its one
+ * link into the portfolio is still worth crawling. Recorded as a reviewable diff in
+ * docs/SEO_I18N_ROLLOUT.md §5.
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHead from '../site/PageHead.astro';
+import { THANKS, ABOUT } from '../../lib/static-pages.ts';
+import { navHref } from '../../lib/nav.ts';
+import { breadcrumbSchema } from '../../lib/seo.ts';
+import type { Locale } from '../../config/i18n.ts';
+import { pagePath } from '../../i18n/routes.ts';
+import { say } from '../../lib/homepage.ts';
+import { pageTitle, pageDescription, pageNoindex } from '../../lib/page-meta.ts';
+import '../../styles/pages.css';
+
+interface Props { locale: Locale }
+const { locale } = Astro.props;
+
+const schema = [
+  breadcrumbSchema([
+    { name: 'Next Vision Films', path: pagePath('home', locale) },
+    { name: say(THANKS.title, locale), path: pagePath('thank-you', locale) },
+  ]),
+];
+---
+
+<BaseLayout
+  title={pageTitle('thank-you', locale)}
+  description={pageDescription('thank-you', locale) ?? undefined}
+  noindex={pageNoindex('thank-you')}
+  locale={locale}
+  ground="cream"
+  schema={schema}
+>
+  <div class="tk">
+    <PageHead title={say(THANKS.title, locale)}>
+      <div class="tk__body">
+        <p class="lead">{say(THANKS.lineA, locale)}</p>
+        <p class="lead">{say(THANKS.lineB, locale)}</p>
+      </div>
+      <p class="ab-actions">
+        {/* One way onward, and it is the work — the published button label from /sobre/
+            and the homepage. */}
+        <a class="ctl" href={navHref('portfolio', locale)}>
+          <span>{say(ABOUT.ctaPortfolio, locale)}</span>
+        </a>
+      </p>
+    </PageHead>
+  </div>
+</BaseLayout>

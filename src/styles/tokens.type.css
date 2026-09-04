@@ -1,0 +1,46 @@
+/* Type tokens — PROVISIONAL. Typeface is NOT approved (CLAUDE.md §4).
+   Now bound to the owner-supplied families, subsetted by scripts/build-fonts.mjs.
+   Swapping the typeface later is these three lines plus a different input list in
+   that script — no component changes. System stacks stay as the fallback so the
+   page is never unstyled while a face loads. */
+:root {
+  --font-display: 'Barlow Condensed', 'Barlow', system-ui, sans-serif;
+  --font-body: 'Barlow', system-ui, sans-serif;
+  --font-mono: 'Space Mono', ui-monospace, monospace;
+
+  --t-display-xl: clamp(2.75rem, 1.5rem + 6vw, 6rem);
+  --t-display-l: clamp(2rem, 1.2rem + 3.5vw, 3.75rem);
+  --t-display-m: clamp(1.5rem, 1.1rem + 1.8vw, 2.25rem);
+  --t-lead: clamp(1.125rem, 1.05rem + 0.35vw, 1.375rem);
+  --t-body: 1.0625rem;
+  --t-ui: 0.9375rem;
+  --t-meta: 0.8125rem;
+
+  --lh-display: 0.95;
+  --lh-body: 1.6;
+  --tracking-display: -0.015em;
+  --tracking-meta: 0.06em;
+}
+
+/* ── Site type scale (Review B) ──────────────────────────────────────────────
+   Deliberately capped below "agency manifesto" size: the largest display step is
+   3.25rem, so the film is always the biggest thing on screen. Uppercase is reserved
+   for metadata and small controls; headings stay sentence case.
+   Changing the hierarchy is an edit HERE, never in a component. */
+:root {
+  --t-hero-line: clamp(1.0625rem, 0.95rem + 0.55vw, 1.375rem);
+  --t-section: clamp(1.75rem, 1.15rem + 2.4vw, 3rem);
+  --t-display-s: clamp(1.3rem, 1.05rem + 1.1vw, 1.9rem);
+  --t-feature: clamp(1.9rem, 1.2rem + 2.8vw, 3.25rem);
+  --t-service: clamp(1.25rem, 1.05rem + 0.8vw, 1.6rem);
+  --t-project: clamp(1.0625rem, 1rem + 0.35vw, 1.25rem);
+  --t-lead: clamp(1.0625rem, 1rem + 0.4vw, 1.25rem);
+  --t-body-s: 0.9375rem;
+  --t-eyebrow: 0.6875rem;
+  --t-metaline: 0.625rem;
+
+  --lh-tight: 1.06;
+  --lh-lead: 1.4;
+  --tracking-eyebrow: 0.12em;
+  --tracking-brand: 0.06em;
+}

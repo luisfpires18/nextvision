@@ -1,0 +1,106 @@
+---
+/**
+ * Review A concept index. INTERNAL, noindex, never linked from production.
+ */
+import { projects } from '../../lib/concept-data.ts';
+import '../../styles/global.css';
+
+const REFINED = {
+  id: 'nvf-direction', name: 'NVF Direction',
+  tag: 'Contact Sheet as the editorial system, Projection as a cinematic mode inside it.',
+  ground: 'Cream ↔ near-black, following the scale of the frame',
+  motion: 'Ground follows the section; the frame opens into projection',
+} as const;
+
+const ORIGINALS = [
+  {
+    id: 'contact-sheet', name: 'Contact Sheet', tag: 'The film lab, not the cinema.',
+    ground: 'Brand cream; ink type; a light table', motion: 'Mechanical frame-advance. Snap, not glide',
+  },
+  {
+    id: 'projection', name: 'Projection', tag: 'The site is a dark room. The work is the light.',
+    ground: 'Near-black; text on cream paper cards', motion: 'Slow dissolves, heavy settle, a shutter cadence',
+  },
+  {
+    id: 'slate', name: 'Slate', tag: 'Production vernacular, taken graphically.',
+    ground: 'Full-bleed colour fields, one per category', motion: 'Hard cuts. The transition is the cut',
+  },
+] as const;
+---
+
+<!doctype html>
+<html lang="pt-PT">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Review A — visual directions (internal)</title>
+    <meta name="robots" content="noindex, nofollow, noarchive, nosnippet, noimageindex" />
+    <style>
+      .ci { padding: var(--space-7) var(--space-5); max-width: 62rem; margin-inline: auto; }
+      .ci h1 { font-family: var(--font-display); font-size: var(--t-display-l); line-height: 1; margin: 0 0 var(--space-3); }
+      .ci h2 { font-family: var(--font-mono); font-size: var(--t-meta); letter-spacing: 0.1em; text-transform: uppercase; opacity: 0.55; margin: var(--space-8) 0 var(--space-4); font-weight: 400; }
+      .ci .note { color: color-mix(in srgb, var(--ink) 62%, transparent); max-width: 62ch; }
+      .ci ul { list-style: none; padding: 0; margin: var(--space-4) 0 0; display: grid; gap: var(--space-4); }
+      .ci li a { display: block; padding: var(--space-5); border: 1px solid color-mix(in srgb, var(--ink) 22%, transparent); text-decoration: none; color: inherit; }
+      .ci li a:hover, .ci li a:focus-visible { border-color: var(--accent); }
+      .ci li.is-refined a { border-width: 2px; border-color: var(--ink); }
+      .ci .badge { font-family: var(--font-mono); font-size: 0.625rem; letter-spacing: 0.12em; text-transform: uppercase; display: inline-block; padding: 0.25rem 0.5rem; background: var(--ink); color: var(--ground); margin-block-end: var(--space-3); }
+      .ci .name { font-family: var(--font-display); font-size: var(--t-display-m); line-height: 1; }
+      .ci .tag { margin: var(--space-2) 0 var(--space-4); font-size: var(--t-lead); }
+      .ci dl { display: grid; gap: var(--space-1); margin: 0; font-family: var(--font-mono); font-size: var(--t-meta); }
+      .ci dl div { display: flex; gap: var(--space-3); }
+      .ci dt { min-width: 6rem; opacity: 0.6; }
+      .ci dd { margin: 0; }
+      .ci .bar { display: flex; height: 8px; margin-block-end: var(--space-4); }
+      .ci .bar i { flex: 1; }
+    </style>
+  </head>
+  <body class="ci">
+    <div class="bar" aria-hidden="true">
+      <i style="background:var(--brand-gold)"></i><i style="background:var(--brand-rust)"></i>
+      <i style="background:var(--brand-oxblood)"></i><i style="background:var(--brand-teal)"></i>
+    </div>
+
+    <h1>Review A — visual directions</h1>
+    <p class="note">
+      Built with real preserved NVF content — {projects.length} projects, verbatim copy,
+      nothing invented. Written up in <code>docs/VISUAL_DIRECTIONS.md</code>.
+    </p>
+    <p class="note">
+      <strong>Internal prototypes.</strong> Every route here is noindex, absent from the
+      sitemap, disallowed in robots.txt and linked from no production page. Typography and
+      colour are provisional and expected to change after review.
+    </p>
+
+    <h2>Current direction</h2>
+    <ul>
+      <li class="is-refined">
+        <a href={`/__concepts/${REFINED.id}/`}>
+          <span class="badge">Recommended · refined</span>
+          <span class="name">{REFINED.name}</span>
+          <p class="tag">{REFINED.tag}</p>
+          <dl>
+            <div><dt>Ground</dt><dd>{REFINED.ground}</dd></div>
+            <div><dt>Motion</dt><dd>{REFINED.motion}</dd></div>
+          </dl>
+        </a>
+      </li>
+    </ul>
+
+    <h2>Originals — kept for comparison</h2>
+    <ul>
+      {ORIGINALS.map((c) => (
+        <li>
+          <a href={`/__concepts/${c.id}/`}>
+            <span class="name">{c.name}</span>
+            <p class="tag">{c.tag}</p>
+            <dl>
+              <div><dt>Ground</dt><dd>{c.ground}</dd></div>
+              <div><dt>Motion</dt><dd>{c.motion}</dd></div>
+            </dl>
+          </a>
+        </li>
+      ))}
+    </ul>
+  </body>
+</html>

@@ -1,0 +1,7 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    { "name": "nvf-dev", "runtimeExecutable": "npm", "runtimeArgs": ["run", "dev"], "port": 4321, "autoPort": true },
+    { "name": "nvf-built", "runtimeExecutable": "npx", "runtimeArgs": ["http-server", "dist/client", "-c-1", "--silent"], "port": 4322, "autoPort": true }
+  ]
+}

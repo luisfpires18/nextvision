@@ -1,0 +1,54 @@
+---
+/**
+ * The opening of a static page.
+ *
+ * One component so that `/sobre/`, `/servicos/` and `/obrigado/` open the same way and
+ * are recognisably the same site rather than three design exercises. It carries the
+ * page's single `<h1>` and the section attributes the header theme and the ground driver
+ * read; everything inside it is the page's own.
+ *
+ * Three layouts, named for what goes BESIDE the title rather than for a column ratio, so
+ * a page picks one by saying what it has:
+ *
+ *   stacked   nothing beside it — the title, then whatever follows       /obrigado/
+ *   beside    prose beside it, title narrow and top-aligned              /sobre/
+ *   plate     a photograph beside it, title wide and bottom-aligned      /servicos/
+ *
+ * `/contactos/` uses none of them: it is the one static page with an image wide enough to
+ * be a plate, so it opens dark with the banner and puts its title under the frame — the
+ * project-page rhythm, applied where the material earns it.
+ */
+
+interface Props {
+  /** Small mono label above the title. Published copy, or omitted. */
+  eyebrow?: string;
+  /** The page's <h1>. */
+  title: string;
+  /** Anchor id, so a header link or an in-page link can target the section. */
+  id?: string;
+  layout?: 'stacked' | 'beside' | 'plate';
+}
+
+const { eyebrow, title, id, layout = 'stacked' } = Astro.props;
+const hasAside = Astro.slots.has('aside');
+const modifier = hasAside && layout !== 'stacked' ? ` pg-head--${layout}` : '';
+---
+
+<section
+  class="section ground-cream"
+  id={id}
+  data-ground="cream"
+  data-header="cream"
+  aria-labelledby="page-title"
+>
+  <div class="wide">
+    <div class={`pg-head${modifier}`}>
+      <div>
+        {eyebrow && <p class="eyebrow">{eyebrow}</p>}
+        <h1 class="display display--l" id="page-title">{title}</h1>
+        <slot />
+      </div>
+      {hasAside && <div class="pg-head__aside"><slot name="aside" /></div>}
+    </div>
+  </div>
+</section>

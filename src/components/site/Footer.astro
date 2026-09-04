@@ -1,0 +1,91 @@
+---
+/**
+ * Site footer.
+ *
+ * Facts come from src/content/settings/site.yml, so the owners change a social link or a
+ * phone number by editing one content file. The two legal links come from
+ * src/content/settings/navigation.yml, so the footer menu is a data edit too.
+ *
+ * One deliberate absence remains: no email address. The live /contactos/ DISPLAYS one
+ * address and links another, and the terms page names a third (decision D2). Until the
+ * owners say which is canonical, printing any of them is a guess (CLAUDE.md §8).
+ *
+ * PHASE 11 — on an English page the two legal links still lead to the PORTUGUESE
+ * documents, because those are the only ones that exist. The link says so: it carries
+ * `lang`/`hreflang` for the language it actually leads to, and a visible note in the
+ * reader's own language. Sending someone into a contract in another language without
+ * warning them is the failure worth avoiding here; hiding the links entirely would be
+ * worse, because a site must be able to reach its own privacy policy.
+ */
+import { getEntry } from 'astro:content';
+import { DEFAULT_LOCALE, type Locale } from '../../config/i18n.ts';
+import { HOME, copyrightLine, say } from '../../lib/homepage.ts';
+import { navHref, isForeignLanguagePage, localeOfPage } from '../../lib/nav.ts';
+import { LOCALE_TAGS } from '../../config/i18n.ts';
+import { t } from '../../i18n/index.ts';
+import type { UIKey } from '../../i18n/pt.ts';
+
+interface Props { locale?: Locale }
+const { locale = DEFAULT_LOCALE } = Astro.props;
+
+const settings = await getEntry('settings', 'site');
+const socials = settings?.data.socials ?? [];
+
+const navigation = await getEntry('navigation', 'navigation');
+const legal = (navigation?.data.items ?? [])
+  .filter((i) => i.showIn.includes('footer'))
+  .sort((a, b) => a.order - b.order);
+
+// The wording is the live footer's, unchanged. Only the year follows the build, because
+// a hardcoded one is wrong every January.
+const copyright = copyrightLine(settings?.data.copyright?.[locale] ?? say(HOME.copyright, locale));
+---
+
+<footer class="site-footer ground-dark">
+  <div class="site-footer__row metaline">
+    <span>{copyright}</span>
+
+    {legal.length > 0 && (
+      <nav class="site-footer__legal" aria-label={t('nav.legal', locale)}>
+        {legal.map((item) => {
+          const foreign = isForeignLanguagePage(item.pageId, locale);
+          const target = localeOfPage(item.pageId, locale);
+          return (
+            <a
+              href={navHref(item.pageId, locale)}
+              lang={foreign ? target : undefined}
+              hreflang={foreign ? LOCALE_TAGS[target] : undefined}
+            >
+              {/* The label is written in the language of the DOCUMENT, because that is
+                  what the reader is about to open; the note beside it is in theirs. */}
+              {t(item.labelKey as UIKey, foreign ? target : locale)}
+              {foreign && <span class="site-footer__note">{` (${t('lang.ptOnly', locale)})`}</span>}
+            </a>
+          );
+        })}
+      </nav>
+    )}
+
+    <span class="site-footer__social">
+      {socials.map((s) => (
+        <a href={s.url} rel="noopener me" target="_blank">{s.label}</a>
+      ))}
+    </span>
+  </div>
+</footer>
+
+<style>
+  .site-footer__social,
+  .site-footer__legal { display: flex; flex-wrap: wrap; gap: var(--space-5); }
+  /* Quieter than the link it qualifies, and never a separate tab stop. */
+  .site-footer__note { opacity: 0.62; }
+  .site-footer__social a,
+  .site-footer__legal a { padding-block: var(--space-2); }
+  .site-footer__social a:hover,
+  .site-footer__social a:focus-visible,
+  .site-footer__legal a:hover,
+  .site-footer__legal a:focus-visible { color: var(--brand-gold); }
+  /* The current legal page is marked the same way the header marks the current route:
+     with the company's own four colours, never with a colour that would fail as text. */
+  .site-footer__legal a[aria-current] { color: var(--brand-gold); }
+</style>

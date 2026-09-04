@@ -1,0 +1,60 @@
+---
+/**
+ * The cinematic close. One component, two densities — so the homepage and the portfolio
+ * end the same way without either page duplicating the other's markup.
+ *
+ *   full     the homepage: heading, the published paragraph, the CTA, both phone numbers
+ *   compact  every other page: heading and the CTA, because the reader has already read
+ *            the page and only needs the way out
+ *
+ * No email address anywhere. The live /contactos/ displays one address and links
+ * another (decision D2); until the owners say which is canonical, printing either would
+ * be a guess (CLAUDE.md §8).
+ */
+import { getEntry } from 'astro:content';
+import { DEFAULT_LOCALE, type Locale } from '../../config/i18n.ts';
+import { navHref } from '../../lib/nav.ts';
+import { HOME, formatPhone, say } from '../../lib/homepage.ts';
+
+interface Props {
+  variant?: 'full' | 'compact';
+  /** Anchor id, so the homepage's in-page navigation keeps working. */
+  id?: string;
+  locale?: Locale;
+}
+
+const { variant = 'compact', id, locale = DEFAULT_LOCALE } = Astro.props;
+
+const settings = await getEntry('settings', 'site');
+const phones = variant === 'full' ? (settings?.data.phones ?? []) : [];
+---
+
+<section
+  class="section ground-dark"
+  id={id}
+  data-ground="dark"
+  data-header="dark"
+  aria-labelledby="contact-h"
+>
+  <div class="wide contact">
+    <div>
+      <p class="eyebrow">{say(HOME.contactTitle, locale)}</p>
+      <h2 class="display" id="contact-h" data-reveal>{say(HOME.contactLead, locale)}</h2>
+      {variant === 'full' && (
+        <p class="body dim" style="margin-block-start:var(--space-5)" data-reveal>{say(HOME.contactBody, locale)}</p>
+      )}
+      <p class="contact__actions">
+        <a class="ctl" href={navHref('contact', locale)}><span>{say(HOME.ctaContact, locale)}</span></a>
+      </p>
+    </div>
+
+    {phones.length > 0 && (
+      <ul class="contact__list">
+        {phones.map((p) => (
+          <li><a class="contact__phone" href={`tel:${p.number}`}>{formatPhone(p.number)}</a></li>
+        ))}
+        <li class="metaline">{say(HOME.phoneNote, locale)}</li>
+      </ul>
+    )}
+  </div>
+</section>

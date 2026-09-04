@@ -1,0 +1,5 @@
+# Permissive, matching the current site. Yoast's block is replaced by this file.
+User-agent: *
+Disallow: /__concepts/
+
+Sitemap: https://www.nextvisionfilms.com/sitemap-index.xml

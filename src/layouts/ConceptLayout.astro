@@ -1,0 +1,92 @@
+---
+/**
+ * Shell for the Review A concept prototypes.
+ *
+ * INTERNAL ONLY. Every concept route is noindex, excluded from the sitemap
+ * (astro.config.mjs filter), disallowed in robots.txt, and reachable from no
+ * production navigation. It must never become part of the information architecture.
+ *
+ * Shared by all three directions — one CSS architecture, one motion runtime, three
+ * presentations.
+ */
+import { MOTION_BOOTSTRAP } from '../lib/motion/tier.ts';
+import '../styles/global.css';
+import '../styles/concepts/base.css';
+
+interface Props {
+  concept: 'projection' | 'contact-sheet' | 'slate' | 'nvf-direction';
+  title: string;
+  /** Lenis damping. Lower = heavier, slower settle. */
+  lerp?: number;
+}
+
+const { concept, title, lerp = 0.1 } = Astro.props;
+
+const CONCEPTS = [
+  { id: 'nvf-direction', label: '★ NVF Direction' },
+  { id: 'contact-sheet', label: 'Contact Sheet' },
+  { id: 'projection', label: 'Projection' },
+  { id: 'slate', label: 'Slate' },
+] as const;
+---
+
+<!doctype html>
+<html lang="pt-PT" class="no-js" data-concept-page>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    {/* The same pre-paint tier bootstrap the production shell runs, so the prototypes and
+        the live site answer a reader's motion preference identically rather than each
+        deciding for themselves (Review E). */}
+    <script is:inline set:html={MOTION_BOOTSTRAP} />
+
+    <title>{title} — NVF concept (internal)</title>
+
+    {/* Internal prototype: never indexed, never followed, never previewed. */}
+    <meta name="robots" content="noindex, nofollow, noarchive, nosnippet, noimageindex" />
+
+    <style is:inline>
+      /* Inlined so the loader is painted before any stylesheet resolves and can never
+         flash a black rectangle over already-visible content. */
+      html.no-js .c-loader { display: none; }
+    </style>
+  </head>
+
+  <body data-concept={concept}>
+    <div class="c-loader" data-loader-overlay aria-hidden="true">
+      <div class="c-loader__bars"><i></i><i></i><i></i><i></i></div>
+    </div>
+
+    <div class="c-shell">
+      <slot />
+    </div>
+
+    {/* Prototype-only: lets the owners flip between directions while reviewing. */}
+    <nav class="c-switch" aria-label="Concept directions (internal)">
+      {CONCEPTS.map((c) => (
+        <a href={`/__concepts/${c.id}/`} aria-current={c.id === concept ? 'page' : undefined}>{c.label}</a>
+      ))}
+    </nav>
+
+    <script define:vars={{ lerp }}>
+      // Set the tier before paint so nothing animates in on a reduced-motion device.
+      document.documentElement.classList.remove('no-js');
+      window.__nvfLerp = lerp;
+    </script>
+    <script>
+      import { initConcept } from '../lib/concept-motion.ts';
+      const lerp = (window as unknown as { __nvfLerp?: number }).__nvfLerp ?? 0.1;
+
+      // `astro:page-load` also fires on the first load, so tear down before every start
+      // or the menu toggle ends up with two handlers that cancel each other out.
+      let instance: { destroy(): void } | null = null;
+      const start = () => { instance?.destroy(); instance = initConcept({ lerp }); };
+      const stop = () => { instance?.destroy(); instance = null; };
+
+      start();
+      document.addEventListener('astro:before-swap', stop);
+      document.addEventListener('astro:page-load', start);
+    </script>
+  </body>
+</html>

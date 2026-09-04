@@ -1,0 +1,50 @@
+{
+  "id": "/",
+  "name": "Next Vision Films",
+  "short_name": "NVF",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "lang": "pt-PT",
+  "dir": "ltr",
+  "categories": [
+    "entertainment",
+    "photo",
+    "business"
+  ],
+  "theme_color": "#292929",
+  "background_color": "#F0EAD6",
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Portfólio",
+      "short_name": "Portfólio",
+      "url": "/portfolio/"
+    },
+    {
+      "name": "Contactos",
+      "short_name": "Contactos",
+      "url": "/contactos/"
+    }
+  ]
+}

@@ -1,0 +1,200 @@
+/**
+ * Direction A — PROJECTION
+ *
+ * The site is a dark room; the work is the light.
+ *
+ * The move that keeps this out of the generic "black film site" default: text never
+ * sits directly on footage. It sits on a CREAM PAPER CARD — a programme note slipped
+ * into the projector beam. The genre puts white type on video; we put paper in front
+ * of it. The brand cream stops being a background and becomes an object.
+ *
+ * Colour is rationed. The four brand colours appear as a single stripe at boundaries
+ * and nowhere else, so when they arrive they mean something.
+ *
+ * PROVISIONAL.
+ */
+
+[data-concept='projection'] {
+  --c-ground: #0b0b0b;
+  --c-fg: #efeade;
+  --c-dim: color-mix(in srgb, var(--c-fg) 55%, transparent);
+  --c-focus: var(--c-gold);
+  --loader-bg: #0b0b0b;
+
+  --lh-display: 0.94;
+  --tracking-display: -0.02em;
+}
+
+/* ------------------------------------------------------------------- header */
+
+[data-concept='projection'] .c-header { color: var(--c-fg); }
+[data-concept='projection'] .c-header__brand {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.05rem;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+[data-concept='projection'] .c-header__nav { font-family: var(--font-mono); font-size: var(--t-meta); letter-spacing: var(--tracking-meta); text-transform: uppercase; }
+[data-concept='projection'] .c-header__nav a { opacity: 0.7; transition: opacity var(--dur-fast) var(--ease-out); }
+[data-concept='projection'] .c-header__nav a:hover,
+[data-concept='projection'] .c-header__nav a:focus-visible { opacity: 1; }
+
+/* --------------------------------------------------------------------- hero */
+
+[data-concept='projection'] .p-hero {
+  position: relative;
+  min-block-size: 100svh;
+  display: grid;
+  align-items: end;
+  overflow: hidden;
+}
+[data-concept='projection'] .p-hero__media { position: absolute; inset: 0; }
+[data-concept='projection'] .p-hero__media video,
+[data-concept='projection'] .p-hero__media img {
+  inline-size: 100%; block-size: 100%; object-fit: cover; display: block;
+}
+/* Projected light falls off at the edges. A vignette, not a flat scrim. */
+[data-concept='projection'] .p-hero__media::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(120% 90% at 50% 40%, transparent 30%, rgb(0 0 0 / 0.55) 100%),
+    linear-gradient(to top, rgb(0 0 0 / 0.75), transparent 45%);
+}
+
+/* The paper card. The signature object of this direction. */
+[data-concept='projection'] .p-card {
+  position: relative;
+  z-index: var(--z-overlay);
+  background: var(--c-cream);
+  color: var(--c-ink);
+  padding: clamp(1.25rem, 0.8rem + 2vw, 2.5rem);
+  max-inline-size: min(42rem, 88vw);
+  margin: 0 var(--gutter) clamp(2rem, 6vh, 5rem);
+  box-shadow: 0 24px 70px rgb(0 0 0 / 0.5);
+}
+[data-concept='projection'] .p-card__kicker { color: color-mix(in srgb, var(--c-ink) 62%, transparent); margin-block-end: var(--space-4); }
+[data-concept='projection'] .p-card__title { font-size: clamp(2.25rem, 1.2rem + 4.6vw, 4.5rem); }
+[data-concept='projection'] .p-card .c-stripe { margin-block-start: var(--space-5); --stripe-h: 3px; }
+
+/* Sound is opt-in and visible. Never the reverse (the promenade.pt lesson). */
+[data-concept='projection'] .p-sound {
+  position: absolute;
+  z-index: var(--z-overlay);
+  inset-block-end: clamp(2rem, 6vh, 5rem);
+  inset-inline-end: var(--gutter);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  appearance: none;
+  background: transparent;
+  border: 1px solid color-mix(in srgb, var(--c-fg) 45%, transparent);
+  color: var(--c-fg);
+  font: inherit;
+  font-family: var(--font-mono);
+  font-size: var(--t-meta);
+  letter-spacing: var(--tracking-meta);
+  text-transform: uppercase;
+  padding: 0.6rem 1rem;
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out);
+}
+[data-concept='projection'] .p-sound:hover { background: var(--c-fg); color: var(--c-ink); }
+
+/* ------------------------------------------------------------ work as a list
+   Titles are the interface. The still appears BEHIND the type, like a slide changing
+   in the gate — not as a card with a thumbnail in it. */
+
+[data-concept='projection'] .p-work { position: relative; }
+[data-concept='projection'] .p-work__stage {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: var(--z-base);
+}
+[data-concept='projection'] .p-work__still {
+  position: absolute;
+  inset-block: 8%;
+  inset-inline-end: var(--gutter);
+  inline-size: min(38vw, 30rem);
+  aspect-ratio: 16 / 9;
+  opacity: 0;
+  transform: scale(1.03);
+  transition: opacity var(--dur-base) var(--ease-shutter), transform var(--dur-slow) var(--ease-out);
+  object-fit: cover;
+}
+[data-concept='projection'] .p-work__still[data-active] { opacity: 0.85; transform: none; }
+
+[data-concept='projection'] .p-row {
+  position: relative;
+  z-index: var(--z-media);
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-4);
+  padding-block: clamp(0.8rem, 2vh, 1.6rem);
+  border-block-start: 1px solid color-mix(in srgb, var(--c-fg) 18%, transparent);
+}
+[data-concept='projection'] .p-row:last-child { border-block-end: 1px solid color-mix(in srgb, var(--c-fg) 18%, transparent); }
+[data-concept='projection'] .p-row__title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(1.6rem, 0.9rem + 3vw, 3.4rem);
+  line-height: 1;
+  letter-spacing: -0.015em;
+  transition: opacity var(--dur-fast) var(--ease-out), transform var(--dur-base) var(--ease-out);
+  transform-origin: left;
+}
+[data-concept='projection'] .p-row__meta { margin-inline-start: auto; color: var(--c-dim); white-space: nowrap; }
+[data-concept='projection'] .p-row__dot {
+  inline-size: 0.5rem; block-size: 0.5rem; border-radius: 50%;
+  background: var(--cat); flex: none; align-self: center;
+}
+/* Dim siblings so the hovered title reads as the lit one. Desktop pointer only. */
+@media (hover: hover) and (pointer: fine) {
+  [data-concept='projection'] .p-work__list:has(.c-link:hover) .p-row__title { opacity: 0.32; }
+  [data-concept='projection'] .p-work__list .c-link:hover .p-row__title { opacity: 1; transform: translateX(0.6rem); }
+}
+[data-concept='projection'] .p-work__list .c-link:focus-visible .p-row__title { opacity: 1; transform: translateX(0.6rem); }
+
+/* -------------------------------------------------------- the identity panel */
+
+[data-concept='projection'] .p-panel {
+  background: var(--c-cream);
+  color: var(--c-ink);
+  padding-block: clamp(3rem, 8vh, 7rem);
+}
+[data-concept='projection'] .p-panel .c-meta { color: color-mix(in srgb, var(--c-ink) 60%, transparent); }
+
+/* --------------------------------------------------------------- full bleed */
+
+[data-concept='projection'] .p-bleed { position: relative; min-block-size: 78svh; overflow: hidden; display: grid; align-items: center; }
+[data-concept='projection'] .p-bleed video,
+[data-concept='projection'] .p-bleed img { position: absolute; inset: 0; inline-size: 100%; block-size: 100%; object-fit: cover; }
+[data-concept='projection'] .p-bleed::after { content: ''; position: absolute; inset: 0; background: rgb(0 0 0 / 0.42); }
+[data-concept='projection'] .p-bleed__quote {
+  position: relative; z-index: var(--z-overlay);
+  max-inline-size: min(52rem, 86vw);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+  text-align: center;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(1.5rem, 0.9rem + 2.6vw, 3rem);
+  line-height: 1.08;
+  text-wrap: balance;
+}
+
+/* ------------------------------------------------------------------- footer */
+
+[data-concept='projection'] .p-footer { padding-block: clamp(3rem, 8vh, 6rem); }
+[data-concept='projection'] .p-footer a { color: inherit; }
+[data-concept='projection'] .p-footer__email {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(1.5rem, 0.9rem + 2.8vw, 3.2rem);
+  text-decoration: none;
+  display: inline-block;
+}
+[data-concept='projection'] .p-footer__email:hover { color: var(--c-gold); }

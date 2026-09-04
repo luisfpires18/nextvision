@@ -1,0 +1,1134 @@
+{
+ "generatedAt": "2026-09-02T09:11:39.502Z",
+ "generatedBy": "scripts/build-route-map.mjs",
+ "origin": "https://www.nextvisionfilms.com",
+ "conventions": {
+  "trailingSlash": "always",
+  "defaultLocale": "pt",
+  "localePrefix": {
+   "pt": "",
+   "en": "/en"
+  },
+  "projectSlugsAreLocaleInvariant": true,
+  "pageSlugsAreLocalised": true
+ },
+ "counts": {
+  "preserve": 33,
+  "redirects": 6,
+  "gonePatterns": 6,
+  "uploadsMapped": 39,
+  "uploadsDerivative": 38,
+  "knownProblems": 5
+ },
+ "preserve": [
+  {
+   "path": "/",
+   "kind": "page",
+   "id": "home",
+   "locale": "pt",
+   "note": null
+  },
+  {
+   "path": "/sobre/",
+   "kind": "page",
+   "id": "about",
+   "locale": "pt",
+   "note": null
+  },
+  {
+   "path": "/portfolio/",
+   "kind": "page",
+   "id": "portfolio",
+   "locale": "pt",
+   "note": "Served by the portfolio CPT archive on WordPress, NOT page id 36 (audit §1.1)"
+  },
+  {
+   "path": "/servicos/",
+   "kind": "page",
+   "id": "services",
+   "locale": "pt",
+   "note": null
+  },
+  {
+   "path": "/contactos/",
+   "kind": "page",
+   "id": "contact",
+   "locale": "pt",
+   "note": null
+  },
+  {
+   "path": "/obrigado/",
+   "kind": "page",
+   "id": "thank-you",
+   "locale": "pt",
+   "note": null
+  },
+  {
+   "path": "/termos-e-condicoes/",
+   "kind": "page",
+   "id": "terms",
+   "locale": "pt",
+   "note": null
+  },
+  {
+   "path": "/politica-de-privacidade/",
+   "kind": "page",
+   "id": "privacy",
+   "locale": "pt",
+   "note": null
+  },
+  {
+   "path": "/portfolio/paradox-of-affection/",
+   "kind": "project",
+   "id": "paradox-of-affection",
+   "locale": "pt",
+   "note": null
+  },
+  {
+   "path": "/portfolio/the-end/",
+   "kind": "project",
+   "id": "the-end",
+   "locale": "pt",
+   "note": null
+  },
+  {
+   "path": "/portfolio/leonor/",
+   "kind": "project",
+   "id": "leonor",
+   "locale": "pt",
+   "note": null
+  },
+  {
+   "path": "/portfolio/helder-praia/",
+   "kind": "project",
+   "id": "helder-praia",
+   "locale": "pt",
+   "note": null
+  },
+  {
+   "path": "/portfolio/ana-reels/",
+   "kind": "project",
+   "id": "ana-reels",
+   "locale": "pt",
+   "note": null
+  },
+  {
+   "path": "/portfolio/nazaryi/",
+   "kind": "project",
+   "id": "nazaryi",
+   "locale": "pt",
+   "note": null
+  },
+  {
+   "path": "/portfolio/ana-e-filipe-metro/",
+   "kind": "project",
+   "id": "ana-e-filipe-metro",
+   "locale": "pt",
+   "note": null
+  },
+  {
+   "path": "/portfolio/danieladuarte/",
+   "kind": "project",
+   "id": "danieladuarte",
+   "locale": "pt",
+   "note": null
+  },
+  {
+   "path": "/portfolio/susanarafael/",
+   "kind": "project",
+   "id": "susanarafael",
+   "locale": "pt",
+   "note": null
+  },
+  {
+   "path": "/portfolio/martacharles/",
+   "kind": "project",
+   "id": "martacharles",
+   "locale": "pt",
+   "note": null
+  },
+  {
+   "path": "/portfolio/carolinapedro/",
+   "kind": "project",
+   "id": "carolinapedro",
+   "locale": "pt",
+   "note": null
+  },
+  {
+   "path": "/portfolio/ananuno/",
+   "kind": "project",
+   "id": "ananuno",
+   "locale": "pt",
+   "note": null
+  },
+  {
+   "path": "/portfolio/nvf-vs-antiqvvm/",
+   "kind": "project",
+   "id": "nvf-vs-antiqvvm",
+   "locale": "pt",
+   "note": null
+  },
+  {
+   "path": "/portfolio/lost-lines-trailer/",
+   "kind": "project",
+   "id": "lost-lines-trailer",
+   "locale": "pt",
+   "note": null
+  },
+  {
+   "path": "/portfolio/epitafio/",
+   "kind": "project",
+   "id": "epitafio",
+   "locale": "pt",
+   "note": null
+  },
+  {
+   "path": "/portfolio/dormencia-48h/",
+   "kind": "project",
+   "id": "dormencia-48h",
+   "locale": "pt",
+   "note": null
+  },
+  {
+   "path": "/portfolio/dont-let-it-fool-you/",
+   "kind": "project",
+   "id": "dont-let-it-fool-you",
+   "locale": "pt",
+   "note": null
+  },
+  {
+   "path": "/portfolio/helder-museu/",
+   "kind": "project",
+   "id": "helder-museu",
+   "locale": "pt",
+   "note": null
+  },
+  {
+   "path": "/portfolio/nvf-vs-filmin-details/",
+   "kind": "project",
+   "id": "nvf-vs-filmin-details",
+   "locale": "pt",
+   "note": null
+  },
+  {
+   "path": "/portfolio/madrugada-prince-mark/",
+   "kind": "project",
+   "id": "madrugada-prince-mark",
+   "locale": "pt",
+   "note": null
+  },
+  {
+   "path": "/categoria-portfolio/ficcao/",
+   "kind": "category",
+   "id": "ficcao",
+   "locale": "pt",
+   "note": "No canonical and no <h1> on the live site (audit §9.18); in neither sitemap"
+  },
+  {
+   "path": "/categoria-portfolio/moda-identidade/",
+   "kind": "category",
+   "id": "moda-identidade",
+   "locale": "pt",
+   "note": "No canonical and no <h1> on the live site (audit §9.18); in neither sitemap"
+  },
+  {
+   "path": "/categoria-portfolio/visual-storytelling/",
+   "kind": "category",
+   "id": "visual-storytelling",
+   "locale": "pt",
+   "note": "No canonical and no <h1> on the live site (audit §9.18); in neither sitemap"
+  },
+  {
+   "path": "/categoria-portfolio/corporativo/",
+   "kind": "category",
+   "id": "corporativo",
+   "locale": "pt",
+   "note": "No canonical and no <h1> on the live site (audit §9.18); in neither sitemap"
+  },
+  {
+   "path": "/categoria-portfolio/casamentos/",
+   "kind": "category",
+   "id": "casamentos",
+   "locale": "pt",
+   "note": "No canonical and no <h1> on the live site (audit §9.18); in neither sitemap"
+  }
+ ],
+ "pageSlugMap": [
+  {
+   "pt": "/",
+   "en": "/en/",
+   "id": "home"
+  },
+  {
+   "pt": "/sobre/",
+   "en": "/en/about/",
+   "id": "about"
+  },
+  {
+   "pt": "/portfolio/",
+   "en": "/en/portfolio/",
+   "id": "portfolio"
+  },
+  {
+   "pt": "/servicos/",
+   "en": "/en/services/",
+   "id": "services"
+  },
+  {
+   "pt": "/contactos/",
+   "en": "/en/contact/",
+   "id": "contact"
+  },
+  {
+   "pt": "/obrigado/",
+   "en": "/en/thank-you/",
+   "id": "thank-you"
+  },
+  {
+   "pt": "/termos-e-condicoes/",
+   "en": "/en/terms-and-conditions/",
+   "id": "terms"
+  },
+  {
+   "pt": "/politica-de-privacidade/",
+   "en": "/en/privacy-policy/",
+   "id": "privacy"
+  }
+ ],
+ "legacyCategories": [
+  {
+   "slug": "ficcao",
+   "legacyName": "Ficção",
+   "termId": 44,
+   "itemCount": 5
+  },
+  {
+   "slug": "moda-identidade",
+   "legacyName": "Moda & Identidade",
+   "termId": 26,
+   "itemCount": 1
+  },
+  {
+   "slug": "visual-storytelling",
+   "legacyName": "Visual Storytelling",
+   "termId": 11,
+   "itemCount": 8
+  },
+  {
+   "slug": "corporativo",
+   "legacyName": "Corporativo",
+   "termId": 28,
+   "itemCount": 1
+  },
+  {
+   "slug": "casamentos",
+   "legacyName": "Casamentos",
+   "termId": 45,
+   "itemCount": 5
+  }
+ ],
+ "previousProjectSlugs": {
+  "_note": "slug → previous slugs. Empty today: no project has been renamed. Populated automatically when a content entry declares previousSlugs."
+ },
+ "redirects": [
+  {
+   "from": "/blog",
+   "to": "/portfolio/",
+   "status": 301,
+   "reason": "Broken \"Ver Tudo\" link on all 20 project pages (audit §9.6). Target assumed — decision D5",
+   "confidence": "assumed"
+  },
+  {
+   "from": "/en/homepage-english/",
+   "to": "/en/",
+   "status": 301,
+   "reason": "Empty Polylang stub (audit §9.1). Redirect to the real EN home once EN content exists; until then /en/ itself redirects to /",
+   "confidence": "decided"
+  },
+  {
+   "from": "/sitemap_index.xml",
+   "to": "/sitemap-index.xml",
+   "status": 301,
+   "reason": "Yoast sitemap path; keep Search Console working",
+   "confidence": "decided"
+  },
+  {
+   "from": "/page-sitemap.xml",
+   "to": "/sitemap-index.xml",
+   "status": 301,
+   "reason": "Yoast child sitemap",
+   "confidence": "decided"
+  },
+  {
+   "from": "/portfolio-sitemap.xml",
+   "to": "/sitemap-index.xml",
+   "status": 301,
+   "reason": "Yoast child sitemap",
+   "confidence": "decided"
+  },
+  {
+   "from": "/wp-sitemap.xml",
+   "to": "/sitemap-index.xml",
+   "status": 301,
+   "reason": "WordPress core sitemap, exposed alongside Yoast",
+   "confidence": "decided"
+  }
+ ],
+ "gone": [
+  {
+   "pattern": "/wp-json/*",
+   "status": 410,
+   "reason": "WordPress REST API — archived, never returning"
+  },
+  {
+   "pattern": "/wp-admin/*",
+   "status": 410,
+   "reason": "WordPress admin"
+  },
+  {
+   "pattern": "/wp-includes/*",
+   "status": 410,
+   "reason": "WordPress core assets"
+  },
+  {
+   "pattern": "/xmlrpc.php",
+   "status": 410,
+   "reason": "Already blocked on the live host"
+  },
+  {
+   "pattern": "/feed/",
+   "status": 410,
+   "reason": "RSS feed with no posts"
+  },
+  {
+   "pattern": "/comments/feed/",
+   "status": 410,
+   "reason": "Comments feed with no comments"
+  }
+ ],
+ "uploads": [
+  {
+   "from": "/wp-content/uploads/2025/02/ana_e_filipe_metro.mov",
+   "archivedAt": "source-archive/wordpress/media/2025/02/ana_e_filipe_metro.mov",
+   "sha256": "4877bebaaf669794597daa5d7f341d001961924968daa647b700d196999cb718",
+   "futureR2Key": "archive/wordpress/2025/02/ana_e_filipe_metro.mov",
+   "status": "archived",
+   "note": null,
+   "derivedFrom": null
+  },
+  {
+   "from": "/wp-content/uploads/2025/02/ana_reels.mov",
+   "archivedAt": "source-archive/wordpress/media/2025/02/ana_reels.mov",
+   "sha256": "d25d78b0fdb643d7c6773da15a4af6e7887a0f649f8039e9062d752268b5c174",
+   "futureR2Key": "archive/wordpress/2025/02/ana_reels.mov",
+   "status": "archived",
+   "note": null,
+   "derivedFrom": null
+  },
+  {
+   "from": "/wp-content/uploads/2025/02/ana.png",
+   "archivedAt": "source-archive/wordpress/media/2025/02/ana.png",
+   "sha256": "826a3e9204314bdfbf4fd15c6f4eca37deed3d7131ea3f99062139e94e6daf1c",
+   "futureR2Key": "archive/wordpress/2025/02/ana.png",
+   "status": "archived",
+   "note": null,
+   "derivedFrom": null
+  },
+  {
+   "from": "/wp-content/uploads/2025/02/Capture.png",
+   "archivedAt": "source-archive/wordpress/media/2025/02/Capture.png",
+   "sha256": "7c66735dce685b4a0dbdd06b24a65c4bc91080962bf96b883128ff915ce09ce9",
+   "futureR2Key": "archive/wordpress/2025/02/Capture.png",
+   "status": "archived",
+   "note": null,
+   "derivedFrom": null
+  },
+  {
+   "from": "/wp-content/uploads/2025/02/colors.png",
+   "archivedAt": "source-archive/wordpress/media/2025/02/colors.png",
+   "sha256": "973f6a7b9f349cf4d78c934544b57a47ed8c85547029afe845638e938871bd70",
+   "futureR2Key": "archive/wordpress/2025/02/colors.png",
+   "status": "archived",
+   "note": null,
+   "derivedFrom": null
+  },
+  {
+   "from": "/wp-content/uploads/2025/02/ffffffffff.png",
+   "archivedAt": "source-archive/wordpress/media/2025/02/ffffffffff.png",
+   "sha256": "f7296945feaee3a624684b3b7bfa85f96eb890b6b5538f31b9e1d308a5c600b5",
+   "futureR2Key": "archive/wordpress/2025/02/ffffffffff.png",
+   "status": "archived",
+   "note": null,
+   "derivedFrom": null
+  },
+  {
+   "from": "/wp-content/uploads/2025/02/helder_museu.mov",
+   "archivedAt": "source-archive/wordpress/media/2025/02/helder_museu.mov",
+   "sha256": "2ba7e4b473c93f79d89e6c858413b037ac50e52b914aa2992c54fb272bd96580",
+   "futureR2Key": "archive/wordpress/2025/02/helder_museu.mov",
+   "status": "archived",
+   "note": null,
+   "derivedFrom": null
+  },
+  {
+   "from": "/wp-content/uploads/2025/02/helder_praia.mov",
+   "archivedAt": "source-archive/wordpress/media/2025/02/helder_praia.mov",
+   "sha256": "477811fec1fee8b323b6a286e9d39f14ed8060813d5cb1262269d06591ba4f98",
+   "futureR2Key": "archive/wordpress/2025/02/helder_praia.mov",
+   "status": "archived",
+   "note": null,
+   "derivedFrom": null
+  },
+  {
+   "from": "/wp-content/uploads/2025/02/Helder-Afonso-1-scaled-700x1000-1-e1745226778827.jpeg",
+   "archivedAt": "source-archive/wordpress/media/2025/02/Helder-Afonso-1-scaled-700x1000-1-e1745226778827.jpeg",
+   "sha256": "df02bc617e677d44caff97bcf28097c95c463867f70886900f992fdf47f0b5bb",
+   "futureR2Key": "archive/wordpress/2025/02/Helder-Afonso-1-scaled-700x1000-1-e1745226778827.jpeg",
+   "status": "archived",
+   "note": null,
+   "derivedFrom": null
+  },
+  {
+   "from": "/wp-content/uploads/2025/02/image_2025-02-21_161051815.png",
+   "archivedAt": "source-archive/wordpress/media/2025/02/image_2025-02-21_161051815.png",
+   "sha256": "bd24055a739767e15305174c0d071ce31e72fc2de31c0dfc41411d440a82639f",
+   "futureR2Key": "archive/wordpress/2025/02/image_2025-02-21_161051815.png",
+   "status": "archived",
+   "note": null,
+   "derivedFrom": null
+  },
+  {
+   "from": "/wp-content/uploads/2025/02/leonor.mov",
+   "archivedAt": "source-archive/wordpress/media/2025/02/leonor.mov",
+   "sha256": "7cfae693d2eb30c4ef61476cb902a5428062c339f3689341c66a8cbcd66aa0e8",
+   "futureR2Key": "archive/wordpress/2025/02/leonor.mov",
+   "status": "archived",
+   "note": null,
+   "derivedFrom": null
+  },
+  {
+   "from": "/wp-content/uploads/2025/02/metro.png",
+   "archivedAt": "source-archive/wordpress/media/2025/02/metro.png",
+   "sha256": "0fd0dbd2bc13871c2ee51166ddf5427ab249fbc2d8d90717f748e06d2b6f5c2e",
+   "futureR2Key": "archive/wordpress/2025/02/metro.png",
+   "status": "archived",
+   "note": null,
+   "derivedFrom": null
+  },
+  {
+   "from": "/wp-content/uploads/2025/02/Minya-Italic-TTF.ttf",
+   "archivedAt": "source-archive/wordpress/media/2025/02/Minya-Italic-TTF.ttf",
+   "sha256": "758f3dd6f9f830c7fb5ac43815c8a9b596f163570a16a008495f71117d020921",
+   "futureR2Key": "archive/wordpress/2025/02/Minya-Italic-TTF.ttf",
+   "status": "archived",
+   "note": null,
+   "derivedFrom": null
+  },
+  {
+   "from": "/wp-content/uploads/2025/02/Minya-TTF.ttf",
+   "archivedAt": "source-archive/wordpress/media/2025/02/Minya-TTF.ttf",
+   "sha256": "2c1f61a3470903072222987b47c7588bf0b65ac6a656e38b1d8fbfc6b031e24a",
+   "futureR2Key": "archive/wordpress/2025/02/Minya-TTF.ttf",
+   "status": "archived",
+   "note": null,
+   "derivedFrom": null
+  },
+  {
+   "from": "/wp-content/uploads/2025/02/museuuu.png",
+   "archivedAt": "source-archive/wordpress/media/2025/02/museuuu.png",
+   "sha256": "bab9d10d367994215d9c9ded3b325ca281e565c3fe634bac1d42ac73991e4187",
+   "futureR2Key": "archive/wordpress/2025/02/museuuu.png",
+   "status": "archived",
+   "note": null,
+   "derivedFrom": null
+  },
+  {
+   "from": "/wp-content/uploads/2025/02/nath.png",
+   "archivedAt": "source-archive/wordpress/media/2025/02/nath.png",
+   "sha256": "53a20c212789234dbd6d1873533b757c45a01a5b2a8670f6a2860cded153716f",
+   "futureR2Key": "archive/wordpress/2025/02/nath.png",
+   "status": "archived",
+   "note": null,
+   "derivedFrom": null
+  },
+  {
+   "from": "/wp-content/uploads/2025/02/nazary.png",
+   "archivedAt": "source-archive/wordpress/media/2025/02/nazary.png",
+   "sha256": "2d0160df700ec3689351e1ad5d9e66ff4cda3bbd6b455372067e00ef57b6e4f9",
+   "futureR2Key": "archive/wordpress/2025/02/nazary.png",
+   "status": "archived",
+   "note": null,
+   "derivedFrom": null
+  },
+  {
+   "from": "/wp-content/uploads/2025/02/nazaryi.mov",
+   "archivedAt": "source-archive/wordpress/media/2025/02/nazaryi.mov",
+   "sha256": "ca57c36c1458199af8f87e2ccc56a4e18e66289a7993a49031700ada35198bcf",
+   "futureR2Key": "archive/wordpress/2025/02/nazaryi.mov",
+   "status": "archived",
+   "note": null,
+   "derivedFrom": null
+  },
+  {
+   "from": "/wp-content/uploads/2025/02/paradox_of_affection.mov",
+   "archivedAt": "source-archive/wordpress/media/2025/02/paradox_of_affection.mov",
+   "sha256": "207f7d7a6c0a8d816bd3fe62109727308bee55dbf4d323937bb9b9dcb4d74057",
+   "futureR2Key": "archive/wordpress/2025/02/paradox_of_affection.mov",
+   "status": "archived",
+   "note": null,
+   "derivedFrom": null
+  },
+  {
+   "from": "/wp-content/uploads/2025/02/servicos3NextVision.jpg",
+   "archivedAt": "source-archive/wordpress/media/2025/02/servicos3NextVision.jpg",
+   "sha256": "468288ae8aa5a937aae786bfeb317419ff987bad73c352136774fd8f6d456c4f",
+   "futureR2Key": "archive/wordpress/2025/02/servicos3NextVision.jpg",
+   "status": "archived",
+   "note": null,
+   "derivedFrom": null
+  },
+  {
+   "from": "/wp-content/uploads/2025/02/the_end.mov",
+   "archivedAt": "source-archive/wordpress/media/2025/02/the_end.mov",
+   "sha256": "6672dd0674ccabb8a8cf18a09f66a87272ccd0fc01fe3eea367142fcefb297d6",
+   "futureR2Key": "archive/wordpress/2025/02/the_end.mov",
+   "status": "archived",
+   "note": null,
+   "derivedFrom": null
+  },
+  {
+   "from": "/wp-content/uploads/2025/02/Vintage_Colorful_Retro_Vibes_Typographic-e1744196498986.png",
+   "archivedAt": "source-archive/wordpress/media/2025/02/Vintage_Colorful_Retro_Vibes_Typographic-e1744196498986.png",
+   "sha256": "6c367ea7b1e69abfea7c1d186582cba52672a727f3e53ed9dc0445f400813e33",
+   "futureR2Key": "archive/wordpress/2025/02/Vintage_Colorful_Retro_Vibes_Typographic-e1744196498986.png",
+   "status": "archived",
+   "note": null,
+   "derivedFrom": null
+  },
+  {
+   "from": "/wp-content/uploads/2025/03/We-are-NVF-copia.mp4",
+   "archivedAt": "source-archive/wordpress/media/2025/03/We-are-NVF-copia.mp4",
+   "sha256": "b07f8799cb44d5434f7a07a35be7ff93e063bdf6cbde2ea2ec9a23a8b7b63240",
+   "futureR2Key": "archive/wordpress/2025/03/We-are-NVF-copia.mp4",
+   "status": "archived",
+   "note": null,
+   "derivedFrom": null
+  },
+  {
+   "from": "/wp-content/uploads/2025/04/Antiqvvm-imagem.png",
+   "archivedAt": "source-archive/wordpress/media/2025/04/Antiqvvm-imagem.png",
+   "sha256": "320e7a22399a1b3e68bdb66691c5a57e580568aaa37cc3a176b085f0d3b2fe33",
+   "futureR2Key": "archive/wordpress/2025/04/Antiqvvm-imagem.png",
+   "status": "archived",
+   "note": null,
+   "derivedFrom": null
+  },
+  {
+   "from": "/wp-content/uploads/2025/04/banner-contactos-2-e1744213581116.jpg",
+   "archivedAt": "source-archive/wordpress/media/2025/04/banner-contactos-2-e1744213581116.jpg",
+   "sha256": "1cd3a0a69fb52fb397cae6d2f41a361fbf90d432b184ff3d1b7e5d359f43ad43",
+   "futureR2Key": "archive/wordpress/2025/04/banner-contactos-2-e1744213581116.jpg",
+   "status": "archived",
+   "note": null,
+   "derivedFrom": null
+  },
+  {
+   "from": "/wp-content/uploads/2025/04/FILM-IN-video-2-sem-nvf-v2.mp4",
+   "archivedAt": "source-archive/wordpress/media/2025/04/FILM-IN-video-2-sem-nvf-v2.mp4",
+   "sha256": "1e28058d5c45f206ea2fdaf275faf74f090f72a3d882f8031d9b4fe35251f434",
+   "futureR2Key": "archive/wordpress/2025/04/FILM-IN-video-2-sem-nvf-v2.mp4",
+   "status": "archived",
+   "note": null,
+   "derivedFrom": null
+  },
+  {
+   "from": "/wp-content/uploads/2025/04/Filmin_1.1.1.jpg",
+   "archivedAt": "source-archive/wordpress/media/2025/04/Filmin_1.1.1.jpg",
+   "sha256": "0b92c9406147e6363358b01d77cb78c8051767e5df11730fdff289572adbd70c",
+   "futureR2Key": "archive/wordpress/2025/04/Filmin_1.1.1.jpg",
+   "status": "archived",
+   "note": null,
+   "derivedFrom": null
+  },
+  {
+   "from": "/wp-content/uploads/2025/04/grommet-icons-language.svg",
+   "archivedAt": "source-archive/wordpress/media/2025/04/grommet-icons-language.svg",
+   "sha256": "e7d0fb4d7eb0a9f03b94fe40a367773c54f834abf055e37e620ff60b3d663b5c",
+   "futureR2Key": "archive/wordpress/2025/04/grommet-icons-language.svg",
+   "status": "archived",
+   "note": null,
+   "derivedFrom": null
+  },
+  {
+   "from": "/wp-content/uploads/2025/05/ana-e-filipeee.png",
+   "archivedAt": "source-archive/wordpress/media/2025/05/ana-e-filipeee.png",
+   "sha256": "1123cd870aeb2ef55f44dfba1d3ea72596365cc1239fd9c1dd667961788c7ec4",
+   "futureR2Key": "archive/wordpress/2025/05/ana-e-filipeee.png",
+   "status": "archived",
+   "note": null,
+   "derivedFrom": null
+  },
+  {
+   "from": "/wp-content/uploads/2025/05/ana-e-nuno-1.png",
+   "archivedAt": "source-archive/wordpress/media/2025/05/ana-e-nuno-1.png",
+   "sha256": "48f5baebc6ea27fc0835e7f3c027ee8d55f2ae72a3160d474159a1f3748c46c2",
+   "futureR2Key": "archive/wordpress/2025/05/ana-e-nuno-1.png",
+   "status": "archived",
+   "note": null,
+   "derivedFrom": null
+  },
+  {
+   "from": "/wp-content/uploads/2025/05/carolina-e-pedro-1.png",
+   "archivedAt": "source-archive/wordpress/media/2025/05/carolina-e-pedro-1.png",
+   "sha256": "42b4c1d4baf84b43f4ef76fcff9e2a29630ff819d022d24b637116fee199c929",
+   "futureR2Key": "archive/wordpress/2025/05/carolina-e-pedro-1.png",
+   "status": "archived",
+   "note": null,
+   "derivedFrom": null
+  },
+  {
+   "from": "/wp-content/uploads/2025/05/Daniela-e-duarte.png",
+   "archivedAt": "source-archive/wordpress/media/2025/05/Daniela-e-duarte.png",
+   "sha256": "1d462a7b3249ec9693daa22b8e03b818d4fbdccb373be0a7c6441ea15c8a184f",
+   "futureR2Key": "archive/wordpress/2025/05/Daniela-e-duarte.png",
+   "status": "archived",
+   "note": null,
+   "derivedFrom": null
+  },
+  {
+   "from": "/wp-content/uploads/2025/05/Epitafio.png",
+   "archivedAt": "source-archive/wordpress/media/2025/05/Epitafio.png",
+   "sha256": "b49f0147ef8d16efd2c2aded71b4544608be9649a54384b7db8fdb5c51aab3a2",
+   "futureR2Key": "archive/wordpress/2025/05/Epitafio.png",
+   "status": "archived",
+   "note": null,
+   "derivedFrom": null
+  },
+  {
+   "from": "/wp-content/uploads/2025/05/lost-lines.png",
+   "archivedAt": "source-archive/wordpress/media/2025/05/lost-lines.png",
+   "sha256": "0ee832c9216731421ad952bbe1eee393e5c8f5e003441814d366e6e65b9e4616",
+   "futureR2Key": "archive/wordpress/2025/05/lost-lines.png",
+   "status": "archived",
+   "note": null,
+   "derivedFrom": null
+  },
+  {
+   "from": "/wp-content/uploads/2025/05/Marta-e-charles.png",
+   "archivedAt": "source-archive/wordpress/media/2025/05/Marta-e-charles.png",
+   "sha256": "4ad4197f31bbd8cbbb1ad1a3c02802177e9f22aace4f0aaf4b5f80d80cc4de19",
+   "futureR2Key": "archive/wordpress/2025/05/Marta-e-charles.png",
+   "status": "archived",
+   "note": null,
+   "derivedFrom": null
+  },
+  {
+   "from": "/wp-content/uploads/2025/05/Susana-e-rafael.png",
+   "archivedAt": "source-archive/wordpress/media/2025/05/Susana-e-rafael.png",
+   "sha256": "ce692f4263c356f3144237ff6ba34cb82ad32263ca8ad1f33bb53296775f62ab",
+   "futureR2Key": "archive/wordpress/2025/05/Susana-e-rafael.png",
+   "status": "archived",
+   "note": null,
+   "derivedFrom": null
+  },
+  {
+   "from": "/wp-content/uploads/2025/05/WhatsApp-Image-2025-05-26-at-10.16.54.jpeg",
+   "archivedAt": "source-archive/wordpress/media/2025/05/WhatsApp-Image-2025-05-26-at-10.16.54.jpeg",
+   "sha256": "6c6dab96ef1bc9cf6cf49ffb3d0734cfefe5c944a7ce37ca237cffb134838eb2",
+   "futureR2Key": "archive/wordpress/2025/05/WhatsApp-Image-2025-05-26-at-10.16.54.jpeg",
+   "status": "archived",
+   "note": null,
+   "derivedFrom": null
+  },
+  {
+   "from": "/wp-content/uploads/2025/08/prince-mark.png",
+   "archivedAt": "source-archive/wordpress/media/2025/08/prince-mark.png",
+   "sha256": "5baf1616859426bddc1a6bc728fe381519ff57ed8bc740e4ace54a151b55a4d8",
+   "futureR2Key": "archive/wordpress/2025/08/prince-mark.png",
+   "status": "archived",
+   "note": null,
+   "derivedFrom": null
+  },
+  {
+   "from": "/wp-content/uploads/2025/08/WhatsApp-Image-2025-08-07-at-18.16.31_99256236.jpg",
+   "archivedAt": "source-archive/wordpress/media/2025/08/WhatsApp-Image-2025-08-07-at-18.16.31_99256236.jpg",
+   "sha256": "20a5009746e16f04fd39a7827819b089fc7f53419baf14f398e122f6ae626c16",
+   "futureR2Key": "archive/wordpress/2025/08/WhatsApp-Image-2025-08-07-at-18.16.31_99256236.jpg",
+   "status": "archived",
+   "note": null,
+   "derivedFrom": null
+  },
+  {
+   "from": "/wp-content/uploads/2025/02/ana-1024x538.png",
+   "archivedAt": null,
+   "sha256": null,
+   "futureR2Key": null,
+   "status": "derivative-not-archived",
+   "note": "WordPress-generated size variant; redirect to the archived original instead",
+   "derivedFrom": "/wp-content/uploads/2025/02/ana.png"
+  },
+  {
+   "from": "/wp-content/uploads/2025/02/Capture-1024x596.png",
+   "archivedAt": null,
+   "sha256": null,
+   "futureR2Key": null,
+   "status": "derivative-not-archived",
+   "note": "WordPress-generated size variant; redirect to the archived original instead",
+   "derivedFrom": "/wp-content/uploads/2025/02/Capture.png"
+  },
+  {
+   "from": "/wp-content/uploads/2025/02/cropped-NVF-180x180.png",
+   "archivedAt": null,
+   "sha256": null,
+   "futureR2Key": null,
+   "status": "derivative-not-archived",
+   "note": "WordPress-generated size variant; redirect to the archived original instead",
+   "derivedFrom": "/wp-content/uploads/2025/02/cropped-NVF.png"
+  },
+  {
+   "from": "/wp-content/uploads/2025/02/cropped-NVF-192x192.png",
+   "archivedAt": null,
+   "sha256": null,
+   "futureR2Key": null,
+   "status": "derivative-not-archived",
+   "note": "WordPress-generated size variant; redirect to the archived original instead",
+   "derivedFrom": "/wp-content/uploads/2025/02/cropped-NVF.png"
+  },
+  {
+   "from": "/wp-content/uploads/2025/02/cropped-NVF-270x270.png",
+   "archivedAt": null,
+   "sha256": null,
+   "futureR2Key": null,
+   "status": "derivative-not-archived",
+   "note": "WordPress-generated size variant; redirect to the archived original instead",
+   "derivedFrom": "/wp-content/uploads/2025/02/cropped-NVF.png"
+  },
+  {
+   "from": "/wp-content/uploads/2025/02/cropped-NVF-32x32.png",
+   "archivedAt": null,
+   "sha256": null,
+   "futureR2Key": null,
+   "status": "derivative-not-archived",
+   "note": "WordPress-generated size variant; redirect to the archived original instead",
+   "derivedFrom": "/wp-content/uploads/2025/02/cropped-NVF.png"
+  },
+  {
+   "from": "/wp-content/uploads/2025/02/digiUP_nvf-1024x607.png",
+   "archivedAt": null,
+   "sha256": null,
+   "futureR2Key": null,
+   "status": "derivative-not-archived",
+   "note": "WordPress-generated size variant; redirect to the archived original instead",
+   "derivedFrom": "/wp-content/uploads/2025/02/digiUP_nvf.png"
+  },
+  {
+   "from": "/wp-content/uploads/2025/02/digiUP_nvf-1536x911.png",
+   "archivedAt": null,
+   "sha256": null,
+   "futureR2Key": null,
+   "status": "derivative-not-archived",
+   "note": "WordPress-generated size variant; redirect to the archived original instead",
+   "derivedFrom": "/wp-content/uploads/2025/02/digiUP_nvf.png"
+  },
+  {
+   "from": "/wp-content/uploads/2025/02/digiUP_nvf-2048x1215.png",
+   "archivedAt": null,
+   "sha256": null,
+   "futureR2Key": null,
+   "status": "derivative-not-archived",
+   "note": "WordPress-generated size variant; redirect to the archived original instead",
+   "derivedFrom": "/wp-content/uploads/2025/02/digiUP_nvf.png"
+  },
+  {
+   "from": "/wp-content/uploads/2025/02/digiUP_nvf-300x178.png",
+   "archivedAt": null,
+   "sha256": null,
+   "futureR2Key": null,
+   "status": "derivative-not-archived",
+   "note": "WordPress-generated size variant; redirect to the archived original instead",
+   "derivedFrom": "/wp-content/uploads/2025/02/digiUP_nvf.png"
+  },
+  {
+   "from": "/wp-content/uploads/2025/02/digiUP_nvf-768x455.png",
+   "archivedAt": null,
+   "sha256": null,
+   "futureR2Key": null,
+   "status": "derivative-not-archived",
+   "note": "WordPress-generated size variant; redirect to the archived original instead",
+   "derivedFrom": "/wp-content/uploads/2025/02/digiUP_nvf.png"
+  },
+  {
+   "from": "/wp-content/uploads/2025/02/ffffffffff-1024x562.png",
+   "archivedAt": null,
+   "sha256": null,
+   "futureR2Key": null,
+   "status": "derivative-not-archived",
+   "note": "WordPress-generated size variant; redirect to the archived original instead",
+   "derivedFrom": "/wp-content/uploads/2025/02/ffffffffff.png"
+  },
+  {
+   "from": "/wp-content/uploads/2025/02/Helder-Afonso-1-scaled-700x1000-1-e1745226778827-222x300.jpeg",
+   "archivedAt": null,
+   "sha256": null,
+   "futureR2Key": null,
+   "status": "derivative-not-archived",
+   "note": "WordPress-generated size variant; redirect to the archived original instead",
+   "derivedFrom": "/wp-content/uploads/2025/02/Helder-Afonso-1-scaled-700x1000-1-e1745226778827.jpeg"
+  },
+  {
+   "from": "/wp-content/uploads/2025/02/image_2025-02-21_161051815-1024x576.png",
+   "archivedAt": null,
+   "sha256": null,
+   "futureR2Key": null,
+   "status": "derivative-not-archived",
+   "note": "WordPress-generated size variant; redirect to the archived original instead",
+   "derivedFrom": "/wp-content/uploads/2025/02/image_2025-02-21_161051815.png"
+  },
+  {
+   "from": "/wp-content/uploads/2025/02/metro-1024x536.png",
+   "archivedAt": null,
+   "sha256": null,
+   "futureR2Key": null,
+   "status": "derivative-not-archived",
+   "note": "WordPress-generated size variant; redirect to the archived original instead",
+   "derivedFrom": "/wp-content/uploads/2025/02/metro.png"
+  },
+  {
+   "from": "/wp-content/uploads/2025/02/museuuu-1024x462.png",
+   "archivedAt": null,
+   "sha256": null,
+   "futureR2Key": null,
+   "status": "derivative-not-archived",
+   "note": "WordPress-generated size variant; redirect to the archived original instead",
+   "derivedFrom": "/wp-content/uploads/2025/02/museuuu.png"
+  },
+  {
+   "from": "/wp-content/uploads/2025/02/nath-1024x574.png",
+   "archivedAt": null,
+   "sha256": null,
+   "futureR2Key": null,
+   "status": "derivative-not-archived",
+   "note": "WordPress-generated size variant; redirect to the archived original instead",
+   "derivedFrom": "/wp-content/uploads/2025/02/nath.png"
+  },
+  {
+   "from": "/wp-content/uploads/2025/02/nazary-1024x460.png",
+   "archivedAt": null,
+   "sha256": null,
+   "futureR2Key": null,
+   "status": "derivative-not-archived",
+   "note": "WordPress-generated size variant; redirect to the archived original instead",
+   "derivedFrom": "/wp-content/uploads/2025/02/nazary.png"
+  },
+  {
+   "from": "/wp-content/uploads/2025/02/servicos3NextVision-300x200.jpg",
+   "archivedAt": null,
+   "sha256": null,
+   "futureR2Key": null,
+   "status": "derivative-not-archived",
+   "note": "WordPress-generated size variant; redirect to the archived original instead",
+   "derivedFrom": "/wp-content/uploads/2025/02/servicos3NextVision.jpg"
+  },
+  {
+   "from": "/wp-content/uploads/2025/02/Vintage_Colorful_Retro_Vibes_Typographic-e1744196498986-300x94.png",
+   "archivedAt": null,
+   "sha256": null,
+   "futureR2Key": null,
+   "status": "derivative-not-archived",
+   "note": "WordPress-generated size variant; redirect to the archived original instead",
+   "derivedFrom": "/wp-content/uploads/2025/02/Vintage_Colorful_Retro_Vibes_Typographic-e1744196498986.png"
+  },
+  {
+   "from": "/wp-content/uploads/2025/04/Antiqvvm-imagem-1024x467.png",
+   "archivedAt": null,
+   "sha256": null,
+   "futureR2Key": null,
+   "status": "derivative-not-archived",
+   "note": "WordPress-generated size variant; redirect to the archived original instead",
+   "derivedFrom": "/wp-content/uploads/2025/04/Antiqvvm-imagem.png"
+  },
+  {
+   "from": "/wp-content/uploads/2025/04/banner-contactos-2-e1744213581116-1024x402.jpg",
+   "archivedAt": null,
+   "sha256": null,
+   "futureR2Key": null,
+   "status": "derivative-not-archived",
+   "note": "WordPress-generated size variant; redirect to the archived original instead",
+   "derivedFrom": "/wp-content/uploads/2025/04/banner-contactos-2-e1744213581116.jpg"
+  },
+  {
+   "from": "/wp-content/uploads/2025/04/banner-contactos-2-e1744213581116-1536x603.jpg",
+   "archivedAt": null,
+   "sha256": null,
+   "futureR2Key": null,
+   "status": "derivative-not-archived",
+   "note": "WordPress-generated size variant; redirect to the archived original instead",
+   "derivedFrom": "/wp-content/uploads/2025/04/banner-contactos-2-e1744213581116.jpg"
+  },
+  {
+   "from": "/wp-content/uploads/2025/04/banner-contactos-2-e1744213581116-300x118.jpg",
+   "archivedAt": null,
+   "sha256": null,
+   "futureR2Key": null,
+   "status": "derivative-not-archived",
+   "note": "WordPress-generated size variant; redirect to the archived original instead",
+   "derivedFrom": "/wp-content/uploads/2025/04/banner-contactos-2-e1744213581116.jpg"
+  },
+  {
+   "from": "/wp-content/uploads/2025/04/banner-contactos-2-e1744213581116-768x302.jpg",
+   "archivedAt": null,
+   "sha256": null,
+   "futureR2Key": null,
+   "status": "derivative-not-archived",
+   "note": "WordPress-generated size variant; redirect to the archived original instead",
+   "derivedFrom": "/wp-content/uploads/2025/04/banner-contactos-2-e1744213581116.jpg"
+  },
+  {
+   "from": "/wp-content/uploads/2025/04/Filmin_1.1.1-1024x576.jpg",
+   "archivedAt": null,
+   "sha256": null,
+   "futureR2Key": null,
+   "status": "derivative-not-archived",
+   "note": "WordPress-generated size variant; redirect to the archived original instead",
+   "derivedFrom": "/wp-content/uploads/2025/04/Filmin_1.1.1.jpg"
+  },
+  {
+   "from": "/wp-content/uploads/2025/05/ana-e-filipeee-1024x537.png",
+   "archivedAt": null,
+   "sha256": null,
+   "futureR2Key": null,
+   "status": "derivative-not-archived",
+   "note": "WordPress-generated size variant; redirect to the archived original instead",
+   "derivedFrom": "/wp-content/uploads/2025/05/ana-e-filipeee.png"
+  },
+  {
+   "from": "/wp-content/uploads/2025/05/ana-e-nuno-1-1024x477.png",
+   "archivedAt": null,
+   "sha256": null,
+   "futureR2Key": null,
+   "status": "derivative-not-archived",
+   "note": "WordPress-generated size variant; redirect to the archived original instead",
+   "derivedFrom": "/wp-content/uploads/2025/05/ana-e-nuno-1.png"
+  },
+  {
+   "from": "/wp-content/uploads/2025/05/carolina-e-pedro-1-1024x481.png",
+   "archivedAt": null,
+   "sha256": null,
+   "futureR2Key": null,
+   "status": "derivative-not-archived",
+   "note": "WordPress-generated size variant; redirect to the archived original instead",
+   "derivedFrom": "/wp-content/uploads/2025/05/carolina-e-pedro-1.png"
+  },
+  {
+   "from": "/wp-content/uploads/2025/05/Daniela-e-duarte-1024x504.png",
+   "archivedAt": null,
+   "sha256": null,
+   "futureR2Key": null,
+   "status": "derivative-not-archived",
+   "note": "WordPress-generated size variant; redirect to the archived original instead",
+   "derivedFrom": "/wp-content/uploads/2025/05/Daniela-e-duarte.png"
+  },
+  {
+   "from": "/wp-content/uploads/2025/05/Epitafio-1024x531.png",
+   "archivedAt": null,
+   "sha256": null,
+   "futureR2Key": null,
+   "status": "derivative-not-archived",
+   "note": "WordPress-generated size variant; redirect to the archived original instead",
+   "derivedFrom": "/wp-content/uploads/2025/05/Epitafio.png"
+  },
+  {
+   "from": "/wp-content/uploads/2025/05/lost-lines-1024x436.png",
+   "archivedAt": null,
+   "sha256": null,
+   "futureR2Key": null,
+   "status": "derivative-not-archived",
+   "note": "WordPress-generated size variant; redirect to the archived original instead",
+   "derivedFrom": "/wp-content/uploads/2025/05/lost-lines.png"
+  },
+  {
+   "from": "/wp-content/uploads/2025/05/Marta-e-charles-1024x483.png",
+   "archivedAt": null,
+   "sha256": null,
+   "futureR2Key": null,
+   "status": "derivative-not-archived",
+   "note": "WordPress-generated size variant; redirect to the archived original instead",
+   "derivedFrom": "/wp-content/uploads/2025/05/Marta-e-charles.png"
+  },
+  {
+   "from": "/wp-content/uploads/2025/05/Susana-e-rafael-1024x455.png",
+   "archivedAt": null,
+   "sha256": null,
+   "futureR2Key": null,
+   "status": "derivative-not-archived",
+   "note": "WordPress-generated size variant; redirect to the archived original instead",
+   "derivedFrom": "/wp-content/uploads/2025/05/Susana-e-rafael.png"
+  },
+  {
+   "from": "/wp-content/uploads/2025/05/WhatsApp-Image-2025-05-26-at-10.16.54-691x1024.jpeg",
+   "archivedAt": null,
+   "sha256": null,
+   "futureR2Key": null,
+   "status": "derivative-not-archived",
+   "note": "WordPress-generated size variant; redirect to the archived original instead",
+   "derivedFrom": "/wp-content/uploads/2025/05/WhatsApp-Image-2025-05-26-at-10.16.54.jpeg"
+  },
+  {
+   "from": "/wp-content/uploads/2025/08/prince-mark-1024x493.png",
+   "archivedAt": null,
+   "sha256": null,
+   "futureR2Key": null,
+   "status": "derivative-not-archived",
+   "note": "WordPress-generated size variant; redirect to the archived original instead",
+   "derivedFrom": "/wp-content/uploads/2025/08/prince-mark.png"
+  },
+  {
+   "from": "/wp-content/uploads/2025/08/WhatsApp-Image-2025-08-07-at-18.16.31_99256236-300x240.jpg",
+   "archivedAt": null,
+   "sha256": null,
+   "futureR2Key": null,
+   "status": "derivative-not-archived",
+   "note": "WordPress-generated size variant; redirect to the archived original instead",
+   "derivedFrom": "/wp-content/uploads/2025/08/WhatsApp-Image-2025-08-07-at-18.16.31_99256236.jpg"
+  },
+  {
+   "from": "/wp-content/uploads/2025/08/WhatsApp-Image-2025-08-07-at-18.16.31_99256236-768x614.jpg",
+   "archivedAt": null,
+   "sha256": null,
+   "futureR2Key": null,
+   "status": "derivative-not-archived",
+   "note": "WordPress-generated size variant; redirect to the archived original instead",
+   "derivedFrom": "/wp-content/uploads/2025/08/WhatsApp-Image-2025-08-07-at-18.16.31_99256236.jpg"
+  }
+ ],
+ "problems": [
+  {
+   "path": "/portfolio/",
+   "issue": "Yoast lists page id 36 in page-sitemap.xml, but this URL serves the portfolio CPT archive. Page 36 is unreachable",
+   "audit": "§1.1"
+  },
+  {
+   "path": "/portfolio/dont-let-it-fool-you/",
+   "issue": "Video source is a studio.youtube.com edit URL for video e6aK4vEn420, which is already published at /portfolio/ana-e-filipe-metro/. Duplicate entry or missing video",
+   "audit": "§9.7",
+   "decision": "D6"
+  },
+  {
+   "path": "/politica-de-privacidade/",
+   "issue": "The in-page 'Navegação' anchors resolve to digiup.me, not to this page",
+   "audit": "§9.4",
+   "decision": "D4"
+  },
+  {
+   "path": "/contactos/",
+   "issue": "Displayed email (nextvisionfilmsagency@gmail.com) differs from the mailto: target (hello@nextvisionfilms.com)",
+   "audit": "§9.5",
+   "decision": "D2"
+  },
+  {
+   "path": "/politica-de-privacidade",
+   "issue": "Linked without a trailing slash from the newsletter consent label; the footer uses the trailing-slash form",
+   "audit": "§1.6"
+  }
+ ]
+}

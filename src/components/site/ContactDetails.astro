@@ -1,0 +1,56 @@
+---
+/**
+ * The direct contact block: phones, the published cost note, and the verified socials.
+ *
+ * Facts come from src/content/settings/site.yml, so changing a number is a content edit.
+ *
+ * THE EMAIL SLOT IS RESERVED AND EMPTY, and that is decision D2, not an oversight. The
+ * live /contactos/ prints `nextvisionfilmsagency@gmail.com` inside a `mailto:` that
+ * targets `hello@nextvisionfilms.com`; the footer uses the second; and
+ * /termos-e-condicoes/ names a THIRD address, `geral@nextvisionfilms.com`. Three
+ * addresses, no way to tell which one reaches the company. Printing any of them would be
+ * a guess, and a guess on a contact page is a lost enquiry (CLAUDE.md §8).
+ *
+ * The markup exists below and renders the moment `emailStatus` becomes `confirmed` in
+ * site.yml. Answering D2 is one word in one content file — no component changes.
+ */
+import { getEntry } from 'astro:content';
+import { DEFAULT_LOCALE, type Locale } from '../../config/i18n.ts';
+import { formatPhone, say } from '../../lib/homepage.ts';
+import { CONTACT } from '../../lib/static-pages.ts';
+
+interface Props { locale?: Locale | undefined }
+const { locale = DEFAULT_LOCALE } = Astro.props;
+
+const settings = await getEntry('settings', 'site');
+const phones = settings?.data.phones ?? [];
+const socials = settings?.data.socials ?? [];
+const email = settings?.data.emailStatus === 'confirmed' ? settings.data.email : null;
+---
+
+<ul class="ct-list">
+  {email && (
+    <li><a class="ct-phone" href={`mailto:${email}`}>{email}</a></li>
+  )}
+
+  {phones.map((p) => (
+    <li>
+      {/* The live page prints both numbers as plain text inside an <h3>. They are phone
+          numbers on a page whose job is to be phoned, so they are dialable here. The
+          displayed string is byte-identical to the published one. */}
+      <a class="ct-phone" href={`tel:${p.number}`}>{formatPhone(p.number)}</a>
+    </li>
+  ))}
+
+  {phones.length > 0 && <li class="metaline">{say(CONTACT.phoneNote, locale)}</li>}
+
+  {socials.length > 0 && (
+    <li>
+      <ul class="ct-socials">
+        {socials.map((s) => (
+          <li><a href={s.url} rel="noopener me" target="_blank">{s.label}</a></li>
+        ))}
+      </ul>
+    </li>
+  )}
+</ul>

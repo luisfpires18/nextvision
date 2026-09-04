@@ -1,0 +1,43 @@
+# Owner-editable site facts. One place, used by header, footer, contact page and
+# structured data. See docs/ARCHITECTURE.md §4.1.
+#
+# Values are deliberately null where the live site is ambiguous or silent.
+# CLAUDE.md §8: never guess. Each null below is a real open question.
+- id: site
+
+# DISPUTED (decision D2). The live /contactos/ page DISPLAYS
+# "nextvisionfilmsagency@gmail.com" while the mailto: on the same element targets
+# "hello@nextvisionfilms.com", which is also what the footer uses. Until the owner
+# confirms which is canonical, neither is committed here.
+  email: null
+  emailStatus: disputed
+
+  phones:
+    - label: "Principal"
+      number: "+351932797025"
+    - label: "Alternativo"
+      number: "+351929130631"
+
+  socials:
+    - platform: youtube
+      url: "https://www.youtube.com/@NextVision_Films"
+      label: "YouTube"
+    - platform: instagram
+      url: "https://www.instagram.com/nextvisionfilms_/"
+      label: "Instagram"
+    - platform: whatsapp
+      url: "https://wa.me/351929130631"
+      label: "WhatsApp"
+
+# The live footer reads "copyright 2025 © todos os direitos reservados" (CLAUDE.md §2).
+# {year} is filled from the build year — the only substitution, because a hardcoded year
+# is wrong from the next 1 January onwards. No other character differs from the original.
+  copyright:
+    pt: "copyright {year} © todos os direitos reservados"
+    en: "copyright {year} © all rights reserved"
+
+# Not published anywhere on the live site. UNKNOWN, not invented.
+  organisation:
+    legalName: null
+    vatId: null
+    address: null

@@ -1,0 +1,394 @@
+/**
+ * NVF DIRECTION — the refined proposal (working name: "Frame")
+ *
+ * Contact Sheet's editorial system + Projection as a cinematic MODE inside it.
+ *
+ * ── The single idea ──────────────────────────────────────────────────────────
+ * A contact sheet is many small frames. A projection is one frame filling the room.
+ * This is the SAME FRAME AT DIFFERENT SCALES, and the ground colour follows the frame:
+ *
+ *     frame large, one of them   →  ground goes dark   (you are watching)
+ *     frames small, many of them →  ground is cream    (you are reading)
+ *
+ * That makes the cream/dark duality causal rather than decorative, which is what stops
+ * it reading as two websites stitched together. The transition IS the identity.
+ *
+ * ── Restraint ────────────────────────────────────────────────────────────────
+ * The four-colour stripe appears in exactly four places: the loader, scroll progress,
+ * the active nav item, and the active filter. Nowhere else. It earns recognition by
+ * being scarce.
+ *
+ * PROVISIONAL — typography and colour are subject to owner/Tatiana review.
+ */
+
+[data-concept='nvf-direction'] {
+  --cream: var(--brand-cream);
+  --ink: var(--brand-ink);
+  --dark: #0c0c0c;
+
+  /* Ground and foreground are driven by [data-ground] and TRANSITION between states.
+     This pair is the whole editorial↔cinematic mechanism. */
+  --ground: var(--cream);
+  --fg: var(--ink);
+  --rule: color-mix(in srgb, var(--fg) 16%, transparent);
+  --dim: color-mix(in srgb, var(--fg) 58%, transparent);
+  --focus: var(--brand-oxblood);
+
+  /* Explicit colours, not var() indirection. The ground swap is the identity, so it
+     must not depend on custom-property resolution order across four stylesheets. */
+  background-color: #f0ead6;
+  color: #292929;
+  transition:
+    background-color var(--dur-slow) var(--ease-out),
+    color var(--dur-slow) var(--ease-out);
+}
+
+[data-concept='nvf-direction'][data-ground='dark'] {
+  --ground: var(--dark);
+  --fg: var(--cream);
+  --focus: var(--brand-gold);
+  background-color: #0c0c0c;
+  color: #f0ead6;
+}
+
+/* Sections carry their own ground so the observer only has to read an attribute. */
+.nd-dark { background: var(--dark); color: var(--cream); --fg: var(--cream); --rule: color-mix(in srgb, var(--cream) 18%, transparent); --dim: color-mix(in srgb, var(--cream) 60%, transparent); }
+.nd-cream { background: var(--cream); color: var(--ink); --fg: var(--ink); --rule: color-mix(in srgb, var(--ink) 16%, transparent); --dim: color-mix(in srgb, var(--ink) 58%, transparent); }
+
+/* ═══════════════════════════════════════════════════════════ scroll progress
+   Stripe use 1 of 4. Four segments filling in sequence — the colour bar as a
+   progress meter, which is what a leader strip is for. */
+
+.nd-progress {
+  position: fixed;
+  inset-block-start: 0;
+  inset-inline: 0;
+  z-index: var(--z-header);
+  display: flex;
+  block-size: 2px;
+  pointer-events: none;
+}
+.nd-progress i { flex: 1; transform: scaleX(0); transform-origin: left; transition: transform 120ms linear; }
+.nd-progress i:nth-child(1) { background: var(--brand-gold); }
+.nd-progress i:nth-child(2) { background: var(--brand-rust); }
+.nd-progress i:nth-child(3) { background: var(--brand-oxblood); }
+.nd-progress i:nth-child(4) { background: var(--brand-teal); }
+
+/* ═══════════════════════════════════════════════════════════════════ header
+   Restrained by design: the work is the first impression, not the branding.
+   Readability over both cream and dark comes from inheriting --fg, never from a
+   hardcoded colour or a scrim. */
+
+.nd-header {
+  position: fixed;
+  inset-block-start: 0;
+  inset-inline: 0;
+  z-index: var(--z-header);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-4) var(--gutter);
+  color: var(--fg);
+  transition: color var(--dur-slow) var(--ease-out);
+}
+.nd-brand {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.95rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  line-height: 1;
+}
+.nd-nav { display: flex; align-items: center; gap: var(--space-5); }
+.nd-nav a {
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 0.875rem;
+  letter-spacing: 0.01em;
+  position: relative;
+  padding-block-end: 4px;
+}
+/* Stripe use 2 of 4: the active item only. */
+.nd-nav a[aria-current]::after {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  inset-block-end: 0;
+  block-size: 2px;
+  background: linear-gradient(90deg,
+    var(--brand-gold) 0 25%, var(--brand-rust) 25% 50%,
+    var(--brand-oxblood) 50% 75%, var(--brand-teal) 75% 100%);
+}
+.nd-nav a:not([aria-current])::after {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  inset-block-end: 0;
+  block-size: 1px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform var(--dur-fast) var(--ease-out);
+}
+.nd-nav a:hover::after, .nd-nav a:focus-visible::after { transform: scaleX(1); transform-origin: left; }
+
+.nd-lang { font-family: var(--font-mono); font-size: 0.6875rem; letter-spacing: 0.08em; opacity: 0.7; }
+.nd-lang [aria-current] { opacity: 1; font-weight: 700; }
+
+.nd-burger {
+  appearance: none; background: none; border: 0; color: inherit; cursor: pointer;
+  font-family: var(--font-mono); font-size: 0.6875rem; letter-spacing: 0.1em;
+  text-transform: uppercase; padding: var(--space-2); margin-inline-end: calc(var(--space-2) * -1);
+  display: none;
+}
+@media (max-width: 47.99rem) {
+  .nd-nav { display: none; }
+  .nd-burger { display: block; }
+  .nd-nav[data-open='true'] {
+    display: flex; position: fixed; inset: 0; z-index: var(--z-menu);
+    flex-direction: column; align-items: flex-start; justify-content: center;
+    gap: var(--space-4); padding: var(--gutter);
+    background: var(--dark); color: var(--cream);
+  }
+  .nd-nav[data-open='true'] a { font-family: var(--font-display); font-size: 2rem; font-weight: 500; }
+}
+
+/* ═════════════════════════════════════════════════════════════════════ hero
+   FILM FIRST. Full-bleed footage, near-black ground, and the branding kept small.
+   The company statement is real preserved copy but set at caption weight — the same
+   words the old site shouted, deliberately quiet. */
+
+.nd-hero { position: relative; min-block-size: 100svh; display: grid; align-items: end; overflow: hidden; }
+.nd-hero__media { position: absolute; inset: 0; }
+.nd-hero__media video, .nd-hero__media img { inline-size: 100%; block-size: 100%; object-fit: cover; display: block; }
+/* Just enough gradient to hold small type at the bottom. No full-frame scrim: the
+   footage stays the brightest thing on screen. */
+.nd-hero__media::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(to top, rgb(0 0 0 / 0.72) 0%, rgb(0 0 0 / 0.18) 32%, transparent 62%);
+}
+.nd-hero__foot {
+  position: relative;
+  z-index: var(--z-overlay);
+  display: grid;
+  gap: var(--space-4);
+  padding: var(--gutter);
+  padding-block-end: clamp(1.5rem, 5vh, 3.5rem);
+}
+@media (min-width: 48rem) {
+  .nd-hero__foot { grid-template-columns: 1fr auto; align-items: end; gap: var(--space-6); }
+}
+/* Caption, not manifesto. Two lines of real copy at reading size. */
+.nd-hero__line {
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: clamp(1rem, 0.9rem + 0.5vw, 1.25rem);
+  line-height: 1.35;
+  max-inline-size: 26ch;
+  margin: 0;
+  color: var(--cream);
+}
+.nd-hero__line b { font-weight: 500; display: block; color: color-mix(in srgb, var(--cream) 72%, transparent); }
+.nd-hero__meta { font-family: var(--font-mono); font-size: 0.6875rem; letter-spacing: 0.1em; text-transform: uppercase; color: color-mix(in srgb, var(--cream) 62%, transparent); display: flex; gap: var(--space-4); flex-wrap: wrap; }
+
+.nd-sound {
+  appearance: none; background: transparent; cursor: pointer;
+  border: 1px solid color-mix(in srgb, var(--cream) 38%, transparent);
+  color: var(--cream);
+  font-family: var(--font-mono); font-size: 0.625rem; letter-spacing: 0.12em; text-transform: uppercase;
+  padding: 0.55rem 0.9rem;
+  transition: background var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out);
+  justify-self: start;
+}
+.nd-sound:hover { background: var(--cream); color: var(--dark); }
+
+/* ═══════════════════════════════════════════════════════════════ editorial */
+
+.nd-section { padding-block: clamp(3.5rem, 9vh, 8rem); padding-inline: var(--gutter); }
+.nd-wide { max-inline-size: var(--w-wide); margin-inline: auto; }
+.nd-narrow { max-inline-size: 46rem; }
+
+.nd-eyebrow {
+  font-family: var(--font-mono); font-size: 0.6875rem; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--dim); margin: 0 0 var(--space-4);
+  display: flex; align-items: center; gap: var(--space-3);
+}
+/* Stripe use 3 of 4 is the filter; this divider is a single hairline, not the bar. */
+.nd-eyebrow::after { content: ''; flex: 1; block-size: 1px; background: var(--rule); }
+
+/* Display type: condensed but NOT everything, and NOT all uppercase. Sentence case
+   here keeps the editorial voice human; uppercase is reserved for metadata. */
+.nd-h2 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(1.9rem, 1.1rem + 3.4vw, 3.6rem);
+  line-height: 1.04;
+  letter-spacing: -0.015em;
+  margin: 0;
+  text-wrap: balance;
+}
+.nd-body { font-family: var(--font-body); font-size: clamp(1rem, 0.95rem + 0.25vw, 1.125rem); line-height: 1.6; max-inline-size: 54ch; margin: 0; }
+.nd-dim { color: var(--dim); }
+
+/* ═══════════════════════════════════════════════════ featured — breaks the grid
+   The rhythm change the owners asked for: full width, dark, one frame at scale. */
+
+.nd-feature { position: relative; padding-block: clamp(3rem, 8vh, 7rem); padding-inline: var(--gutter); }
+.nd-feature__inner { max-inline-size: var(--w-wide); margin-inline: auto; display: grid; gap: var(--space-5); }
+.nd-feature__frame {
+  position: relative; overflow: hidden; background: #000;
+  aspect-ratio: var(--ratio, 21 / 9);
+  cursor: pointer;
+}
+@media (max-width: 47.99rem) { .nd-feature__frame { aspect-ratio: var(--ratio-m, 4 / 3); } }
+.nd-feature__frame img, .nd-feature__frame video { position: absolute; inset: 0; inline-size: 100%; block-size: 100%; object-fit: cover; }
+.nd-feature__frame video { opacity: 0; transition: opacity var(--dur-base) var(--ease-out); }
+.nd-feature__frame[data-playing='true'] video { opacity: 1; }
+
+.nd-feature__head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: var(--space-3); }
+.nd-feature__title {
+  font-family: var(--font-display); font-weight: 700;
+  font-size: clamp(1.6rem, 1rem + 2.8vw, 3rem);
+  line-height: 1.05; letter-spacing: -0.02em; margin: 0;
+}
+.nd-feature__meta { font-family: var(--font-mono); font-size: 0.6875rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--dim); }
+
+/* The affordance is always present — never hover-only. */
+.nd-open {
+  position: absolute; inset-block-end: var(--space-4); inset-inline-start: var(--space-4);
+  z-index: 2;
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  font-family: var(--font-mono); font-size: 0.625rem; letter-spacing: 0.12em; text-transform: uppercase;
+  color: #fff; background: rgb(0 0 0 / 0.45);
+  border: 1px solid rgb(255 255 255 / 0.35);
+  padding: 0.5rem 0.8rem;
+  transition: background var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out);
+  pointer-events: none;
+}
+.nd-feature__frame:hover .nd-open, .nd-feature__frame:focus-visible .nd-open { background: #fff; color: #000; border-color: #fff; }
+
+/* ═══════════════════════════════════════════════════════ portfolio browsing
+   Editorial order with varied proportion — deliberately not a uniform grid, and
+   deliberately not masonry. Every item still sits on the same column baseline. */
+
+.nd-grid { display: grid; gap: clamp(1.5rem, 1rem + 2vw, 3rem) clamp(1rem, 0.6rem + 1.4vw, 2rem); grid-template-columns: 1fr; }
+@media (min-width: 34rem) { .nd-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 64rem) { .nd-grid { grid-template-columns: repeat(12, 1fr); } }
+
+/* Deliberate, repeating proportion pattern — order you can feel, not randomness. */
+@media (min-width: 64rem) {
+  .nd-item { grid-column: span 4; }
+  .nd-item:nth-child(6n + 1) { grid-column: span 7; }
+  .nd-item:nth-child(6n + 2) { grid-column: span 5; }
+  .nd-item:nth-child(6n + 3),
+  .nd-item:nth-child(6n + 4),
+  .nd-item:nth-child(6n + 5) { grid-column: span 4; }
+  .nd-item:nth-child(6n + 6) { grid-column: span 12; }
+  .nd-item:nth-child(6n + 1) .nd-item__frame { --r: 16 / 9; }
+  .nd-item:nth-child(6n + 2) .nd-item__frame { --r: 4 / 5; }
+  .nd-item:nth-child(6n + 6) .nd-item__frame { --r: 21 / 9; }
+}
+
+.nd-item { display: grid; gap: var(--space-3); align-content: start; }
+.nd-item__frame { position: relative; overflow: hidden; background: #000; aspect-ratio: var(--r, 16 / 9); cursor: pointer; }
+.nd-item__frame img, .nd-item__frame video { position: absolute; inset: 0; inline-size: 100%; block-size: 100%; object-fit: cover; }
+.nd-item__frame video { opacity: 0; transition: opacity var(--dur-base) var(--ease-out); }
+.nd-item__frame[data-playing='true'] video { opacity: 1; }
+.nd-item__frame::after {
+  content: ''; position: absolute; inset: 0;
+  outline: 1px solid transparent; outline-offset: -1px;
+  transition: outline-color var(--dur-fast) var(--ease-out);
+}
+.nd-item__frame:hover::after, .nd-item__frame:focus-visible::after { outline-color: var(--cat, var(--fg)); }
+
+.nd-item__title { font-family: var(--font-display); font-weight: 500; font-size: 1.25rem; line-height: 1.1; margin: 0; }
+.nd-item__meta { font-family: var(--font-mono); font-size: 0.625rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--dim); display: flex; gap: var(--space-3); align-items: center; }
+.nd-item__dot { inline-size: 6px; block-size: 6px; background: var(--cat); flex: none; }
+
+/* Filters — quiet text controls, not chunky buttons.
+   Stripe use 4 of 4: the active filter carries a 4-colour underline. */
+.nd-filters { display: flex; flex-wrap: wrap; gap: var(--space-4); margin-block-end: var(--space-6); }
+.nd-filters button {
+  appearance: none; background: none; border: 0; cursor: pointer; color: inherit;
+  font-family: var(--font-mono); font-size: 0.6875rem; letter-spacing: 0.1em; text-transform: uppercase;
+  padding: 0 0 6px; position: relative; opacity: 0.55;
+  transition: opacity var(--dur-fast) var(--ease-out);
+}
+.nd-filters button:hover, .nd-filters button:focus-visible { opacity: 1; }
+.nd-filters button[aria-pressed='true'] { opacity: 1; }
+.nd-filters button[aria-pressed='true']::after {
+  content: ''; position: absolute; inset-inline: 0; inset-block-end: 0; block-size: 2px;
+  background: linear-gradient(90deg,
+    var(--brand-gold) 0 25%, var(--brand-rust) 25% 50%,
+    var(--brand-oxblood) 50% 75%, var(--brand-teal) 75% 100%);
+}
+
+/* ═══════════════════════════════════════════ THE SIGNATURE: frame → projection
+   The clicked frame expands to fill the viewport and the ground goes dark. One
+   element, transform + opacity only, so it stays on the compositor. */
+
+.nd-viewer {
+  position: fixed; inset: 0; z-index: var(--z-menu);
+  background: var(--dark);
+  display: grid; grid-template-rows: 1fr auto;
+  opacity: 0; visibility: hidden;
+  transition: opacity var(--dur-base) var(--ease-out), visibility 0s linear var(--dur-base);
+}
+.nd-viewer[data-open='true'] { opacity: 1; visibility: visible; transition-delay: 0s; }
+
+.nd-viewer__stage { position: relative; overflow: hidden; }
+.nd-viewer__stage img, .nd-viewer__stage video { position: absolute; inset: 0; inline-size: 100%; block-size: 100%; object-fit: contain; background: #000; }
+.nd-viewer__stage video { opacity: 0; transition: opacity var(--dur-base) var(--ease-out); }
+.nd-viewer__stage[data-playing='true'] video { opacity: 1; }
+/* The frame grows into place rather than cutting — the "opening" of the signature. */
+.nd-viewer__inner {
+  position: absolute; inset: 0;
+  transform: scale(0.94);
+  opacity: 0;
+  transition: transform var(--dur-slow) var(--ease-out), opacity var(--dur-base) var(--ease-out);
+}
+.nd-viewer[data-open='true'] .nd-viewer__inner { transform: none; opacity: 1; }
+
+.nd-viewer__bar {
+  display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--gutter) var(--space-5);
+  color: var(--cream);
+  border-block-start: 1px solid rgb(255 255 255 / 0.16);
+}
+.nd-viewer__title { font-family: var(--font-display); font-weight: 700; font-size: clamp(1.4rem, 1rem + 2vw, 2.4rem); line-height: 1.05; margin: 0; }
+.nd-viewer__meta { font-family: var(--font-mono); font-size: 0.6875rem; letter-spacing: 0.1em; text-transform: uppercase; color: rgb(255 255 255 / 0.6); }
+.nd-viewer__tag { font-family: var(--font-body); font-size: 0.95rem; line-height: 1.45; color: rgb(255 255 255 / 0.8); max-inline-size: 46ch; margin: var(--space-2) 0 0; }
+.nd-viewer__close {
+  position: absolute; inset-block-start: var(--space-4); inset-inline-end: var(--gutter);
+  z-index: 3;
+  appearance: none; background: rgb(0 0 0 / 0.5); border: 1px solid rgb(255 255 255 / 0.35);
+  color: #fff; cursor: pointer;
+  font-family: var(--font-mono); font-size: 0.625rem; letter-spacing: 0.12em; text-transform: uppercase;
+  padding: 0.55rem 0.9rem;
+}
+.nd-viewer__close:hover { background: #fff; color: #000; }
+
+/* ═══════════════════════════════════════════════════════════════════ footer */
+
+.nd-footer { padding-block: clamp(3rem, 8vh, 6rem); padding-inline: var(--gutter); }
+.nd-footer__email {
+  font-family: var(--font-display); font-weight: 700;
+  font-size: clamp(1.5rem, 0.9rem + 3vw, 3.4rem);
+  line-height: 1.05; letter-spacing: -0.02em;
+  display: inline-block;
+}
+.nd-footer__email:hover { color: var(--brand-gold); }
+.nd-footer__row { display: flex; flex-wrap: wrap; gap: var(--space-3) var(--space-6); justify-content: space-between; align-items: baseline; margin-block-start: var(--space-7); font-family: var(--font-mono); font-size: 0.6875rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--dim); }
+
+/* ═══════════════════════════════════════════════════════════ motion tiering */
+
+@media (prefers-reduced-motion: reduce) {
+  [data-concept='nvf-direction'],
+  .nd-header, .nd-viewer, .nd-viewer__inner { transition: none !important; }
+  .nd-progress i { transition: none; }
+}
+:root[data-motion='minimal'] .nd-item__frame video,
+:root[data-motion='minimal'] .nd-feature__frame video { display: none; }

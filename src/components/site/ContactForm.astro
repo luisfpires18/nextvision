@@ -1,0 +1,362 @@
+---
+/**
+ * The contact form — now live, and honest about every state it can be in.
+ *
+ * ── What is preserved ────────────────────────────────────────────────────────
+ * The FIELD STRUCTURE of the live Elementor form, exactly: Nome, Email (the only required
+ * field), Telefone, Mensagem, one GDPR consent checkbox that is NOT required, one
+ * honeypot, and a submit labelled `Enviar`. Nothing was added to it, nothing dropped, and
+ * nothing made required that was not (audit §3.6). Decision **D9** — should consent be
+ * required? — is still the owners', and `CONSENT_REQUIRED` in src/config/forms.ts is the
+ * one place that answers it, for the markup and the server at the same time.
+ *
+ * ── What is fixed, with no word changed ──────────────────────────────────────
+ * The live form labels every field with a placeholder alone, so a screen reader reaches
+ * four unnamed inputs and a reader who starts typing loses the label. Every field here has
+ * a real `<label>` carrying that published word — and the placeholder is dropped, because
+ * it would now print the same word twice in the same box. The published string still
+ * appears on the page, exactly once. `Política de Privacidade` in the consent label is a
+ * link to the page it names.
+ *
+ * ── PHASE 13 · what is new ───────────────────────────────────────────────────
+ * The form posts to `/api/contact/` (src/pages/api/contact.ts) and carries a Cloudflare
+ * Turnstile widget. Three additions to the markup and nothing else:
+ *
+ *   - a hidden `locale`, so the SERVER decides which thank-you page an accepted
+ *     submission lands on. The frontend never chooses that: choosing it here is how a
+ *     form ends up redirecting to a success page it has no evidence for.
+ *   - the Turnstile container, which mounts a hidden `cf-turnstile-response` input the
+ *     endpoint verifies with Cloudflare on every submission.
+ *   - one polite live region for the outcome, and one `<noscript>` line, because the
+ *     security check cannot run without scripting and saying so up front is better than
+ *     letting someone write a message and discover it on submit.
+ *
+ * ── The success path has exactly one source of truth ─────────────────────────
+ * `/obrigado/` is reached only after the endpoint has answered `accepted`, which it does
+ * only after a provider reported the message went. There is no optimistic redirect, no
+ * "assume it worked", and an unconfigured provider produces a 503 and a visible failure
+ * rather than a thank-you page (docs/STATIC_PAGES_ROLLOUT.md §5).
+ *
+ * ── Degradation, stated plainly ──────────────────────────────────────────────
+ * With scripting off, the form still has a real `action` and `method` and still posts.
+ * It will be refused, because Turnstile cannot issue a token without scripting, and the
+ * `<noscript>` line says so before anyone types. That is a real limitation of choosing a
+ * challenge at all, and it is recorded rather than hidden — ARCHITECTURE §7's
+ * "works without JavaScript" claim is amended there, not quietly dropped here.
+ */
+import { DEFAULT_LOCALE, type Locale } from '../../config/i18n.ts';
+import {
+  CONSENT_REQUIRED, CONTACT_ENDPOINT, ERROR_PARAM, FETCH_HEADER, FETCH_HEADER_VALUE,
+  FIELD, LIMITS, OUTCOME, TURNSTILE_LANG, TURNSTILE_SCRIPT_URL, TURNSTILE_SITE_KEY,
+  type Outcome,
+} from '../../config/forms.ts';
+import { CONTACT_FIELDS, CONTACT_FORM_COPY } from '../../lib/static-pages.ts';
+import { navHref, isForeignLanguagePage, localeOfPage } from '../../lib/nav.ts';
+import { LOCALE_TAGS } from '../../config/i18n.ts';
+import { say } from '../../lib/homepage.ts';
+import { t } from '../../i18n/index.ts';
+
+interface Props { locale?: Locale }
+const { locale = DEFAULT_LOCALE } = Astro.props;
+
+/**
+ * The consent label names the privacy policy, and the privacy policy is Portuguese only
+ * (src/i18n/routes.ts PAGE_LOCALES). On /en/contact/ the link therefore leaves the
+ * language, and it says so — asking someone to accept a document without telling them it
+ * is in another language would be the one place on this site where that actually matters.
+ */
+const privacyHref = navHref('privacy', locale);
+const privacyForeign = isForeignLanguagePage('privacy', locale);
+const privacyLocale = localeOfPage('privacy', locale);
+
+/* The consent label is published as one sentence naming the privacy policy. It is split
+   on that phrase so the phrase can be the link — the words are untouched and their order
+   is untouched; only one of them becomes clickable. */
+const consent = say(CONTACT_FORM_COPY.consent, locale);
+const consentPhrase = CONTACT_FORM_COPY.consentLink[locale];
+const linkAt = consent.indexOf(consentPhrase);
+const consentBefore = linkAt === -1 ? consent : consent.slice(0, linkAt);
+const consentAfter = linkAt === -1 ? '' : consent.slice(linkAt + consentPhrase.length);
+
+/**
+ * Every outcome the endpoint can report, said once, in this page's language.
+ *
+ * Serialised into the document rather than duplicated in the client script, so the browser
+ * never holds a second copy of a string and the two locales cannot drift. The server sends
+ * a CODE; this table is the only thing that turns a code into a sentence.
+ */
+const messages = Object.fromEntries(
+  OUTCOME.filter((code): code is Exclude<Outcome, 'accepted'> => code !== 'accepted')
+    .map((code) => [code, t(`form.error.${code}`, locale)]),
+);
+const clientMessages = {
+  ...messages,
+  network: t('form.error.network', locale),
+  sending: t('form.sending', locale),
+};
+
+const maxLength: Record<string, number> = {
+  [FIELD.name]: LIMITS.name,
+  [FIELD.email]: LIMITS.email,
+  [FIELD.phone]: LIMITS.phone,
+  [FIELD.message]: LIMITS.message,
+};
+---
+
+<form
+  class="form"
+  action={CONTACT_ENDPOINT}
+  method="post"
+  data-contact-form="live"
+  data-error-param={ERROR_PARAM}
+  data-fetch-header={FETCH_HEADER}
+  data-fetch-value={FETCH_HEADER_VALUE}
+  novalidate
+>
+  {/* The server decides the destination; this only tells it which language asked. */}
+  <input type="hidden" name={FIELD.locale} value={locale} />
+
+  {CONTACT_FIELDS.map((field) => (
+    <p class="form__field">
+      <label class="form__label" for={`cf-${field.name}`}>{say(field.label, locale)}</label>
+      {field.type === 'textarea' ? (
+        <textarea
+          class="form__control"
+          id={`cf-${field.name}`}
+          name={field.name}
+          rows="5"
+          autocomplete={field.autocomplete}
+          required={field.required}
+          maxlength={maxLength[field.name]}
+        ></textarea>
+      ) : (
+        <input
+          class="form__control"
+          id={`cf-${field.name}`}
+          name={field.name}
+          type={field.type}
+          autocomplete={field.autocomplete}
+          required={field.required}
+          maxlength={maxLength[field.name]}
+        />
+      )}
+    </p>
+  ))}
+
+  <p class="form__consent">
+    <input
+      type="checkbox"
+      id="cf-consentimento"
+      name={FIELD.consent}
+      value="1"
+      required={CONSENT_REQUIRED}
+    />
+    <label for="cf-consentimento">
+      {consentBefore}<a
+        href={privacyHref}
+        lang={privacyForeign ? privacyLocale : undefined}
+        hreflang={privacyForeign ? LOCALE_TAGS[privacyLocale] : undefined}
+      >{consentPhrase}</a>{consentAfter}{
+        privacyForeign ? ` (${t('lang.ptOnly', locale)})` : ''
+      }
+    </label>
+  </p>
+
+  {/* The live form carries a hidden text input as a honeypot. Kept, because a honeypot
+      that a bot can recognise is not one: it is named like a field a human might fill,
+      it is off-screen rather than display:none, and it is hidden from assistive
+      technology so no real person is ever offered it. A submission that fills it is
+      REFUSED rather than silently discarded — an over-eager password manager can reach
+      this field, and telling that person their message was sent when it was not is the
+      one outcome worse than refusing them. */}
+  <p class="form__trap" aria-hidden="true">
+    <label for={`cf-${FIELD.honeypot}`}>{FIELD.honeypot}</label>
+    <input
+      id={`cf-${FIELD.honeypot}`}
+      name={FIELD.honeypot}
+      type="text"
+      tabindex="-1"
+      autocomplete="off"
+    />
+  </p>
+
+  {/* Cloudflare Turnstile. The widget is mounted by the script below rather than by the
+      `cf-turnstile` class, so it survives a ClientRouter swap and so nothing renders
+      twice. The site key is public by definition — it is worthless without the secret,
+      which never leaves the Worker. */}
+  <div
+    class="form__verify"
+    data-turnstile
+    data-sitekey={TURNSTILE_SITE_KEY}
+    data-language={TURNSTILE_LANG[locale]}
+    data-script={TURNSTILE_SCRIPT_URL}
+  ></div>
+
+  <noscript>
+    <p class="form__note">{t('form.needsJs', locale)}</p>
+  </noscript>
+
+  <p class="form__actions">
+    <button class="form__submit" type="submit">
+      <span>{say(CONTACT_FORM_COPY.submit, locale)}</span>
+    </button>
+  </p>
+
+  {/* Polite, not assertive: the outcome arrives while the reader is looking at the form
+      they just submitted, and interrupting them to say it is not an emergency. */}
+  <p class="form__status" data-form-status role="status" aria-live="polite" aria-label={t('form.status', locale)}></p>
+
+  <script type="application/json" is:inline data-form-messages set:html={JSON.stringify(clientMessages)}></script>
+</form>
+
+<script>
+  /**
+   * The form's browser half. Three jobs, and it does nothing else.
+   *
+   *   1. Mount Turnstile. Explicit render, not the auto-scanning `cf-turnstile` class,
+   *      because this module re-runs on every ClientRouter swap and an auto-scanner would
+   *      mount a second widget into the same container each time.
+   *   2. Submit by fetch and read the OUTCOME CODE the endpoint returns, then say it in
+   *      the page's own language from the table the server serialised. The browser never
+   *      composes an error sentence and never decides that a submission succeeded.
+   *   3. Show the outcome of a NON-script submission — one that redirected back here with
+   *      `?erro=<code>` — and then remove the parameter, so a reload does not replay a
+   *      failure that already happened.
+   *
+   * Every listener is bound to the FORM, never to the document. A document-level listener
+   * would survive each swap while this module re-runs, so the page would accumulate one
+   * identical handler per navigation (Review E measured that leak to zero).
+   */
+  interface TurnstileApi {
+    render(el: HTMLElement, options: Record<string, unknown>): string;
+    reset(id?: string): void;
+    remove(id: string): void;
+  }
+  interface TurnstileWindow extends Window { turnstile?: TurnstileApi }
+
+  const form = document.querySelector<HTMLFormElement>('form[data-contact-form="live"]');
+  const status = form?.querySelector<HTMLElement>('[data-form-status]');
+  const mount = form?.querySelector<HTMLElement>('[data-turnstile]');
+  const table = form?.querySelector<HTMLScriptElement>('[data-form-messages]');
+
+  if (form && status && table) {
+    const say: Record<string, string> = JSON.parse(table.textContent || '{}');
+    const speak = (code: string) => {
+      status.textContent = say[code] ?? say['malformed'] ?? '';
+      status.dataset['state'] = code === 'sending' ? 'pending' : 'error';
+    };
+    const quiet = () => { status.textContent = ''; delete status.dataset['state']; };
+
+    /* ---------------------------------------------------------------- Turnstile */
+
+    let widgetId: string | null = null;
+
+    const render = () => {
+      const api = (window as TurnstileWindow).turnstile;
+      if (!api || !mount || mount.childElementCount > 0) return;
+      widgetId = api.render(mount, {
+        sitekey: mount.dataset['sitekey'],
+        language: mount.dataset['language'],
+        // A token expires after ~5 minutes. Refreshing it silently is the difference
+        // between a long, considered message being accepted and being told to try again.
+        'refresh-expired': 'auto',
+        'error-callback': () => { speak('captcha-failed'); return true; },
+      });
+    };
+
+    const src = mount?.dataset['script'];
+    if (src) {
+      if ((window as TurnstileWindow).turnstile) {
+        render();
+      } else if (document.querySelector(`script[src="${src}"]`)) {
+        // Loaded by an earlier visit to this page in the same session; wait for it.
+        document.querySelector(`script[src="${src}"]`)?.addEventListener('load', render, { once: true });
+      } else {
+        const el = document.createElement('script');
+        el.src = src;
+        el.async = true;
+        el.defer = true;
+        el.addEventListener('load', render, { once: true });
+        document.head.appendChild(el);
+      }
+    }
+
+    /* ------------------------------------------------------------------- submit */
+
+    let sending = false;
+    const submit = form.querySelector<HTMLButtonElement>('button[type="submit"]');
+
+    form.addEventListener('submit', (event) => {
+      event.preventDefault();
+      if (sending) return;
+
+      // The browser's own constraint validation runs first — `novalidate` turns off its
+      // bubbles, not its rules, so a mistyped address is caught here without a round trip
+      // and focus lands on the field at fault.
+      if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+      }
+
+      sending = true;
+      if (submit) submit.disabled = true;
+      speak('sending');
+
+      /* URLSearchParams, not FormData: it posts as urlencoded, which is exactly what a
+         native submission of this form sends, so the endpoint has ONE body shape to
+         parse and the two paths cannot diverge. */
+      const body = new URLSearchParams();
+      for (const [key, value] of new FormData(form)) {
+        if (typeof value === 'string') body.append(key, value);
+      }
+
+      const headers: Record<string, string> = {};
+      const name = form.dataset['fetchHeader'];
+      const value = form.dataset['fetchValue'];
+      if (name && value) headers[name] = value;
+
+      void fetch(form.action, { method: 'POST', body, headers, credentials: 'same-origin' })
+        .then(async (response) => {
+          const data = await response.json().catch(() => null) as
+            { ok?: boolean; outcome?: string; field?: string; redirect?: string } | null;
+
+          if (data?.ok && data.redirect) {
+            // The ONLY place this page navigates to the thank-you route, and it happens
+            // only because the server said the message was accepted.
+            window.location.assign(data.redirect);
+            return;
+          }
+
+          speak(data?.outcome ?? 'malformed');
+          (window as TurnstileWindow).turnstile?.reset(widgetId ?? undefined);
+          if (data?.field) {
+            form.querySelector<HTMLElement>(`[name="${data.field}"]`)?.focus();
+          }
+        })
+        .catch(() => {
+          speak('network');
+          (window as TurnstileWindow).turnstile?.reset(widgetId ?? undefined);
+        })
+        .finally(() => {
+          sending = false;
+          if (submit) submit.disabled = false;
+        });
+    });
+
+    // Typing again clears the last failure, so the message never outlives its cause.
+    form.addEventListener('input', () => { if (status.dataset['state'] === 'error') quiet(); });
+
+    /* -------------------------------------------- a failure that happened elsewhere */
+
+    const param = form.dataset['errorParam'];
+    if (param) {
+      const url = new URL(window.location.href);
+      const code = url.searchParams.get(param);
+      if (code) {
+        speak(code);
+        url.searchParams.delete(param);
+        window.history.replaceState({}, '', url.pathname + url.search + url.hash);
+      }
+    }
+  }
+</script>

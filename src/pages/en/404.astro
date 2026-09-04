@@ -1,0 +1,14 @@
+---
+/**
+ * /en/404.html
+ *
+ * A ROUTE. The page is ErrorPage.astro, which serves both states in both locales.
+ *
+ * Cloudflare Pages resolves a 404 by walking up from the requested path to the nearest
+ * `404.html`, so `/en/404.html` answers anything under /en/ and this one answers the
+ * rest. A reader who mistypes an English URL gets an English page.
+ */
+import ErrorPage from '../../components/pages/ErrorPage.astro';
+---
+
+<ErrorPage locale="en" state="not-found" />

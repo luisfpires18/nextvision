@@ -1,0 +1,125 @@
+---
+/**
+ * The two states: not found, and no network — PHASE 11.
+ *
+ * One component, because they are the same object. Both are a page that has nothing to
+ * show, both open on the approved `PageHead`, and both exist to do one thing: say what
+ * happened in a sentence and offer a way out. Two components would be two chances to
+ * design an error differently from an error.
+ *
+ * ── What is deliberately NOT here ────────────────────────────────────────────
+ * No apology, no joke, no "oops", no giant numeral, no illustration, and no marketing
+ * paragraph. The 404 says which address failed; the offline page says what still works.
+ * An error does not apologise and is never vague about what happened.
+ *
+ * ── The difference between them ──────────────────────────────────────────────
+ * The 404 has a FACT to offer — the address the reader asked for — so it gets the slate.
+ * The offline page has none, so it gets no frame: an empty frame holding a mood rather
+ * than information would be decoration (src/styles/error.css).
+ *
+ * Both are `noindex`. A 404 that is indexable is a soft-404 waiting to happen, and an
+ * offline shell in a search result is a page about a network condition.
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHead from '../site/PageHead.astro';
+import { navHref } from '../../lib/nav.ts';
+import { t } from '../../i18n/index.ts';
+import type { Locale } from '../../config/i18n.ts';
+import '../../styles/pages.css';
+import '../../styles/error.css';
+
+interface Props {
+  locale: Locale;
+  state: 'not-found' | 'offline';
+}
+const { locale, state } = Astro.props;
+
+const notFound = state === 'not-found';
+
+/**
+ * What the language switch offers here.
+ *
+ * A 404 has no counterpart in any language, so the switch offers the other locale's home
+ * — the honest equivalent of "this address is nowhere, here is somewhere". The offline
+ * shell does have one, and the URL cannot be translated to it because neither route is in
+ * PAGE_SLUGS, so it is named directly.
+ */
+const langAlternate = notFound
+  ? { pt: '/', en: '/en/' }
+  : { pt: '/offline/', en: '/en/offline/' };
+const eyebrow = t(notFound ? 'error.404.code' : 'error.offline.code', locale);
+const title = t(notFound ? 'error.404.title' : 'error.offline.title', locale);
+const body = t(notFound ? 'error.404.body' : 'error.offline.body', locale);
+---
+
+<BaseLayout
+  title={title}
+  locale={locale}
+  ground="cream"
+  noindex={true}
+  langAlternate={langAlternate}
+>
+  <PageHead eyebrow={eyebrow} title={title} layout={notFound ? 'plate' : 'stacked'}>
+    <p class="lead er-body">{body}</p>
+
+    <p class="ab-actions">
+      {/* Two routes, and they are the two the reader most likely wanted: the front of the
+          site, and the work. Named with the menu's own labels rather than with a second
+          word for the same page. */}
+      <a class="ctl" href={navHref('home', locale)}><span>{t('nav.home', locale)}</span></a>
+      {notFound && (
+        <a class="ctl" href={navHref('portfolio', locale)}><span>{t('nav.portfolio', locale)}</span></a>
+      )}
+      {!notFound && (
+        <button class="ctl er-retry" type="button" data-er-retry>
+          <span>{t('error.offline.retry', locale)}</span>
+        </button>
+      )}
+    </p>
+
+    {notFound && (
+      <Fragment slot="aside">
+        {/* Hidden until the script fills it: an empty labelled frame would be a slot
+            promising a fact the page could not produce with scripting off. */}
+        <div class="er-slate" data-er-slate hidden>
+          <p class="eyebrow">{t('error.404.address', locale)}</p>
+          <p class="er-slate__path"><code data-er-path></code></p>
+        </div>
+      </Fragment>
+    )}
+  </PageHead>
+</BaseLayout>
+
+<script>
+  /**
+   * The address that failed, and the reload control.
+   *
+   * The path is the reader's own input reflected back into the page, so it is written
+   * with `textContent` and never with `innerHTML` — that is the whole of the injection
+   * question here, and it is answered by the API rather than by escaping. It is also
+   * capped, because a pathological URL should not become the page.
+   *
+   * `astro:page-load` as well as the first run, because the router reuses this document
+   * shell; the listener is on the document once, and the elements it touches are replaced
+   * with their page, so nothing accumulates (the rule Review E set).
+   */
+  const CAP = 160;
+
+  const fill = () => {
+    const slate = document.querySelector<HTMLElement>('[data-er-slate]');
+    const target = document.querySelector<HTMLElement>('[data-er-path]');
+    if (slate && target) {
+      const raw = window.location.pathname + window.location.search;
+      target.textContent = raw.length > CAP ? `${raw.slice(0, CAP)}…` : raw;
+      slate.hidden = false;
+    }
+
+    const retry = document.querySelector<HTMLButtonElement>('[data-er-retry]');
+    // `reload()` rather than a link to the same URL: the point is to ask the network
+    // again, and a same-URL link can be answered from the cache that served this page.
+    retry?.addEventListener('click', () => window.location.reload());
+  };
+
+  fill();
+  document.addEventListener('astro:page-load', fill);
+</script>

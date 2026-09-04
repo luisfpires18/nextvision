@@ -1,0 +1,179 @@
+---
+/**
+ * The closed block set, rendered.
+ *
+ * The GROUND IS NOT IN THE DATA. It follows the block's scale, which is the same causal
+ * rule the whole site runs on: a frame at scale means you are watching, so the ground
+ * goes dark; frames small and many, or words, means you are reading, so it stays cream.
+ * That keeps the ground rhythm a system property rather than something an editor has to
+ * remember to set correctly on every project.
+ */
+import type { CollectionEntry } from 'astro:content';
+import { imageProps } from '../../lib/media.ts';
+import { frameAlt } from '../../lib/alt.ts';
+import FilmFacade from './FilmFacade.astro';
+import { DEFAULT_LOCALE, type Locale } from '../../config/i18n.ts';
+
+type Block = CollectionEntry<'projects'>['data']['blocks'][number];
+
+interface Props {
+  blocks: Block[];
+  title: string;
+  locale?: Locale;
+  /**
+   * The film's own aspect ratio, read from the project's hero media rather than typed
+   * anywhere. Every framed box below inherits it, so a 2.2:1 film's stills are 2.2:1 and
+   * a 16:9 film's are 16:9 — sizes carry the hierarchy, and nothing is cropped to make a
+   * shape (docs/PROJECT_PAGE_REVIEW.md §3, decision A55).
+   */
+  filmAr?: number;
+}
+const { blocks, title, locale = DEFAULT_LOCALE, filmAr } = Astro.props;
+const ratioStyle = filmAr ? `--film-ar:${filmAr}` : undefined;
+
+/**
+ * Alternative text for the editorial frames — PHASE 11.
+ *
+ * These are the only images on a project page with nothing beside them: the hero is
+ * followed by the `<h1>`, every card is inside a link that already announces the project,
+ * and the next-project frame sits under its own title. These sit in figures with no
+ * caption, so an empty alt here really is a hole.
+ *
+ * What fills it is derived, never described: the film's title and the frame's position in
+ * its set, both facts the content already holds (src/lib/alt.ts). A caption, where the
+ * entry has one, is real published text and wins — the figure is then described by the
+ * words under it and the alt states only what the picture is.
+ *
+ * `altStatus: 'decorative'` is still honoured, because a content editor saying "this one
+ * carries nothing" outranks anything derived.
+ */
+const total = blocks.reduce((n, b) => {
+  if (b.type === 'image-pair') return n + 2;
+  if (b.type === 'image-grid') return n + b.media.length;
+  if (b.type === 'full-width-image') return n + 1;
+  return n;
+}, 0);
+let frameIndex = 0;
+const nextAlt = (ref: { alt?: string | undefined; altStatus: 'written' | 'todo' | 'decorative' }): string => {
+  const i = frameIndex;
+  frameIndex += 1;
+  if (ref.altStatus === 'decorative') return '';
+  return ref.alt ?? frameAlt(title, i, total, locale);
+};
+
+/** Full-bleed media is a dark moment; everything editorial stays on the light table. */
+const DARK = new Set(['embedded-film', 'full-width-video', 'full-width-image']);
+const groundOf = (b: Block): 'dark' | 'cream' => (DARK.has(b.type) ? 'dark' : 'cream');
+
+const SIZES_PAIR_MAJOR = '(min-width: 72rem) 660px, (min-width: 48rem) 58vw, 92vw';
+const SIZES_PAIR_MINOR = '(min-width: 72rem) 470px, (min-width: 48rem) 40vw, 92vw';
+/* The strip's frames are 3 : 4 : 5, so each asks for its own width rather than sharing
+   one wrong average. */
+const SIZES_STRIP: readonly [string, string, string] = [
+  '(min-width: 96rem) 322px, (min-width: 48rem) 23vw, 92vw',
+  '(min-width: 96rem) 430px, (min-width: 48rem) 31vw, 92vw',
+  '(min-width: 96rem) 537px, (min-width: 48rem) 39vw, 92vw',
+];
+---
+
+{blocks.map((block) => {
+  const ground = groundOf(block);
+  /* Frames are marked, so consecutive passages of looking can breathe differently from
+     the break between prose and pictures. */
+  const isMedia = block.type !== 'text' && block.type !== 'quote' && block.type !== 'credits';
+  const cls = `pj-block ground-${ground}${isMedia ? ' pj-block--media' : ''}`;
+
+  if (block.type === 'text') {
+    return (
+      <section class={`${cls} pj-room`} style={ratioStyle} data-ground={ground} data-header={ground}>
+        <div class="pj-room__inner">
+          <p class={`pj-text pj-text--${block.width}`} data-reveal>{block.body[locale] ?? block.body.pt}</p>
+        </div>
+      </section>
+    );
+  }
+
+  if (block.type === 'embedded-film' && block.film.provider === 'youtube') {
+    return (
+      <section class={`${cls} pj-room`} style={ratioStyle} data-ground={ground} data-header={ground}>
+        <div class="pj-room__inner">
+          <FilmFacade videoId={block.film.id} posterKey={block.poster.key} title={title} locale={locale} />
+        </div>
+      </section>
+    );
+  }
+
+  if (block.type === 'image-pair') {
+    const [a, b] = block.media;
+    const major = imageProps(a.key, { sizes: block.weight === 'right' ? SIZES_PAIR_MINOR : SIZES_PAIR_MAJOR });
+    const minor = imageProps(b.key, { sizes: block.weight === 'right' ? SIZES_PAIR_MAJOR : SIZES_PAIR_MINOR });
+    return (
+      <section class={`${cls} pj-room`} style={ratioStyle} data-ground={ground} data-header={ground}>
+        <div class="pj-room__inner">
+          <div class={`pj-pair pj-pair--${block.weight}`} data-reveal>
+            {[{ m: major, ref: a }, { m: minor, ref: b }].map(({ m, ref }) => m && (
+              <figure class="pj-figure">
+                <span class="pj-frame" data-header-zone>
+                  <picture>
+                    {m.avifSrcset && <source type="image/avif" srcset={m.avifSrcset} sizes={m.sizes} />}
+                    <img src={m.src} srcset={m.srcset} sizes={m.sizes} alt={nextAlt(ref)} width={m.width} height={m.height} loading="lazy" decoding="async" />
+                  </picture>
+                </span>
+                {ref.caption && <figcaption class="metaline pj-figcaption">{ref.caption}</figcaption>}
+              </figure>
+            ))}
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (block.type === 'image-grid') {
+    return (
+      <section class={`${cls} pj-room pj-room--wide`} style={ratioStyle} data-ground={ground} data-header={ground}>
+        <div class="pj-room__inner">
+          <div class={`pj-grid pj-grid--${block.mode === 'scrub' ? 'strip' : block.mode}`} data-reveal>
+            {block.media.map((ref, i) => {
+              const m = imageProps(ref.key, { sizes: SIZES_STRIP[Math.min(i, 2) as 0 | 1 | 2] });
+              return m && (
+                <figure class="pj-figure">
+                  <span class="pj-frame" data-header-zone>
+                    <picture>
+                      {m.avifSrcset && <source type="image/avif" srcset={m.avifSrcset} sizes={m.sizes} />}
+                      <img src={m.src} srcset={m.srcset} sizes={m.sizes} alt={nextAlt(ref)} width={m.width} height={m.height} loading="lazy" decoding="async" />
+                    </picture>
+                  </span>
+                  {ref.caption && <figcaption class="metaline pj-figcaption">{ref.caption}</figcaption>}
+                </figure>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (block.type === 'full-width-image') {
+    const m = imageProps(block.media.key, { sizes: '(min-width: 90rem) 1440px, 100vw' });
+    return m && (
+      <section class={`${cls} pj-plate`} style={ratioStyle} data-ground={ground} data-header={ground}>
+        <div class="pj-plate__inner">
+          <figure data-reveal>
+            <span class="pj-frame" data-header-zone>
+              <picture>
+                {m.avifSrcset && <source type="image/avif" srcset={m.avifSrcset} sizes={m.sizes} />}
+                <img src={m.src} srcset={m.srcset} sizes={m.sizes} alt={nextAlt(block.media)} width={m.width} height={m.height} loading="lazy" decoding="async" />
+              </picture>
+            </span>
+            {block.media.caption && <figcaption class="metaline pj-figcaption">{block.media.caption}</figcaption>}
+          </figure>
+        </div>
+      </section>
+    );
+  }
+
+  /* full-width-video, quote, credits and spacer are part of the closed set and are
+     rendered when a project actually carries them. This project publishes none of them,
+     and none was added just to demonstrate it (docs/PROJECT_PAGE_REVIEW.md §5). */
+  return null;
+})}

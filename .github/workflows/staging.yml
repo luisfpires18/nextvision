@@ -1,0 +1,86 @@
+# dev  ->  STAGING Worker  (next-vision-films)
+#
+# The production twin is .github/workflows/production.yml. The two files are deliberately
+# separate rather than one workflow with a branch condition: a single file with an `if`
+# deciding which Worker gets overwritten is one typo away from putting dev on production.
+#
+# Verify gates the deploy. `npm run verify` runs all eleven validators and the build; the
+# deploy step only runs on success, because a step that fails ends the job.
+name: dev -> staging
+
+on:
+  push:
+    branches: [dev]
+  workflow_dispatch:
+
+# One staging deploy at a time. A superseded run is cancelled rather than racing.
+concurrency:
+  group: staging
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  verify-and-deploy:
+    name: verify + deploy to staging
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    # Secrets are mapped to job-level env because the `secrets` context cannot be read
+    # from a step `if:`, and `env` can. This is what lets the pipeline stay GREEN and
+    # silent on a repository that has not been given its credentials yet, instead of
+    # failing on every push during bootstrap.
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      R2_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      R2_BUCKET: nvf-media
+      R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+      R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Not configured yet
+        if: env.CLOUDFLARE_API_TOKEN == ''
+        run: |
+          echo "::notice title=CI not configured::CLOUDFLARE_API_TOKEN is not set, so this run does nothing. Add the repository secrets listed in docs/HANDOVER.md and re-run. Nothing was built and nothing was deployed."
+
+      - name: Install
+        if: env.CLOUDFLARE_API_TOKEN != ''
+        run: npm ci
+
+      # Generated, never committed: build-fonts.mjs derives the six WOFF2 faces from the
+      # TTF originals in source-assets/fonts/, which ARE in the repository.
+      - name: Build fonts
+        if: env.CLOUDFLARE_API_TOKEN != ''
+        run: npm run fonts:build
+
+      # media/dist/ is gitignored and cannot be rebuilt here — media:build needs 646 MB of
+      # sources that are also gitignored. The delivery bucket already holds the exact
+      # bytes, so they are fetched and hash-verified instead. READ ONLY: no upload, no
+      # delete, and never the private nvf-source-archive.
+      - name: Restore the media mirror
+        if: env.CLOUDFLARE_API_TOKEN != ''
+        run: npm run media:pull
+
+      # All eleven validators plus the build. CLOUDFLARE_ENV is what actually selects the
+      # deployment target: @astrojs/cloudflare resolves the wrangler configuration at
+      # BUILD time, so a build made without it resolves to the top-level Worker name.
+      - name: Verify
+        if: env.CLOUDFLARE_API_TOKEN != ''
+        run: npm run verify
+        env:
+          CLOUDFLARE_ENV: staging
+
+      # --built reuses the dist/ the previous step produced. scripts/deploy.mjs reads the
+      # generated config back and refuses to deploy if it resolved to the other Worker.
+      - name: Deploy to staging
+        if: env.CLOUDFLARE_API_TOKEN != ''
+        run: node scripts/deploy.mjs staging --built

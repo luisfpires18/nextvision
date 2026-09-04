@@ -1,0 +1,151 @@
+---
+/**
+ * /contactos/ — PHASE 10.
+ *
+ * The one static page that opens dark, and the material is why: `banner-contactos-2` is
+ * 1640x644 and it is a real photograph of the two people whose company this is. Media at
+ * scale means the lights go down (decision A57), the title sits under the frame rather
+ * than over the footage (Review D), and the reading half of the page is cream.
+ *
+ * ── The published order is kept ──────────────────────────────────────────────
+ * Live: title, lead, paragraph, the contact details, the cost note, `Formulário`,
+ * `Contacto Directo`, its paragraph, the form. That order is preserved. `Contacto
+ * Directo` stays where the source puts it — introducing the form, which is what its own
+ * paragraph says it does ("contata-nos diretamente através do nosso formulário") — and it
+ * becomes an `<h3>` under `Formulário` rather than a second `<h2>` beside it. A heading
+ * level is structure, not copy (CLAUDE.md §2.1).
+ *
+ * No heading was invented for the contact details, so they sit in the opening section
+ * exactly as they do on the live page, under the paragraph that introduces them.
+ *
+ * ── The email is missing on purpose ──────────────────────────────────────────
+ * Decision D2. The live page DISPLAYS `nextvisionfilmsagency@gmail.com` inside a
+ * `mailto:` that targets `hello@nextvisionfilms.com`; the footer uses the second; and
+ * /termos-e-condicoes/ names a third, `geral@nextvisionfilms.com`. Three addresses and no
+ * way to tell which one is read. Printing any of them on the page whose job is to be
+ * contacted would be a guess with a real cost (CLAUDE.md §8), so the slot is reserved and
+ * empty in ContactDetails.astro and `Organization.email` is omitted from the structured
+ * data. Answering D2 is one word in src/content/settings/site.yml.
+ *
+ * The two phone numbers ARE published, unambiguous, and now dialable — the live page
+ * prints them as plain text inside an `<h3>`.
+ *
+ * ── The form is LIVE (Phase 13) ──────────────────────────────────────────────
+ * See ContactForm.astro. Field structure preserved exactly, real labels added, and now a
+ * real endpoint: `POST /api/contact/` with Cloudflare Turnstile verified server-side.
+ * Still no fake success — /obrigado/ is the endpoint's answer to a POST, never a link on
+ * this page — and still no invented sentence explaining the form to the reader.
+ *
+ * `#contactar` is the anchor the live homepage CTA already targets
+ * (`/contactos#contactar`), and it lands on the form section here as it does there.
+ */
+import { getEntry } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ContactDetails from '../site/ContactDetails.astro';
+import ContactForm from '../site/ContactForm.astro';
+import { CONTACT } from '../../lib/static-pages.ts';
+import { imageProps, getMedia } from '../../lib/media.ts';
+import { organizationSchema, breadcrumbSchema, absoluteUrl } from '../../lib/seo.ts';
+import type { Locale } from '../../config/i18n.ts';
+import { pagePath } from '../../i18n/routes.ts';
+import { say } from '../../lib/homepage.ts';
+import { pageTitle, pageDescription } from '../../lib/page-meta.ts';
+import '../../styles/pages.css';
+
+interface Props { locale: Locale }
+const { locale } = Astro.props;
+const settings = await getEntry('settings', 'site');
+
+const bannerKey = 'pages/contactos/banner';
+const bannerItem = getMedia(bannerKey);
+const banner = imageProps(bannerKey, { alt: '', sizes: '100vw', priority: true });
+
+const schema = [
+  organizationSchema({
+    sameAs: (settings?.data.socials ?? []).map((s) => s.url),
+    // Deliberately null while D2 is open — see the note above.
+    email: settings?.data.email ?? null,
+  }),
+  breadcrumbSchema([
+    { name: 'Next Vision Films', path: pagePath('home', locale) },
+    { name: say(CONTACT.title, locale), path: pagePath('contact', locale) },
+  ]),
+  {
+    '@type': 'ContactPage',
+    name: say(CONTACT.title, locale),
+    url: absoluteUrl(pagePath('contact', locale)),
+  },
+];
+---
+
+<BaseLayout
+  title={pageTitle('contact', locale)}
+  description={pageDescription('contact', locale) ?? undefined}
+  locale={locale}
+  ground="dark"
+  ogType="article"
+  ogImage={banner ? absoluteUrl(banner.src) : null}
+  schema={schema}
+>
+  {/* ── A · THE PLATE, THE INVITATION AND THE ROUTES ───────────────────────
+      `data-header-zone` for the same reason every project still carries it: the header
+      resolves its ink against what is physically behind its text row, and this is the
+      only thing on the page that can be there. */}
+  <section class="ct-hero ground-dark" data-ground="dark" data-header="dark" aria-labelledby="page-title">
+    <div class="ct-hero__inner">
+      {banner && (
+        <div
+          class="ct-plate"
+          data-header-zone
+          style={bannerItem?.aspectRatio ? `--ar:${bannerItem.aspectRatio}` : undefined}
+        >
+          <picture>
+            {banner.avifSrcset && <source type="image/avif" srcset={banner.avifSrcset} sizes={banner.sizes} />}
+            <img
+              src={banner.src}
+              srcset={banner.srcset}
+              sizes={banner.sizes}
+              alt=""
+              width={banner.width}
+              height={banner.height}
+              fetchpriority="high"
+              decoding="sync"
+            />
+          </picture>
+        </div>
+      )}
+
+      <div class="ct-caption">
+        <div>
+          <p class="eyebrow">{say(CONTACT.title, locale)}</p>
+          <h1 class="display display--l" id="page-title">{say(CONTACT.lead, locale)}</h1>
+          <p class="body dim" style="margin-block-start:var(--space-5)" data-reveal>{say(CONTACT.body, locale)}</p>
+        </div>
+        <ContactDetails locale={locale} />
+      </div>
+    </div>
+  </section>
+
+  {/* ── B · THE FORM ───────────────────────────────────────────────────────
+      `Formulário` heads the section; `#contactar` is the live homepage CTA's own target. */}
+  <section
+    class="section ground-cream"
+    id={CONTACT.formAnchor[locale]}
+    data-ground="cream"
+    data-header="cream"
+    aria-labelledby="contact-form"
+  >
+    <div class="wide">
+      <h2 class="display" id="contact-form">{say(CONTACT.formHeading, locale)}</h2>
+
+      <div class="ct-form-section" style="margin-block-start:var(--space-7)">
+        <ContactForm locale={locale} />
+
+        <div class="ct-intro">
+          <h3 class="ct-intro__title">{say(CONTACT.directHeading, locale)}</h3>
+          <p class="body body--s dim">{say(CONTACT.directBody, locale)}</p>
+        </div>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

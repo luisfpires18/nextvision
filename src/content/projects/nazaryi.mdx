@@ -1,0 +1,79 @@
+---
+# Migrated from the Phase 0.5 preservation archive (docs/source-archive/pages.json).
+# Every value is verbatim from https://www.nextvisionfilms.com/portfolio/nazaryi/ —
+# title, tagline, date and category are the live page's own (CLAUDE.md §2, §8).
+
+title:
+  pt: "Unfinished"
+tagline:
+  pt: "As memories play on repeat, silence answers the messages that words could never heal."
+
+# PHASE 11 — this project's PUBLISHED PROSE IS ALREADY ENGLISH. The live Portuguese page
+# prints these words exactly as they appear here, so there is nothing to translate and no
+# English variant is declared: `sourceLocale: en` states that as a fact about the entry
+# rather than leaving the gap to be guessed at. `npm run validate:i18n` reads this field
+# and therefore does not report a missing translation for prose that never had one.
+sourceLocale: en
+date: 2025-02-07
+year: 2025
+
+categories:
+  - visual-storytelling
+tags: []
+collections: []
+
+featured: false
+homepageOrder: null
+portfolioOrder: 9
+draft: false
+
+film:
+  provider: youtube
+  id: sBVD2TxbM-w
+
+poster:
+  key: projects/nazaryi/poster
+  altStatus: todo # authored copy — Phase 11b, owner-reviewed
+
+previewVideo: projects/nazaryi/preview
+
+
+# PHASE 9 - the project page's own entry. A silent, caption-free loop cut from the project's own archived card loop (1920x1080, 17.2 Mbps),
+# at the page's 1140px ceiling, which for this source is a DOWNSCALE. Pressing play swaps
+# the published film into the same screen.
+heroStill:
+  key: projects/nazaryi/hero/poster
+  altStatus: decorative
+heroVideo: projects/nazaryi/hero
+
+# The loop is 2.75 s, which is everything before the film's burned-in line arrives at
+# 2.90 s. It is short because that is how much caption-free footage this project has, and
+# a static wide at that length loops without a visible restart.
+sourceOfTruth: wordpress
+masterRequired: true
+
+blocks:
+  - type: text
+    width: narrow
+    body:
+      pt: "As memories play on repeat, silence answers the messages that words could never heal."
+
+  - type: image-pair
+    weight: equal
+    media:
+      - key: projects/nazaryi/still-01
+        altStatus: todo
+      - key: projects/nazaryi/still-02
+        altStatus: todo
+
+related: []
+previousSlugs: []
+
+seo:
+  noindex: false
+---
+
+{/*
+  Body intentionally empty. The live project page carries no prose beyond the title
+  and any tagline above. Writing any here would invent content (CLAUDE.md §2).
+*/}

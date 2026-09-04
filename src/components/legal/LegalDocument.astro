@@ -1,0 +1,56 @@
+---
+/**
+ * A legal page.
+ *
+ * Both documents render through this one component, because they are the same object:
+ * a title, a provenance line, and a body nobody may edit. Two pages that differ only in
+ * which entry they load would otherwise be two chances to style a contract differently
+ * from a privacy policy.
+ *
+ * The body comes from `src/content/legal/`, generated from the Phase 0.5 archive by
+ * `npm run legal:build` and proved word-for-word identical to it by
+ * `npm run validate:legal` on every build. Nothing here transforms the content: this
+ * component chooses a measure and gets out of the way.
+ *
+ * No reveal, no ground change, no smooth-scroll flourish. A reader looking for clause f)
+ * is not here for a performance.
+ */
+import { getEntry, render } from 'astro:content';
+import { DEFAULT_LOCALE, type Locale } from '../../config/i18n.ts';
+import '../../styles/legal.css';
+
+interface Props {
+  /** Entry id in the `legal` collection. */
+  id: string;
+  locale?: Locale;
+}
+
+const { id, locale = DEFAULT_LOCALE } = Astro.props;
+
+const entry = await getEntry('legal', id);
+if (!entry) throw new Error(`No legal entry "${id}" — run \`npm run legal:build\``);
+
+const { Content } = await render(entry);
+const title = entry.data.title[locale] ?? entry.data.title.pt;
+
+/**
+ * NOTHING is printed above the document that the document does not already say.
+ *
+ * The privacy policy states its own last-update date inside the text ("A última
+ * atualização é de 9 de abril de 2025"); the terms state none. Rendering a capture date,
+ * an effective date or a version number in the page furniture would put a date on a legal
+ * document that its authors did not put there, and on this page that is not decoration —
+ * it is a claim (CLAUDE.md §8). `capturedAt` stays in the entry's frontmatter as
+ * provenance for us.
+ */
+---
+
+<section class="lg section ground-cream" data-ground="cream" data-header="cream" aria-labelledby="page-title">
+  <div class="lg__inner">
+    <h1 class="lg__title" id="page-title">{title}</h1>
+
+    <div class="lg__doc">
+      <Content />
+    </div>
+  </div>
+</section>

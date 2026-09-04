@@ -1,0 +1,26 @@
+{
+ "capturedAt": "2026-09-02T09:08:51.386Z",
+ "origin": "https://www.nextvisionfilms.com",
+ "pages": {
+  "requested": 34,
+  "ok": 34,
+  "failed": 0
+ },
+ "endpoints": {
+  "wp-json-root": 200,
+  "wp-types": 200,
+  "wp-pages": 200,
+  "wp-media": 200,
+  "wp-settings-pll": 200,
+  "robots.txt": 200,
+  "sitemap_index.xml": 200,
+  "page-sitemap.xml": 200,
+  "portfolio-sitemap.xml": 200
+ },
+ "media": {
+  "downloaded": 39,
+  "skippedDerivatives": 38,
+  "failed": 0,
+  "totalMB": 174.5
+ }
+}

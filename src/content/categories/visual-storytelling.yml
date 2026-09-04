@@ -1,0 +1,22 @@
+# Legacy WordPress taxonomy term, preserved so the indexed URL keeps resolving.
+#
+# name.pt is the label AS PUBLISHED on the live site (CLAUDE.md §2 — verbatim, not final).
+# The owner-facing taxonomy is decision R5: names may change, slugs stay, and
+# previousSlugs generates the redirect. Code must key off internalId, never the name.
+#
+# NOTE: on the live site four of the five category DESCRIPTIONS do not match their
+# heading (audit §9.3, decision D3). Descriptions are therefore deliberately omitted
+# here rather than migrated wrong — the owner supplies corrected copy.
+#
+# PHASE 11 — `name.en` is a translation of the published Portuguese label, which is what
+# ARCHITECTURE §10.2 always specified for this field ("{ pt: \"Ficção\", en: \"Fiction\" }").
+# It renames nothing: decision R5 (whether `Corporativo` should be `Marcas`, and so on) is
+# still the owners', and answering it stays a two-line content edit in both languages.
+name:
+  pt: "Visual Storytelling"
+  en: "Visual Storytelling"
+internalId: "cat-visual-storytelling"
+order: 1
+accentToken: "rust"
+previousSlugs: []
+hidden: false

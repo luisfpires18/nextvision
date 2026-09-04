@@ -1,0 +1,124 @@
+{
+  // Cloudflare Workers config.
+  //
+  // NO SECRETS, NO ACCOUNT ID — those live in CI and in `wrangler secret`
+  // (docs/ARCHITECTURE.md §12). Nothing here has been provisioned: no Worker,
+  // no R2 bucket, no Turnstile key, no DNS change. This file only declares the
+  // shape of the eventual deployment.
+  //
+  // `main` and the assets binding are supplied by @astrojs/cloudflare at build
+  // time — do not hand-set them here, or the Cloudflare Vite plugin will try to
+  // resolve a file that does not exist yet.
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "next-vision-films",
+
+  // PINNED TO THE INSTALLED workerd, not to "today".
+  //
+  // wrangler 4.128.0 bundles workerd 1.20260831.1, whose newest supported compatibility
+  // date is 2026-08-31 (`@astrojs/cloudflare/info` reports it). The previous value here
+  // was 2026-09-01 — one day AHEAD of it — which means `wrangler dev` and
+  // `npm run preview:cloudflare` silently run under DIFFERENT semantics than the deployed
+  // Worker, because the edge honours the date and the local runtime cannot. A local
+  // preview that is not the same runtime as production is a preview that can only ever
+  // agree with production by luck.
+  //
+  // Raise this together with wrangler, never on its own.
+  "compatibility_date": "2026-08-31",
+
+  // Kept, and it is the documented @astrojs/cloudflare configuration. The current bundle
+  // imports no `node:` specifier at all, so nothing WOULD fail today — but the flag also
+  // governs the `process` / `Buffer` shims the Astro runtime reaches for, and dropping it
+  // to save nothing measurable is how a deploy breaks on a route nobody built yet.
+  "compatibility_flags": ["nodejs_compat"],
+
+  // Worker logs, on. This is the only visibility a staging deployment has: there is no
+  // error tracker, and `npm run validate:*` cannot see a runtime 500.
+  "observability": { "enabled": true },
+
+  // ── STEP 14 · TWO DEPLOYMENT TARGETS, AND THEY CAN NEVER OVERWRITE EACH OTHER ──────
+  //
+  // Wrangler environments, with an EXPLICIT `name` in each one. Explicit, because the
+  // default is to append the environment name to the top-level name — which would have
+  // renamed the existing staging Worker out from under every measurement in
+  // docs/STAGING_DEPLOY.md §8. Step 13's QA describes a specific artefact at a specific
+  // URL; repurposing that URL would silently invalidate the record rather than update it.
+  //
+  //   staging     next-vision-films
+  //               https://next-vision-films.next-vision-films.workers.dev
+  //               The Worker that already exists. Deployed by CI on every push to `dev`.
+  //
+  //   production  next-vision-films-production
+  //               https://next-vision-films-production.next-vision-films.workers.dev
+  //               Deployed by CI only on a push to `master`. Step 15 attaches
+  //               nextvisionfilms.com HERE — not to staging, and not today.
+  //
+  // The top-level `name` is the staging name ON PURPOSE: a bare `wrangler deploy`, with
+  // no --env, is then a mistake that lands on staging. Reaching production requires
+  // typing `--env production`. The dangerous direction is the one that needs the flag.
+  //
+  // Nothing else differs between the two. Every deferred capability — the media
+  // hostname, the analytics token, the Turnstile keys, the contact recipient — is unset
+  // in BOTH, because an unset value already has a defined, safe meaning everywhere
+  // (CLAUDE.md rule 19). Neither environment may acquire a capability the other has not
+  // been granted without that being a deliberate, recorded decision.
+  //
+  // `compatibility_date`, `compatibility_flags` and `observability` are inheritable keys
+  // and are NOT repeated below: repeating them is how the two runtimes drift apart.
+  "env": {
+    "staging": {
+      "name": "next-vision-films"
+    },
+    "production": {
+      "name": "next-vision-films-production"
+    }
+  }
+
+  // NO `vars` BLOCK. It used to declare
+  //     "PUBLIC_MEDIA_BASE_URL": "https://media.nextvisionfilms.com"
+  // for a host that has never existed, and Vite substituted it into every built page —
+  // so a local build emitted links to nothing while ALSO copying the local media mirror
+  // into dist. The variable now has exactly one source: the environment (see .env.example
+  // and docs/MEDIA_PIPELINE.md §4). Unset, the site serves its own media and works with no
+  // network at all; set, it serves from R2. Add it back here only once the delivery
+  // hostname is real.
+  //
+  // Bindings deliberately absent until the resources actually exist:
+  //   r2_buckets                       — the site reads media over plain HTTPS, so it needs
+  //                                      no binding at all; uploads use the S3 API from a
+  //                                      developer machine (scripts/media-sync.mjs)
+  //   kv_namespaces (SESSION)          — only if sessions are ever needed; they are not
+  //   send_email                       — Cloudflare Email Routing's own sending binding.
+  //                                      The lowest-infrastructure delivery option there
+  //                                      is, and unavailable until the zone is ON
+  //                                      Cloudflare with Email Routing enabled (D20).
+  //                                      docs/ARCHITECTURE.md §7.
+  //
+  // ── PHASE 13 · the contact endpoint's configuration ────────────────────────
+  //
+  // `src/pages/api/contact.ts` is the one route with `prerender = false`, so this Worker
+  // now does something. It reads its configuration from the ENVIRONMENT at request time
+  // via `cloudflare:workers` — NOT from `Astro.locals.runtime.env`, which @astrojs/
+  // cloudflare 14 removed and which throws on access.
+  //
+  // SECRETS — `wrangler secret put NAME`, never a `vars` entry, never this file:
+  //     TURNSTILE_SECRET_KEY     required. Unset, every submission is refused with 503.
+  //     RESEND_API_KEY           whichever provider is chosen (decision D17)
+  //     BREVO_API_KEY
+  //
+  // NON-SECRET, but still not here while D17/D2 are open — a recipient in version control
+  // is a recipient nobody reviewed. Set them with `wrangler secret put` too, or add a
+  // `vars` block the day the values are decided:
+  //     CONTACT_PROVIDER         "resend" | "brevo"
+  //     CONTACT_RECIPIENT        where an accepted message goes            <- D17 / D2
+  //     CONTACT_SENDER           From:, on a domain the provider verified
+  //
+  // BUILD-TIME, not a Worker variable — it is inlined into the HTML by Vite:
+  //     PUBLIC_TURNSTILE_SITE_KEY
+  //
+  // Local overrides for all of the above go in `.dev.vars` (gitignored). See
+  // .env.example and scripts/test-forms.mjs.
+  //
+  // NOT added, and deliberately: no KV and no D1. Turnstile plus the honeypot plus
+  // server-side validation is the abuse control, and edge rate limiting on /api/* is a
+  // WAF rule in the dashboard rather than infrastructure this project has to own.
+}

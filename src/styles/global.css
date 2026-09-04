@@ -1,0 +1,59 @@
+/* Base layer. Deliberately minimal — this session builds the technical shell only.
+   Visual design begins after Review A (docs/IMPLEMENTATION_PLAN.md). */
+@import './fonts.css';
+@import './tokens.colour.css';
+@import './tokens.type.css';
+@import './tokens.space.css';
+@import './tokens.motion.css';
+
+*, *::before, *::after { box-sizing: border-box; }
+html {
+  -webkit-text-size-adjust: 100%;
+  /* The header is fixed, so anything a #hash lands on would otherwise arrive with its
+     first line underneath it. Declared once, here, and read by three different things:
+     the browser's own anchor jumps, `:target`, keyboard focus travel, and — by reading
+     this exact computed value — the smooth-scroll model. One number, no drift. */
+  scroll-padding-block-start: calc(var(--header-h) + var(--space-5));
+}
+body {
+  margin: 0;
+  background: var(--ground);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: var(--t-body);
+  line-height: var(--lh-body);
+}
+img, video { max-width: 100%; height: auto; display: block; }
+/* PHASE 12 — <picture> exists only to offer an AVIF ahead of the WebP. It must not become
+   a box: `display: contents` keeps the <img> laid out exactly as it was before the wrapper
+   was added, so every existing frame rule still describes the image it always described. */
+picture { display: contents; }
+/* The UA default is `margin: 1em 40px`, which quietly took 80px off the width of every
+   framed image on a project page — 240px across a three-frame strip. Figures are laid
+   out by their container here, never by a browser default. */
+figure { margin: 0; }
+
+/* Accessibility floor (ARCHITECTURE.md §5.7) — applies from the first commit. */
+:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
+.skip-link {
+  position: absolute; left: var(--space-2); top: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  background: var(--ground); color: var(--ink);
+  transform: translateY(-200%);
+  transition: transform var(--dur-fast) var(--ease-ui);
+  z-index: 100;
+}
+.skip-link:focus { transform: translateY(0); }
+
+/* Text for assistive technology only. Used by live regions that must not be seen. */
+.visually-hidden {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}

@@ -1,0 +1,165 @@
+---
+/**
+ * Direction B — CONTACT SHEET. Review A prototype. INTERNAL, noindex.
+ *
+ * All copy and media are real and preserved. Nothing invented.
+ */
+import ConceptLayout from '../../layouts/ConceptLayout.astro';
+import { projects, copy, categories, bySlug } from '../../lib/concept-data.ts';
+import '../../styles/concepts/contact-sheet.css';
+
+const lead = bySlug('nvf-vs-filmin-details')!; // the one project with a 1080p master
+const TICKS = 24;
+---
+
+<ConceptLayout concept="contact-sheet" title="Contact Sheet" lerp={0.12}>
+  {/* Scroll position as a tick scale in the margin — a real indicator, not decoration */}
+  <div class="cs-scale" data-scale aria-hidden="true">
+    {Array.from({ length: TICKS }, () => <i></i>)}
+  </div>
+
+  <header class="c-header">
+    <a class="c-header__brand" href="/__concepts/">Next Vision Films</a>
+    <nav class="c-header__nav" data-menu aria-label="Principal">
+      <a href="#sheet">{copy.nav.portfolio}</a>
+      <a href="#statement">{copy.nav.about}</a>
+      <a href="#contact">{copy.nav.contact}</a>
+    </nav>
+    <button class="c-menu-toggle" data-menu-toggle aria-expanded="false">Menu</button>
+  </header>
+
+  <main class="c-main">
+    <!-- 1 · HERO — one frame, annotated -->
+    <section class="c-section cs-hero" aria-labelledby="hero-title">
+      <div class="c-wide">
+        <div class="cs-hero__head">
+          <h1 class="c-display cs-hero__title" id="hero-title">
+            <span class="c-lines">
+              <span><span>{copy.heroLine1}</span></span>
+              <span><span style="--line-delay:80ms">{copy.heroLine2}</span></span>
+            </span>
+          </h1>
+          <div class="c-stripe" style="--stripe-h:10px;max-inline-size:12rem" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+        </div>
+
+        <div class={`c-frame cs-hero__frame cat-${lead.categoryToken}`} data-preview style="margin-block-start:var(--space-6)">
+          <img src={lead.poster} alt={`Fotograma de ${lead.title}`} width="1200" height="675" fetchpriority="high" decoding="async" />
+          <video data-src={lead.preview} poster={lead.poster} muted loop playsinline preload="none" aria-hidden="true"></video>
+        </div>
+
+        <dl class="c-meta cs-annot" style="margin-block-start:var(--space-3)">
+          <div><dt>Projeto</dt><dd>{lead.title}</dd></div>
+          <div><dt>Categoria</dt><dd>{lead.category}</dd></div>
+          <div><dt>Data</dt><dd>{lead.date}</dd></div>
+          <div><dt>Formato</dt><dd>16:9 · 1920×1080</dd></div>
+        </dl>
+      </div>
+    </section>
+
+    <!-- 2 · THE LIGHT TABLE — everything, filterable -->
+    <section class="c-section" id="sheet" aria-labelledby="sheet-title">
+      <div class="c-wide">
+        <h2 class="c-display c-display--m" id="sheet-title" style="text-transform:uppercase;margin-block-end:var(--space-5)">
+          {copy.workLine2}
+        </h2>
+
+        <div class="cs-filters" role="group" aria-label="Filtrar por categoria">
+          <button type="button" data-filter="all" aria-pressed="true">Tudo ({projects.length})</button>
+          {categories.map((c) => (
+            <button type="button" class={`cat-${c.token}`} data-filter={c.name} aria-pressed="false">{c.name}</button>
+          ))}
+        </div>
+
+        <div class="cs-sheet" data-sheet>
+          {projects.map((p, i) => (
+            <article class={`cs-cell cat-${p.categoryToken}`} data-category={p.category} data-reveal style={`--reveal-delay:${Math.min(i, 8) * 40}ms`}>
+              <div class="c-frame cs-cell__frame" data-preview={p.preview ? '' : undefined}>
+                <img src={p.poster} alt={`Fotograma de ${p.title}`} width="1200" height="675" loading="lazy" decoding="async" />
+                {p.preview && <video data-src={p.preview} poster={p.poster} muted loop playsinline preload="none" aria-hidden="true"></video>}
+              </div>
+              <div class="cs-cell__band" aria-hidden="true"></div>
+              <h3 class="cs-cell__title"><a class="c-link" href="#sheet">{p.title}</a></h3>
+              <p class="c-meta cs-cell__meta">
+                <span>{p.category}</span>
+                <span>{p.date}</span>
+              </p>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <!-- 3 · TEXT MOMENT -->
+    <section class="c-section cs-statement" id="statement" aria-labelledby="statement-title">
+      <div class="c-content">
+        <p class="c-meta" style="color:var(--c-dim);margin-block-end:var(--space-5)">Sobre</p>
+        <h2 class="c-display cs-statement__title" id="statement-title" data-reveal>
+          <span class="c-lines"><span><span>{copy.aboutLead}</span></span></span>
+        </h2>
+        <p class="c-lead" style="margin-block-start:var(--space-6)" data-reveal>{copy.aboutBody}</p>
+        <p class="c-body" style="margin-block-start:var(--space-4);color:var(--c-dim)" data-reveal>{copy.aboutBody2}</p>
+      </div>
+    </section>
+
+    <!-- 4 · TRANSITION into a moving frame -->
+    {(() => { const p = bySlug('nazaryi')!; return (
+      <section class="c-section" aria-label={p.title}>
+        <div class="c-wide">
+          <div class={`c-frame cat-${p.categoryToken}`} style="--frame-ratio:21/9;border:1px solid var(--c-fg)" data-preview>
+            <img src={p.poster} alt={`Fotograma de ${p.title}`} width="1200" height="675" loading="lazy" decoding="async" />
+            <video data-src={p.preview} poster={p.poster} muted loop playsinline preload="none" aria-hidden="true"></video>
+          </div>
+          <p class="c-body" style="margin-block-start:var(--space-4);max-inline-size:44rem">{p.tagline}</p>
+          <p class="c-meta" style="color:var(--c-dim);margin-block-start:var(--space-2)">{p.title} · {p.category} · {p.date}</p>
+        </div>
+      </section>
+    ); })()}
+
+    <!-- 5 · CLOSE — inverted -->
+    <section class="c-section cs-invert" id="contact">
+      <div class="c-wide">
+        <p class="c-meta">{copy.footerTitle}</p>
+        <a class="cs-invert__email" href={`mailto:${copy.footerEmail}`}>{copy.footerEmail}</a>
+        <div class="c-stripe" style="--stripe-h:6px;margin-block-start:var(--space-7)" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+        <p class="c-meta" style="margin-block-start:var(--space-5)">{copy.copyright}</p>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // Filtering. Works on real DOM, announces state, and degrades to "everything
+    // visible" with JS off — the grid is fully rendered server-side.
+    const buttons = document.querySelectorAll<HTMLButtonElement>('[data-filter]');
+    const cells = document.querySelectorAll<HTMLElement>('[data-category]');
+    buttons.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const want = btn.dataset['filter'];
+        buttons.forEach((b) => b.setAttribute('aria-pressed', String(b === btn)));
+        cells.forEach((c) => {
+          const show = want === 'all' || c.dataset['category'] === want;
+          c.hidden = !show;
+        });
+      });
+    });
+
+    // Tick scale tracks scroll position. Throttled to one write per frame — never
+    // bound directly to an unthrottled scroll event.
+    const ticks = document.querySelectorAll<HTMLElement>('[data-scale] i');
+    if (ticks.length) {
+      let queued = false;
+      const update = () => {
+        queued = false;
+        const max = document.documentElement.scrollHeight - window.innerHeight;
+        const p = max > 0 ? window.scrollY / max : 0;
+        const n = Math.round(p * ticks.length);
+        ticks.forEach((t, i) => { if (i < n) t.dataset['passed'] = ''; else delete t.dataset['passed']; });
+      };
+      window.addEventListener('scroll', () => {
+        if (queued) return;
+        queued = true;
+        requestAnimationFrame(update);
+      }, { passive: true });
+      update();
+    }
+  </script>
+</ConceptLayout>

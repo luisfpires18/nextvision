@@ -1,0 +1,32 @@
+# Navigation as data. Changing the menu is a change to this file and nothing else.
+#
+# Items reference a pageId resolved through src/i18n/routes.ts, and a labelKey
+# resolved through src/i18n/. No hrefs and no labels are hardcoded here, so the
+# menu works identically in every locale.
+- id: navigation
+  items:
+    # Work first: this is a production company, so the portfolio leads the menu.
+    - pageId: portfolio
+      labelKey: nav.portfolio
+      showIn: [header]
+      order: 0
+    - pageId: about
+      labelKey: nav.about
+      showIn: [header]
+      order: 1
+    - pageId: services
+      labelKey: nav.services
+      showIn: [header]
+      order: 2
+    - pageId: contact
+      labelKey: nav.contact
+      showIn: [header]
+      order: 3
+    - pageId: terms
+      labelKey: nav.terms
+      showIn: [footer]
+      order: 0
+    - pageId: privacy
+      labelKey: nav.privacy
+      showIn: [footer]
+      order: 1

@@ -1,0 +1,67 @@
+---
+/**
+ * The route into the next film.
+ *
+ * A project page ends by offering another project at the scale of a project — not a
+ * pagination bar. Order is the curated portfolio order, so "next" means what the owners
+ * decided it means, and the previous project and the full index sit under it as quiet
+ * mono links rather than competing with the image.
+ */
+import { t } from '../../i18n/index.ts';
+import { imageProps } from '../../lib/media.ts';
+import { pagePath } from '../../i18n/routes.ts';
+import { PORTFOLIO } from '../../lib/portfolio.ts';
+import { say } from '../../lib/homepage.ts';
+import { DEFAULT_LOCALE, type Locale } from '../../config/i18n.ts';
+import type { CuratedProject } from '../../lib/curated.ts';
+
+interface Props {
+  next: CuratedProject | null;
+  previous: CuratedProject | null;
+  locale?: Locale;
+}
+
+const { next, previous, locale = DEFAULT_LOCALE } = Astro.props;
+const still = next ? imageProps(`projects/${next.slug}/poster`, { sizes: '(min-width: 90rem) 1440px, 100vw' }) : null;
+---
+
+<section class="pj-next ground-dark" data-ground="dark" data-header="dark" aria-labelledby="next-h">
+  <div class="pj-next__inner">
+    {next && still && (
+      <a class="pj-next__link" href={next.href}>
+        <p class="eyebrow">{t('ui.next', locale)}</p>
+        <span class="pj-next__frame" data-header-zone data-frame={next.slug}>
+          <picture>
+            {still.avifSrcset && <source type="image/avif" srcset={still.avifSrcset} sizes={still.sizes} />}
+            <img
+              src={still.src}
+              srcset={still.srcset}
+              sizes={still.sizes}
+              alt=""
+              width={still.width}
+              height={still.height}
+              loading="lazy"
+              decoding="async"
+            />
+          </picture>
+        </span>
+        <h2 class="pj-next__title" id="next-h">{next.title}</h2>
+        <p class="metaline" style="margin-block-start:var(--space-3)">
+          <span class={`item__dot cat-${next.categoryToken}`} aria-hidden="true"></span>
+          <span>{next.categoryName}</span><span>{next.date}</span>
+        </p>
+      </a>
+    )}
+
+    <p class="pj-next__foot metaline">
+      {previous
+        ? <a href={previous.href}>{`${t('ui.previous', locale)} — ${previous.title}`}</a>
+        : <span></span>}
+      <a href={pagePath('portfolio', locale)}>{say(PORTFOLIO.all, locale)}</a>
+    </p>
+
+    {/* Related work, where the taxonomy can derive it. Inside this section on purpose:
+        it is a footnote to the offer above, not a second offer. */}
+    <slot />
+  </div>
+</section>

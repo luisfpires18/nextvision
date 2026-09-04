@@ -1,0 +1,13 @@
+---
+/**
+ * /en/thank-you/
+ *
+ * A ROUTE, not a page. The page itself is ThanksPage.astro, which takes a
+ * locale and is mounted twice — once here and once under /en/ — so the Portuguese and
+ * English versions of this page cannot drift apart into two designs of the same content.
+ * That split is the whole of the PT/EN architecture (docs/SEO_I18N_ROLLOUT.md §1).
+ */
+import ThanksPage from '../../components/pages/ThanksPage.astro';
+---
+
+<ThanksPage locale="en" />

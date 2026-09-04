@@ -1,0 +1,62 @@
+/**
+ * The two states — PHASE 11.
+ *
+ * `/404/` and `/offline/` are the only pages on this site with no work on them, and that
+ * is exactly why they get no new design. They open the way `/sobre/` and `/servicos/`
+ * open, on the approved `PageHead`, and everything below is the same eyebrow, the same
+ * display face and the same `.ctl` controls the rest of the site uses.
+ *
+ * ── The one element that is new, and it appears once ─────────────────────────
+ * The SLATE. This site's whole vocabulary is frames: the contact sheet, the screen, the
+ * plate. A 404 is a frame with nothing in it, so the 404 opens with an empty frame
+ * carrying the one fact the page can actually offer — the address that failed.
+ *
+ * The offline page deliberately does NOT get one. It has no fact to put in a frame, and a
+ * frame holding a mood rather than information would be decoration. One idea, used where
+ * it carries something.
+ *
+ * Every value is a token (CLAUDE.md §4). No raw hex, size, duration or easing.
+ */
+
+/* The empty frame. 16:9 because that is the shape every screen on this site takes. */
+.er-slate {
+  display: grid;
+  align-content: center;
+  gap: var(--space-3);
+  aspect-ratio: 16 / 9;
+  padding: var(--space-6);
+  background: var(--surface-muted);
+  /* A frame, drawn the way every other frame on the site is drawn. */
+  border: 1px solid var(--rule);
+}
+
+/**
+ * The address is the reader's own input reflected back, so it is written with
+ * `textContent` and never as markup (see the script on the page). Long paths wrap at any
+ * character rather than pushing the frame wider than the column — a 404 that introduces
+ * horizontal scroll is a second failure on top of the first.
+ */
+.er-slate__path {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--t-body-s);
+  line-height: var(--lh-body);
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.er-slate__path code { font: inherit; }
+
+/* The body of either state: one line, at reading measure, never a paragraph of comfort. */
+.er-body { max-inline-size: 46ch; margin-block-start: var(--space-5); }
+
+/**
+ * `Try again` is a real button — it reloads — while everything beside it is a link.
+ * It borrows `.ctl` for its appearance so the two read as one row of controls, and adds
+ * only what a <button> does not inherit from an <a>.
+ */
+.er-retry {
+  font: inherit;
+  cursor: pointer;
+  appearance: none;
+}

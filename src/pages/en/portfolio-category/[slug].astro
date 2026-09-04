@@ -1,0 +1,29 @@
+---
+/**
+ * /en/portfolio-category/{slug}/ — a ROUTE.
+ *
+ * The five preserved category archives. The Portuguese segment is an INDEXED URL and is
+ * frozen (`categoria-portfolio`); the English one has no history and reads as English
+ * (`portfolio-category`). Both are noindex and out of the sitemap — they exist so that an
+ * old link lands on something meaningful and so the portfolio's filter control is a set
+ * of real links rather than JavaScript-only state.
+ *
+ * The category NAME is resolved here, in the locale this route serves, so the page never
+ * has to reach back into the collection to find out what to call it.
+ */
+import type { GetStaticPaths } from 'astro';
+import { getCollection } from 'astro:content';
+import CategoryPage from '../../../components/pages/CategoryPage.astro';
+
+export const getStaticPaths = (async () => {
+  const categories = await getCollection('categories', (c) => !c.data.hidden);
+  return categories.map((c) => ({
+    params: { slug: c.id },
+    props: { slug: c.id, name: c.data.name['en'] ?? c.data.name.pt },
+  }));
+}) satisfies GetStaticPaths;
+
+const { slug, name } = Astro.props;
+---
+
+<CategoryPage locale="en" slug={slug} name={name} />

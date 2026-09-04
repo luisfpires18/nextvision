@@ -1,0 +1,97 @@
+---
+# Migrated from the Phase 0.5 preservation archive (docs/source-archive/pages.json).
+# Every value is verbatim from https://www.nextvisionfilms.com/portfolio/helder-praia/ —
+# title, tagline, date and category are the live page's own (CLAUDE.md §2, §8).
+#
+# Curated onto the Review B homepage. Reasoning: docs/HOMEPAGE_REVIEW.md §4.
+# FEATURED: the single cinematic Projection moment on the Review B homepage.
+# Media: a 6 s silent loop from `The endless _WAVES_.mp4` — the highest-bitrate clean
+# source we hold locally, and the only run in it free of burned-in captions and the
+# film’s own viewfinder overlay. Still PROVISIONAL: masterRequired stays true (M1).
+
+title:
+  pt: "The endless “WAVES”"
+tagline:
+  pt: |-
+    One day you wake up, and its not just another morning, its a moment.
+    When you realize the pages of your life have turned, and you’re no longer who you used to be.
+    The moments you couldn’t hold onto… Fading
+
+# PHASE 11 — this project's PUBLISHED PROSE IS ALREADY ENGLISH. The live Portuguese page
+# prints these words exactly as they appear here, so there is nothing to translate and no
+# English variant is declared: `sourceLocale: en` states that as a fact about the entry
+# rather than leaving the gap to be guessed at. `npm run validate:i18n` reads this field
+# and therefore does not report a missing translation for prose that never had one.
+sourceLocale: en
+date: 2025-02-11
+year: 2025
+
+categories:
+  - visual-storytelling
+tags: []
+collections: []
+
+featured: true
+homepageOrder: 5
+portfolioOrder: 1
+draft: false
+
+film:
+  provider: youtube
+  id: O7g2AM9lAo0
+
+poster:
+  key: projects/helder-praia/poster
+  altStatus: todo # authored copy — Phase 11b, owner-reviewed
+
+heroStill:
+  key: projects/helder-praia/feature/poster
+  altStatus: decorative
+heroVideo: projects/helder-praia/feature
+# The same clean window at grid size, for the portfolio's hover preview.
+previewVideo: projects/helder-praia/preview
+
+# The homepage feature above is cut from Smash; the PROJECT PAGE's own screen and stills
+# come from the archived WordPress card loop, which is 1920x1080 at 17.3 Mbps - better
+# material than the Smash export, and the same film (docs/PROJECT_ROLLOUT.md).
+sourceOfTruth: wordpress
+masterRequired: true
+
+blocks:
+  # No `embedded-film` block: the published film IS the screen at the top of the page.
+  #
+  # The words the project publishes, unaltered.
+  - type: text
+    width: narrow
+    body:
+      pt: |-
+        One day you wake up, and its not just another morning, its a moment.
+        When you realize the pages of your life have turned, and you’re no longer who you used to be.
+        The moments you couldn’t hold onto… Fading
+
+  # Three frames of one continuous walk, in the order they occur. The light flattens
+  # across them, which is what the sequence is about.
+  - type: image-pair
+    weight: left
+    media:
+      - key: projects/helder-praia/still-01
+        altStatus: todo
+      - key: projects/helder-praia/still-02
+        altStatus: todo
+
+  - type: full-width-image
+    media:
+      key: projects/helder-praia/still-03
+      altStatus: todo
+
+related: []
+previousSlugs: []
+
+seo:
+  noindex: false
+---
+
+{/*
+  Body intentionally empty. The live project page carries no prose beyond the title
+  and the tagline above. Writing any here would invent content (CLAUDE.md §2).
+*/}

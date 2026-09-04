@@ -1,0 +1,80 @@
+---
+# Migrated from the Phase 0.5 preservation archive (docs/source-archive/pages.json).
+# Every value is verbatim from https://www.nextvisionfilms.com/portfolio/nvf-vs-antiqvvm/ —
+# title, tagline, date and category are the live page's own (CLAUDE.md §2, §8).
+#
+# Curated onto the Review B homepage. Reasoning: docs/HOMEPAGE_REVIEW.md §4.
+# Media: archived still + a 6 s silent loop cut from `NVF VS Antiqvvm.mp4`
+# (HIGH-confidence match by exact slug).
+
+title:
+  pt: "Antiqvvm"
+tagline:
+  pt: "Onde o “Sensorial” se pode ver."
+  # PHASE 11 translation. `Sensorial` is the venue's own name for the concept and is kept.
+  en: "Where the “Sensorial” can be seen."
+
+sourceLocale: pt
+date: 2025-04-12
+year: 2025
+
+categories:
+  - corporativo
+tags: []
+collections: []
+
+featured: false
+homepageOrder: 4
+portfolioOrder: 17
+draft: false
+
+film:
+  provider: youtube
+  id: seuAOrDs3oo
+
+poster:
+  key: projects/nvf-vs-antiqvvm/poster
+  altStatus: todo # authored copy — Phase 11b, owner-reviewed
+
+previewVideo: projects/nvf-vs-antiqvvm/preview
+
+
+# PHASE 9 - the project page's own entry. A silent, caption-free loop cut from `NVF VS Antiqvvm.mp4` (1280x720),
+# at the page's 1140px ceiling, which for this source is a DOWNSCALE. Pressing play swaps
+# the published film into the same screen.
+heroStill:
+  key: projects/nvf-vs-antiqvvm/hero/poster
+  altStatus: decorative
+heroVideo: projects/nvf-vs-antiqvvm/hero
+
+# The only project here with NO 1080p source: Smash holds a 720p export and the live site
+# published no card loop for it, so 1140 is the top of its ladder and nothing above it is
+# built. The film is subtitled almost throughout and closes on an ANTIQVVM.PT end card;
+# 34-40 s is its one sustained caption-free run and the stills are the three other gaps.
+sourceOfTruth: smash
+masterRequired: true
+
+blocks:
+  # A plating sequence IS a sequence, so the strip is the honest block here: three frames
+  # in the order the dish is built, widening 3 : 4 : 5 from left to right.
+  - type: image-grid
+    mode: strip
+    media:
+      - key: projects/nvf-vs-antiqvvm/still-01
+        altStatus: todo
+      - key: projects/nvf-vs-antiqvvm/still-02
+        altStatus: todo
+      - key: projects/nvf-vs-antiqvvm/still-03
+        altStatus: todo
+
+related: []
+previousSlugs: []
+
+seo:
+  noindex: false
+---
+
+{/*
+  Body intentionally empty. The live project page carries no prose beyond the title
+  and the tagline above. Writing any here would invent content (CLAUDE.md §2).
+*/}

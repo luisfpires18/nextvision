@@ -1,0 +1,77 @@
+{
+ "capturedAt": "2026-09-02T09:08:51.386Z",
+ "endpoints": {
+  "wp-json-root": {
+   "path": "/wp-json/",
+   "status": 200,
+   "bytes": 376690,
+   "sha256": "450f9c78a24d268375877f8debd2abbbacdf27e2e5efe52ad76c99d0e51435a9",
+   "file": "source-archive/wordpress/rest/wp-json-root.json",
+   "xWpTotal": null
+  },
+  "wp-types": {
+   "path": "/wp-json/wp/v2/types",
+   "status": 200,
+   "bytes": 13771,
+   "sha256": "2fc5ccb3e0c55bafa632e079679ebd7b6a289ad9742661322b49cecfd6f470da",
+   "file": "source-archive/wordpress/rest/wp-types.json",
+   "xWpTotal": null
+  },
+  "wp-pages": {
+   "path": "/wp-json/wp/v2/pages?per_page=100&context=view",
+   "status": 200,
+   "bytes": 215047,
+   "sha256": "0ffef6e95e4607c957d9841c3ff901bf789c50c3e4dee8e11752e2859c0aaba2",
+   "file": "source-archive/wordpress/rest/wp-pages.json",
+   "xWpTotal": "9"
+  },
+  "wp-media": {
+   "path": "/wp-json/wp/v2/media?per_page=100&context=view",
+   "status": 200,
+   "bytes": 184350,
+   "sha256": "c79aef683bbf65b1b840482183266d60e4eed4cba6cd2c22ebdce18cf118d453",
+   "file": "source-archive/wordpress/rest/wp-media.json",
+   "xWpTotal": "93"
+  },
+  "wp-settings-pll": {
+   "path": "/wp-json/pll/v1/languages",
+   "status": 200,
+   "bytes": 2546,
+   "sha256": "b3836db9705cf9d813c160cf649d6a08fbebb7f741b14c7f972ec5aab3bf1400",
+   "file": "source-archive/wordpress/rest/wp-settings-pll.json",
+   "xWpTotal": null
+  },
+  "robots.txt": {
+   "path": "/robots.txt",
+   "status": 200,
+   "bytes": 181,
+   "sha256": "6b0ec37d54291ccf2fd8da968d7b38c596448e5c48f57fc53f8f0742234e965b",
+   "file": "source-archive/wordpress/rest/robots.txt",
+   "xWpTotal": null
+  },
+  "sitemap_index.xml": {
+   "path": "/sitemap_index.xml",
+   "status": 200,
+   "bytes": 555,
+   "sha256": "34afa6de05ffef69a156039fdf4a0f5c0efa6f98871cf29022259d2314116254",
+   "file": "source-archive/wordpress/rest/sitemap_index.xml",
+   "xWpTotal": null
+  },
+  "page-sitemap.xml": {
+   "path": "/page-sitemap.xml",
+   "status": 200,
+   "bytes": 2730,
+   "sha256": "df7d733360f44cf6957a002355ab897a5ef860da1f307fa22a5407d68c99df10",
+   "file": "source-archive/wordpress/rest/page-sitemap.xml",
+   "xWpTotal": null
+  },
+  "portfolio-sitemap.xml": {
+   "path": "/portfolio-sitemap.xml",
+   "status": 200,
+   "bytes": 6099,
+   "sha256": "e8935de9ba84762a9eed6b8e081d0094fa69b52e31c11e43ed565f07a1c3e967",
+   "file": "source-archive/wordpress/rest/portfolio-sitemap.xml",
+   "xWpTotal": null
+  }
+ }
+}

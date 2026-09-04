@@ -1,0 +1,75 @@
+---
+# Migrated from the Phase 0.5 preservation archive (docs/source-archive/pages.json).
+# Every value is verbatim from https://www.nextvisionfilms.com/portfolio/paradox-of-affection/ —
+# title, tagline, date and category are the live page's own (CLAUDE.md §2, §8).
+
+title:
+  pt: "I Feel Lost"
+tagline:
+  pt: "We search for something, but in the end, it’s the journey that leaves us forgotten in places we never meant to be."
+
+# PHASE 11 — this project's PUBLISHED PROSE IS ALREADY ENGLISH. The live Portuguese page
+# prints these words exactly as they appear here, so there is nothing to translate and no
+# English variant is declared: `sourceLocale: en` states that as a fact about the entry
+# rather than leaving the gap to be guessed at. `npm run validate:i18n` reads this field
+# and therefore does not report a missing translation for prose that never had one.
+sourceLocale: en
+date: 2025-02-11
+year: 2025
+
+categories:
+  - visual-storytelling
+tags: []
+collections: []
+
+featured: false
+homepageOrder: null
+portfolioOrder: 15
+draft: false
+
+film:
+  provider: youtube
+  id: HHB93FuKNrg
+
+poster:
+  key: projects/paradox-of-affection/poster
+  altStatus: todo # authored copy — Phase 11b, owner-reviewed
+
+
+# PHASE 9 - NO LOOP, deliberately. The archived card clip is a montage: van, field, cliff,
+# beach, every shot separated by a light-leak burn and none of them longer than a second.
+# There is no run long enough to loop honestly, so the screen holds a frame instead - the
+# van before the first burn - and the published film is one press away.
+heroStill:
+  key: projects/paradox-of-affection/hero/poster
+  altStatus: decorative
+
+sourceOfTruth: wordpress
+masterRequired: true
+
+blocks:
+  - type: text
+    width: narrow
+    body:
+      pt: "We search for something, but in the end, it’s the journey that leaves us forgotten in places we never meant to be."
+
+  # The two other places the clip goes: the cliff, and the water at sunset.
+  - type: image-pair
+    weight: left
+    media:
+      - key: projects/paradox-of-affection/still-01
+        altStatus: todo
+      - key: projects/paradox-of-affection/still-02
+        altStatus: todo
+
+related: []
+previousSlugs: []
+
+seo:
+  noindex: false
+---
+
+{/*
+  Body intentionally empty. The live project page carries no prose beyond the title
+  and any tagline above. Writing any here would invent content (CLAUDE.md §2).
+*/}

@@ -1,0 +1,162 @@
+/**
+ * Legal documents — PHASE 10.
+ *
+ * `/termos-e-condicoes/` and `/politica-de-privacidade/`. The quietest pages on the site,
+ * and deliberately so: this is the one place where the design's whole job is to get out
+ * of the way of 23 000 characters nobody may edit.
+ *
+ * Three decisions, and they are all about reading rather than about looking:
+ *
+ *   ONE COLUMN, ONE MEASURE.  `--w-text` is 68ch. Legal prose is read in long runs, and
+ *                             a two-column editorial layout would make a contract harder
+ *                             to follow, not easier.
+ *   THE STRUCTURE IS THE DESIGN.  The live pages have no visible section structure at
+ *                             all — `/termos-e-condicoes/` is one unbroken block. Giving
+ *                             the sections real headings, real rules and real anchors is
+ *                             the entire intervention, and it changes no words.
+ *   NOTHING MOVES.            No reveal, no ground change, no smooth-scroll flourish
+ *                             inside the document. A reader looking for clause f) is not
+ *                             here for a performance.
+ *
+ * Every value is a token (CLAUDE.md §4).
+ */
+
+.lg { padding-block: var(--section-pad); padding-inline: var(--gutter); }
+.lg__inner { max-inline-size: var(--w-text); margin-inline: auto; }
+
+.lg__title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--t-feature);
+  line-height: var(--lh-tight);
+  letter-spacing: var(--tracking-display);
+  margin: 0;
+  /* `política de privacidade` is published in lower case; the title renders exactly the
+     characters the page publishes and adds no transform of its own. */
+  text-wrap: balance;
+}
+
+/* ══════════════════════════════════════════════════════════════════ prose ══ */
+
+.lg__doc {
+  margin-block-start: var(--space-8);
+  font-family: var(--font-body);
+  font-size: var(--t-body);
+  line-height: var(--lh-body);
+}
+.lg__doc > * { margin: 0; }
+.lg__doc > * + * { margin-block-start: var(--space-5); }
+
+.lg__doc h2 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--t-service);
+  line-height: 1.15;
+  letter-spacing: var(--tracking-display);
+  /* The privacy sections are published in capitals and stay that way; no transform is
+     applied, so a change of case would have to be a change to the content. */
+  margin-block-start: var(--space-8);
+  padding-block-start: var(--space-5);
+  border-block-start: 1px solid var(--rule);
+  /* NO `scroll-margin` here. The offset a fixed header needs is declared ONCE, on <html>
+     as `scroll-padding-block-start` (global.css), and read by the browser's own anchor
+     jumps, by `:target`, by keyboard focus travel and by the smooth-scroll model alike.
+     Adding a scroll-margin does not override that number — the two are ADDITIVE, and an
+     anchored clause landed 160px down instead of 76px. One authority per question. */
+}
+.lg__doc h2:first-child { margin-block-start: 0; border-block-start: 0; padding-block-start: 0; }
+
+.lg__doc strong, .lg__doc b { font-weight: 600; }
+
+.lg__doc ul {
+  display: grid;
+  gap: var(--space-3);
+  padding-inline-start: var(--space-5);
+}
+.lg__doc li { margin: 0; }
+.lg__doc li::marker { color: var(--brand-oxblood); }
+
+.lg__doc a {
+  color: var(--brand-oxblood);
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+  text-decoration-thickness: 1px;
+  /* Long e-mail addresses and the Google Analytics URL are longer than a phone column. */
+  overflow-wrap: anywhere;
+}
+.lg__doc a:hover, .lg__doc a:focus-visible { text-decoration-thickness: 2px; }
+
+/**
+ * The `Navegação` index.
+ *
+ * On the live site these ten links point at `digiup.me` (audit §9.4, decision D4). They
+ * are the same ten labels and the same ten fragment names; only the origin changed, so a
+ * reader who clicks `Cookies` now lands on this page's Cookies section instead of another
+ * company's. The list is styled as an index rather than as prose so it reads as
+ * navigation before it is clicked.
+ */
+.lg__doc ul:has(a[href^='#']) {
+  list-style: none;
+  padding-inline-start: 0;
+  border-block-start: 1px solid var(--rule);
+  gap: 0;
+}
+.lg__doc ul:has(a[href^='#']) li { border-block-end: 1px solid var(--rule); }
+.lg__doc ul:has(a[href^='#']) a {
+  display: block;
+  /* 44px row, so the index is as usable on a phone as it is with a mouse. */
+  padding-block: var(--space-3);
+  min-block-size: 2.75rem;
+  font-family: var(--font-body);
+  /* The document's own link colour, so an index entry is recognisably the same object
+     as a link in a paragraph. The underline arrives on hover rather than at rest: ten
+     underlined lines in a row read as a wall, and the ruled rows already say "list of
+     destinations" before anything is hovered. */
+  text-decoration: none;
+}
+.lg__doc ul:has(a[href^='#']) a:hover,
+.lg__doc ul:has(a[href^='#']) a:focus-visible { text-decoration: underline; }
+/* Without :has() the index is an ordinary list of links — legible, navigable, plainer. */
+
+/* ══════════════════════════════════════════════════════════════════ table ══
+   The cookie table is three columns of real data and it must not push the page sideways
+   on a phone. It scrolls inside its own box; the document never does. */
+
+.lg__doc table {
+  display: block;
+  overflow-x: auto;
+  border-collapse: collapse;
+  inline-size: 100%;
+  font-size: var(--t-body-s);
+}
+.lg__doc th, .lg__doc td {
+  text-align: start;
+  vertical-align: top;
+  padding: var(--space-3) var(--space-4) var(--space-3) 0;
+  border-block-end: 1px solid var(--rule);
+}
+.lg__doc th {
+  font-family: var(--font-mono);
+  font-size: var(--t-metaline);
+  letter-spacing: var(--tracking-eyebrow);
+  text-transform: uppercase;
+  color: var(--dim);
+  white-space: nowrap;
+}
+.lg__doc td:first-child { font-family: var(--font-mono); white-space: nowrap; }
+
+/* ══════════════════════════════════════════════════════════════════ print ══
+   A contract gets printed. Drop the interface, keep the document. */
+
+@media print {
+  .site-header, .site-footer, .loader, .progress, .skip-link { display: none !important; }
+  .site, .lg { background: var(--print-paper); color: var(--print-ink); }
+  .lg { padding: 0; }
+  .lg__inner { max-inline-size: none; }
+  .lg__doc h2 { break-after: avoid-page; }
+  .lg__doc p, .lg__doc li, .lg__doc tr { break-inside: avoid; }
+  /* A printed page has no pointer, so a link that says nothing about its destination is
+     a dead end. Fragments are excluded: they point inside the sheet already in hand. */
+  .lg__doc a[href^='http']::after,
+  .lg__doc a[href^='mailto']::after { content: ' (' attr(href) ')'; font-size: 0.85em; }
+}

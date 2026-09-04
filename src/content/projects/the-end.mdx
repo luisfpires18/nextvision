@@ -1,0 +1,86 @@
+---
+# Migrated from the Phase 0.5 preservation archive (docs/source-archive/pages.json).
+# Every value is verbatim from https://www.nextvisionfilms.com/portfolio/the-end/ —
+# title, tagline, date and category are the live page's own (CLAUDE.md §2, §8).
+
+title:
+  pt: "The End"
+tagline:
+  pt: |-
+    “
+    THE END
+    ” sometimes is just a start.
+
+# PHASE 11 — this project's PUBLISHED PROSE IS ALREADY ENGLISH. The live Portuguese page
+# prints these words exactly as they appear here, so there is nothing to translate and no
+# English variant is declared: `sourceLocale: en` states that as a fact about the entry
+# rather than leaving the gap to be guessed at. `npm run validate:i18n` reads this field
+# and therefore does not report a missing translation for prose that never had one.
+sourceLocale: en
+date: 2025-02-11
+year: 2025
+
+categories:
+  - ficcao
+tags: []
+collections: []
+
+featured: false
+homepageOrder: null
+portfolioOrder: 7
+draft: false
+
+film:
+  provider: youtube
+  id: _3cbRqvPKsk
+
+poster:
+  key: projects/the-end/poster
+  altStatus: todo # authored copy — Phase 11b, owner-reviewed
+
+
+# PHASE 9 - the project page's own entry. A silent, caption-free loop cut from the project's own archived card loop (1920x1080, 17.2 Mbps),
+# at the page's 1140px ceiling, which for this source is a DOWNSCALE. Pressing play swaps
+# the published film into the same screen.
+heroStill:
+  key: projects/the-end/hero/poster
+  altStatus: decorative
+heroVideo: projects/the-end/hero
+
+# Smash/ holds TWO candidate files for this project - `In the end.mp4` and
+# `Sometimes it´s just the start (1).mp4` - and which is the film is decision M2. Neither
+# is used: the archived card loop is this project's own published footage, so the page is
+# built without answering a question that is the owners' to answer.
+sourceOfTruth: wordpress
+masterRequired: true
+
+blocks:
+  - type: text
+    width: narrow
+    body:
+      pt: |-
+        “
+        THE END
+        ” sometimes is just a start.
+
+  # The two shots the clip holds: the close on the blanket, and the wide it cuts to.
+  # `right` puts the wide in the major column - it is the frame that carries the piece.
+  - type: image-pair
+    weight: right
+    media:
+      - key: projects/the-end/still-01
+        altStatus: todo
+      - key: projects/the-end/still-02
+        altStatus: todo
+
+related: []
+previousSlugs: []
+
+seo:
+  noindex: false
+---
+
+{/*
+  Body intentionally empty. The live project page carries no prose beyond the title
+  and any tagline above. Writing any here would invent content (CLAUDE.md §2).
+*/}

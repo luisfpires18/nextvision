@@ -1,0 +1,136 @@
+/**
+ * Motion tokens — REVIEW E.
+ *
+ * The site has one motion vocabulary and it is borrowed from the cutting room, because
+ * the subject is film and the reader already knows the grammar:
+ *
+ *     CUT       no time passes                      --dur-instant
+ *     TOUCH     the thing you pressed answers       --dur-fast
+ *     SETTLE    an interface state resolves         --dur-ui
+ *     REVEAL    content arrives                     --dur-reveal
+ *     DISSOLVE  one ground becomes another          --dur-cinematic
+ *     TRANSITION one route becomes another          --dur-transition
+ *     HOLD      the longest the site may make you wait  --dur-hold
+ *
+ * Tokens are named for the ROLE, never for the length. "Make the site calmer" is an edit
+ * to this file and nothing else; no component may contain a duration, an easing, a
+ * travel distance or a stagger (CLAUDE.md §4, ARCHITECTURE.md §16.2).
+ *
+ * Three easings, and only three. A fourth would mean two of them were doing the same job.
+ */
+
+:root {
+  /* ─────────────────────────────────────────────────────────────── duration */
+  --dur-instant: 0ms;
+  --dur-fast: 120ms;
+  --dur-ui: 220ms;
+  --dur-reveal: 520ms;
+  /* Review D's frame→film morph and every ordinary route swap. ARCHITECTURE.md §16.3
+     budgets 400 ms for a whole transition; anything longer reads as the site being slow
+     rather than the site being considered. */
+  --dur-transition: 380ms;
+  /* The cream↔dark dissolve. Long enough to read as a grade, short enough that a fast
+     scroller is never watching a colour catch up with them. */
+  --dur-cinematic: 760ms;
+  /* The cap on the opening hold. Not a target — a ceiling. */
+  --dur-hold: 900ms;
+  /* The one ambient rhythm on the site: the scroll cue breathing at the foot of the
+     hero. Slow enough to be a heartbeat rather than a blink, and it stops the moment the
+     reader scrolls, because a cue that keeps signalling after it has been obeyed is
+     noise. */
+  --dur-pulse: 2600ms;
+
+  /* ───────────────────────────────────────────────────────────────── easing */
+  /* Interface. Leaves immediately, arrives without overshoot: it is feedback, not a
+     performance. */
+  --ease-ui: cubic-bezier(0.2, 0, 0, 1);
+  /* Content arriving. Most of its distance is spent in the first third, so a reveal
+     feels like it has already happened by the time you look at it. */
+  --ease-reveal: cubic-bezier(0.16, 1, 0.3, 1);
+  /* The projector curve — symmetric, weighted at both ends. Used where something is
+     genuinely changing state rather than responding: the ground, the loader, a film
+     appearing. An --ease-reveal ground dissolve is 84% done in its first third, which
+     reads as a snap followed by a crawl. */
+  --ease-cinematic: cubic-bezier(0.65, 0, 0.35, 1);
+
+  /* ───────────────────────────────────────────── distance · scale · rhythm */
+  /* How far content travels as it arrives. One value, so nothing on the site rises by a
+     number somebody typed. */
+  --rise-reveal: 1.25rem;
+  /* The hero's own rise is shorter: it is already on screen, so it settles rather than
+     arrives. */
+  --rise-hero: 0.75rem;
+  /* Media under a pointer. 1.02 is the whole budget — enough to acknowledge the pointer,
+     not enough to be an effect. */
+  --scale-media: 1.02;
+  /* One stagger. Sequences use multiples of it, never their own value. */
+  --stagger: 90ms;
+}
+
+/* ══════════════════════════════════════════════════════ the three tiers ══
+   ONE source of truth. `data-motion` is written on <html> BEFORE FIRST PAINT by the
+   bootstrap in src/lib/motion/tier.ts, so nothing ever paints at the wrong tier and no
+   component has to re-derive the reader's preference for itself.
+
+   full     the intended experience
+   reduced  prefers-reduced-motion — no travel, no autoplay, but state changes stay
+            legible. Zeroing every duration here would make the interface *harder* to
+            follow, not easier: a filter that changes with no settle at all reads as a
+            page reload (ARCHITECTURE.md §16.7).
+   minimal  saveData / low memory / few cores — a cut everywhere. */
+
+:root[data-motion='reduced'] {
+  --dur-reveal: var(--dur-ui);
+  --dur-transition: var(--dur-ui);
+  --dur-cinematic: var(--dur-ui);
+  --dur-hold: 0ms;
+  --rise-reveal: 0px;
+  --rise-hero: 0px;
+  --scale-media: 1;
+  --stagger: 0ms;
+}
+
+:root[data-motion='minimal'] {
+  --dur-fast: 0ms;
+  --dur-ui: 0ms;
+  --dur-reveal: 0ms;
+  --dur-transition: 0ms;
+  --dur-cinematic: 0ms;
+  --dur-hold: 0ms;
+  --rise-reveal: 0px;
+  --rise-hero: 0px;
+  --scale-media: 1;
+  --stagger: 0ms;
+}
+
+/* The bootstrap is inline and runs before paint, so the only document that reaches here
+   without `data-motion` is one where scripting is off entirely. Treat it as `reduced`:
+   nothing on the site needs motion to be readable, and a no-JS document has no runtime
+   to arm any of it anyway. */
+@media (prefers-reduced-motion: reduce) {
+  :root:not([data-motion]) {
+    --dur-reveal: var(--dur-ui);
+    --dur-transition: var(--dur-ui);
+    --dur-cinematic: var(--dur-ui);
+    --rise-reveal: 0px;
+    --rise-hero: 0px;
+    --scale-media: 1;
+    --stagger: 0ms;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════ touch density ══
+   Mobile gets less motion than desktop even when the reader has expressed no preference,
+   and this is the whole of that difference. A phone is held in one hand, scrolled with a
+   thumb, and often on a battery — travel that reads as considered on a 27" display reads
+   as lag at arm's length. Documented in docs/MOTION_REVIEW.md §9.
+
+   Smooth scroll and hover previews are the other two mobile differences, and both are
+   decided in the runtime rather than here, because they are about whether code runs at
+   all rather than about how long it takes. */
+@media (pointer: coarse) {
+  :root {
+    --rise-reveal: 0.75rem;
+    --dur-cinematic: 560ms;
+  }
+}

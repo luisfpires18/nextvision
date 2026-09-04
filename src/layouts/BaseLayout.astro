@@ -1,0 +1,240 @@
+---
+/**
+ * The site shell.
+ *
+ * Head metadata, lang/hreflang, the accessibility floor, ClientRouter, and — when
+ * `chrome` is on — the header, footer, loader, progress stripe and motion runtime.
+ *
+ * `chrome={false}` gives a bare document for pages that must not carry site navigation.
+ */
+import { ClientRouter } from 'astro:transitions';
+import { MOTION_BOOTSTRAP } from '../lib/motion/tier.ts';
+import { buildSeo, jsonLdGraph } from '../lib/seo.ts';
+import { DEFAULT_LOCALE, type Locale } from '../config/i18n.ts';
+import { t } from '../i18n/index.ts';
+import Header from '../components/site/Header.astro';
+import Footer from '../components/site/Footer.astro';
+import Analytics from '../components/site/Analytics.astro';
+import manifestSource from '../../public/manifest.webmanifest?raw';
+import '../styles/global.css';
+import '../styles/site.css';
+import '../styles/pwa.css';
+
+/**
+ * `| undefined` is explicit on every optional prop because tsconfig runs
+ * `exactOptionalPropertyTypes`. A page composes its metadata from
+ * src/lib/page-meta.ts, which returns undefined for "this page publishes none" — and
+ * writing that out at every call site with a conditional spread would make eight pages
+ * uglier to satisfy a rule this declaration satisfies once.
+ */
+interface Props {
+  title?: string | undefined;
+  description?: string | undefined;
+  ogDescription?: string | undefined;
+  locale?: Locale | undefined;
+  ogImage?: string | null | undefined;
+  /** Described alternative for the share card's image, when it is not the page title. */
+  ogImageAlt?: string | undefined;
+  ogType?: 'website' | 'article' | 'video.other' | undefined;
+  noindex?: boolean | undefined;
+  chrome?: boolean | undefined;
+  /** Ground the page opens on, so the first paint is correct before any script runs. */
+  ground?: 'cream' | 'dark' | undefined;
+  /** Counterpart routes for the language switch, where the URL cannot supply them. */
+  langAlternate?: Partial<Record<Locale, string>> | undefined;
+  /** JSON-LD @graph nodes. */
+  schema?: Record<string, unknown>[] | undefined;
+}
+
+const {
+  title, description, ogDescription, locale = DEFAULT_LOCALE, ogImage = null, ogImageAlt,
+  ogType = 'website', noindex = false, chrome = true, ground = 'cream', schema = [],
+  langAlternate,
+} = Astro.props;
+
+const seo = buildSeo({
+  ...(title !== undefined ? { title } : {}),
+  ...(description !== undefined ? { description } : {}),
+  ...(ogDescription !== undefined ? { ogDescription } : {}),
+  ...(ogImageAlt !== undefined ? { ogImageAlt } : {}),
+  path: Astro.url.pathname,
+  locale,
+  ogImage,
+  ogType,
+  noindex,
+});
+
+/**
+ * `theme_color` is READ from the manifest, never retyped here.
+ *
+ * The manifest is the file the platform actually parses, so it is the one authority for
+ * the install identity — the same doctrine as `src/config/analytics.ts` for the beacon and
+ * `PAGE_LOCALES` for which pages exist. A `<meta name="theme-color">` cannot hold a CSS
+ * custom property, and a hex typed here would be a second declaration free to drift from
+ * the one Android reads. `npm run validate:pwa` checks the value still matches
+ * `--brand-ink`.
+ */
+const manifest = JSON.parse(manifestSource) as { theme_color: string };
+---
+
+<!doctype html>
+<html lang={seo.htmlLang} data-header-over={ground === 'dark' ? 'media' : 'cream'}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    {/* THE MOTION TIER, DECIDED BEFORE ANYTHING PAINTS.
+        First in the head on purpose. It writes `data-motion`, `class="js"` and — only
+        when the opening hold has been earned — `data-loader`. Everything downstream,
+        CSS and runtime alike, reads those three and never re-derives them
+        (src/lib/motion/tier.ts, docs/MOTION_REVIEW.md §2). Inline and render-blocking by
+        design: ~430 bytes buys a first paint that is already at the right tier. */}
+    <script is:inline set:html={MOTION_BOOTSTRAP} />
+
+    <title>{seo.title}</title>
+    {seo.description && <meta name="description" content={seo.description} />}
+    <link rel="canonical" href={seo.canonical} />
+    <meta name="robots" content={seo.robots} />
+
+    {seo.alternates.map((a) => <link rel="alternate" hreflang={a.hreflang} href={a.href} />)}
+    {Object.entries(seo.openGraph).map(([p, c]) => <meta property={p} content={c} />)}
+    {Object.entries(seo.twitter).map(([n, c]) => <meta name={n} content={c} />)}
+
+    {/* PWA — PHASE 15. Every icon is a deterministic downscale of the preserved brand
+        source (source-assets/brand/, scripts/build-icons.mjs); none is hand-drawn.
+
+        Five links and no more. `/favicon.ico` carries 16/32/48 and is what a browser asks
+        for unprompted; the 192 PNG is what a modern browser prefers when it is offered
+        one; the manifest supplies the two install icons and the maskable. Extra sizes
+        would be asset spam — the platforms downscale from 512 perfectly well. */}
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="icon" href="/favicon.ico" sizes="16x16 32x32 48x48" />
+    <link rel="icon" href="/icons/icon-192.png" type="image/png" sizes="192x192" />
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" sizes="180x180" />
+    <meta name="theme-color" content={manifest.theme_color} />
+    {/* iOS does not read the manifest's `display`, so standalone has to be asked for
+        again here. The unprefixed name is the current one; `apple-mobile-web-app-capable`
+        is deprecated and is deliberately not duplicated alongside it. */}
+    <meta name="mobile-web-app-capable" content="yes" />
+
+    {/* The six subsetted faces are the design; the hero rendition is the LCP candidate.
+        Preloading the two faces the page ACTUALLY renders avoids a flash of fallback
+        metrics under the statement without pulling the whole family forward.
+
+        Barlow 400, not 500. `body` resolves to weight 400, so preloading 500 fetched
+        ~15 KB that no glyph ever used AND left the real body face to be discovered from
+        the stylesheet — the exact late load the preload exists to prevent. Chromium said
+        so out loud ("preloaded using link preload but not used"); step 13 measured it
+        against the live staging URL, where `document.fonts` reported Barlow 500 as
+        `unloaded` on a fully painted page. Check both names against the weights the
+        tokens resolve to before changing either. */}
+    <link rel="preload" as="font" type="font/woff2" href="/__generated/fonts/barlow-400.woff2" crossorigin />
+    <link rel="preload" as="font" type="font/woff2" href="/__generated/fonts/barlow-condensed-700.woff2" crossorigin />
+
+    {schema.length > 0 && (
+      <script type="application/ld+json" is:inline set:html={jsonLdGraph(schema)} />
+    )}
+
+    <ClientRouter />
+
+    {/* Cloudflare Web Analytics, and only when a token is configured and the build is one
+        that should be measured (src/config/analytics.ts). Renders nothing in `astro dev`
+        and nothing in a build with no token, so a fresh checkout and the form test runner
+        both load zero third-party bytes. It sits AFTER ClientRouter because it persists
+        across the swaps ClientRouter performs — the ordering is documentation, not a
+        requirement. */}
+    <Analytics />
+  </head>
+
+  <body>
+    <a class="skip-link" href="#main">{t('nav.skip', locale)}</a>
+
+    {chrome ? (
+      <>
+        <div class="loader" data-loader-overlay aria-hidden="true">
+          <div class="loader__bars"><i></i><i></i><i></i><i></i></div>
+        </div>
+        <div class="progress" data-progress aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+
+        {/* The update prompt's three strings come from the i18n dictionary and ride on
+            the shell, so the runtime never carries copy and never has to guess a
+            language from `document.lang` (src/lib/pwa.ts). */}
+        <div
+          class="site"
+          data-shell
+          data-ground={ground}
+          data-pwa-message={t('pwa.updateAvailable', locale)}
+          data-pwa-action={t('pwa.update', locale)}
+          data-pwa-dismiss={t('pwa.dismiss', locale)}
+        >
+          <Header locale={locale} langAlternate={langAlternate} />
+          <main class="site__main" id="main">
+            <slot />
+          </main>
+          <Footer locale={locale} />
+        </div>
+
+        <script>
+          import { initSite } from '../lib/site-motion.ts';
+          import { initPortfolio } from '../lib/portfolio-filter.ts';
+          import { initTransitions } from '../lib/motion/transitions.ts';
+
+          // Wired ONCE, to the document, because the router outlives every page. Putting
+          // this in `start()` would add a second set of listeners on every navigation.
+          initTransitions();
+
+          // `astro:page-load` fires on the FIRST load as well as after every client-side
+          // navigation, so a naive "init now, init again on page-load" doubles every
+          // listener — and two click handlers on the menu toggle open and immediately
+          // close it. Always tear down before starting.
+          // …and `live` is what makes that cheap rather than merely safe: without it the
+          // first load builds the whole runtime, tears it down and builds it again,
+          // which on a desktop means fetching and constructing the scroll model twice.
+          let live = false;
+          let instance: { destroy(): void } | null = null;
+          let portfolio: { destroy(): void } | null = null;
+          const start = () => {
+            if (live) return;
+            live = true;
+            instance = initSite();
+            portfolio = initPortfolio();
+          };
+
+          /**
+           * The service worker, registered ONCE for the session rather than per page.
+           * It is not part of `start()`/`stop()`: a worker registration outlives every
+           * navigation, and re-registering on each one would add a second update
+           * listener per page — the leak Review E measured to zero.
+           *
+           * Dynamically imported after everything above, so it is never on the critical
+           * path. Its update prompt is the only thing that can activate a new build.
+           */
+          import('../lib/pwa.ts').then(({ initPwa }) => initPwa());
+          const stop = () => {
+            live = false;
+            instance?.destroy(); instance = null;
+            portfolio?.destroy(); portfolio = null;
+          };
+
+          // The incoming document is served with the loader markup in its un-hidden
+          // state, and there is a paintable moment between the swap and `page-load`.
+          // Disarming it on the way in is what guarantees the opening hold is an OPENING
+          // — never a black frame flashed between two pages of the same visit.
+          document.addEventListener('astro:before-swap', (event) => {
+            stop();
+            const doc = (event as unknown as { newDocument: Document }).newDocument;
+            doc.documentElement.removeAttribute('data-loader');
+            // `[data-loader-overlay]`, NOT `[data-loader]`. The root carries the STATE
+            // flag and comes first in document order, so the shorter selector matched
+            // <html> and put `hidden` on the whole document (see site-motion.ts).
+            doc.querySelector<HTMLElement>('[data-loader-overlay]')?.setAttribute('hidden', '');
+          });
+          document.addEventListener('astro:page-load', start);
+          start();
+        </script>
+      </>
+    ) : (
+      <main id="main"><slot /></main>
+    )}
+  </body>
+</html>

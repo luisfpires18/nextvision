@@ -1,0 +1,83 @@
+---
+# Migrated from the Phase 0.5 preservation archive (docs/source-archive/pages.json).
+# Every value is verbatim from https://www.nextvisionfilms.com/portfolio/ana-reels/ —
+# title, tagline, date and category are the live page's own (CLAUDE.md §2, §8).
+
+title:
+  pt: "The Lie we tell ourselves"
+tagline:
+  pt: |-
+    I’ll be happier in another place, doing something different, loving someone new.
+    That’s the lie we tell ourselves…
+
+# PHASE 11 — this project's PUBLISHED PROSE IS ALREADY ENGLISH. The live Portuguese page
+# prints these words exactly as they appear here, so there is nothing to translate and no
+# English variant is declared: `sourceLocale: en` states that as a fact about the entry
+# rather than leaving the gap to be guessed at. `npm run validate:i18n` reads this field
+# and therefore does not report a missing translation for prose that never had one.
+sourceLocale: en
+date: 2025-02-11
+year: 2025
+
+categories:
+  - visual-storytelling
+tags: []
+collections: []
+
+featured: false
+homepageOrder: null
+portfolioOrder: 14
+draft: false
+
+film:
+  provider: youtube
+  id: o9X1s3ge_IE
+
+poster:
+  key: projects/ana-reels/poster
+  altStatus: todo # authored copy — Phase 11b, owner-reviewed
+
+previewVideo: projects/ana-reels/preview
+
+
+# PHASE 9 - the project page's own entry. A silent, caption-free loop cut from the project's own archived card loop (1920x1080, 17.0 Mbps),
+# at the page's 1140px ceiling, which for this source is a DOWNSCALE. Pressing play swaps
+# the published film into the same screen.
+heroStill:
+  key: projects/ana-reels/hero/poster
+  altStatus: decorative
+heroVideo: projects/ana-reels/hero
+
+# The hover preview stays cut from Smash - 720p is enough for a grid-size loop - while the
+# page's screen and stills come from the 1080p card loop.
+sourceOfTruth: wordpress
+masterRequired: true
+
+blocks:
+  - type: text
+    width: narrow
+    body:
+      pt: |-
+        I’ll be happier in another place, doing something different, loving someone new.
+        That’s the lie we tell ourselves…
+
+  # A night walk, one continuous shot. Two points along it.
+  - type: image-pair
+    weight: left
+    media:
+      - key: projects/ana-reels/still-01
+        altStatus: todo
+      - key: projects/ana-reels/still-02
+        altStatus: todo
+
+related: []
+previousSlugs: []
+
+seo:
+  noindex: false
+---
+
+{/*
+  Body intentionally empty. The live project page carries no prose beyond the title
+  and any tagline above. Writing any here would invent content (CLAUDE.md §2).
+*/}

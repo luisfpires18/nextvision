@@ -1,0 +1,400 @@
+/**
+ * Project page layer — Review D, propagated to all twenty in Phase 9.
+ *
+ * The homepage is the light table opening into the dark room. The portfolio is the light
+ * table. **This is the dark room**, and the page leans further into Projection than
+ * anything before it — but not uniformly: it opens dark, reads cream, and closes dark.
+ *
+ * ── The rule the material forced ─────────────────────────────────────────────
+ * The best source held for the representative project is 1280×720, and the crop that
+ * removes its own viewfinder corners leaves 1140px. So 1140 is the ceiling, and the page
+ * is designed around that number instead of around a viewport:
+ *
+ *   the film is PROJECTED INSIDE the room, never stretched across it.
+ *
+ * That is honest about the resolution — nothing is upscaled to pretend it is a master —
+ * and it happens to be the more accurate metaphor anyway. A cinema screen does not touch
+ * the walls. Phase 9 found 1080p sources for nine more projects and kept the same ceiling
+ * for all twenty: the number is now a design decision rather than a limit, and it means
+ * those nine are DOWNSCALED into it, which is the direction that costs nothing.
+ *
+ * ── The other rule ───────────────────────────────────────────────────────────
+ * Every frame on a project page is that film's own aspect ratio. Nothing is cropped to
+ * fit a slot. Sizes change; the shape never does. One film, many frames — and across
+ * twenty projects "the shape" is a different number per page, read from the media rather
+ * than written down here.
+ */
+
+/* ═══════════════════════════════════════════════════════════════════ shell ══ */
+
+:root {
+  /* The film's real width after cropping. Every media box on this page derives from it.
+     It is a ceiling for all twenty projects, not a per-project measurement: no source we
+     hold is narrower after cropping, so nothing is ever upscaled to reach it. */
+  --film-w: 1140px;
+  /* Fallback only. Each page sets --film-ar from its own hero media, so a project's
+     frames are the shape of its own footage (src/lib/project-page.ts). */
+  --film-ar: 1.7778;
+}
+
+.pj-room {
+  padding-inline: var(--gutter);
+  padding-block: var(--space-9);
+}
+.pj-room__inner { max-inline-size: var(--film-w); margin-inline: auto; }
+/* The strip's room, wider than the film's own column. */
+.pj-room--wide > .pj-room__inner { max-inline-size: var(--w-wide); }
+
+/* ════════════════════════════════════════════════════════════════════ hero ══ */
+
+.pj-hero {
+  min-block-size: 100svh;
+  display: grid;
+  align-content: center;
+  gap: var(--space-6);
+  padding-inline: var(--gutter);
+  /* Clears the fixed header, so the header sits over the room and never over the film. */
+  padding-block: calc(var(--header-h) + var(--space-8)) var(--space-8);
+}
+.pj-hero__inner { max-inline-size: var(--film-w); margin-inline: auto; inline-size: 100%; }
+
+/* THE SCREEN.
+   16:9 by default, because that is the shape the YouTube player takes, and the box is
+   decided before paint so pressing play shifts nothing.
+
+   The film is CONTAINED, not cropped. Twenty projects are not one aspect ratio: the
+   material runs 16:9, 1.9:1, 2.17:1 and 2.22:1, and cover-fitting a 2.2:1 frame into a
+   16:9 box throws away a fifth of a scope composition. Containing it shows the film's own
+   letterbox — which is exactly what the player will show a second later — and it means no
+   frame is ever scaled UP to fill, on a page whose entire argument is that nothing is
+   upscaled to imply a master.
+
+   `--screen-ar` is read from the hero media (src/lib/project-page.ts). It only differs
+   from 16:9 for material taller than the player, which on this site is one designed film
+   poster; that page gets a taller screen and the player is centred inside it. */
+.pj-screen {
+  position: relative;
+  display: block;
+  inline-size: 100%;
+  aspect-ratio: var(--screen-ar, 1.7778);
+  overflow: hidden;
+  background: #000;
+  /* The projected image sits slightly proud of the room it is in. */
+  box-shadow: 0 24px 80px rgb(0 0 0 / 0.55);
+}
+/* THE POSTER PLATE.
+   One project publishes a designed film poster instead of a frame — portrait, with its
+   own title lettering and its own credits block set into the artwork. Run at the screen's
+   full width it becomes 1689px tall and the reader never sees the bottom of it, and
+   cropping it to a landscape screen would destroy the object. So a portrait screen is
+   sized by HEIGHT and lets its width follow: a poster on the wall of the same dark room.
+
+   When the player mounts it takes the room's full width at 16:9, because a 462px-wide
+   film would be the worse answer and a shift the reader asked for, within 500 ms of their
+   own press, is not layout instability. */
+.pj-screen--poster {
+  inline-size: auto;
+  block-size: min(72svh, 860px);
+  max-inline-size: 100%;
+  margin-inline: auto;
+}
+.pj-screen--poster:has(iframe) {
+  inline-size: 100%;
+  block-size: auto;
+  aspect-ratio: 16 / 9;
+}
+
+.pj-screen > img,
+.pj-screen > picture > img,
+.pj-screen > video {
+  position: absolute;
+  inset: 0;
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: contain;
+  display: block;
+  border: 0;
+}
+/* An iframe has no object-fit, so the player is centred at its own 16:9 inside whatever
+   box the screen is. On a 16:9 screen that is the whole box; on the portrait one it is a
+   band across the middle, and the box height never changes either way. */
+.pj-screen > iframe {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  inline-size: 100%;
+  block-size: auto;
+  aspect-ratio: 16 / 9;
+  max-block-size: 100%;
+  display: block;
+  border: 0;
+}
+.pj-screen > video { opacity: 0; transition: opacity var(--dur-reveal) var(--ease-reveal); }
+.pj-screen[data-playing='true'] > video { opacity: 1; }
+
+.pj-caption { margin-block-start: var(--space-6); display: grid; gap: var(--space-4); }
+/* The published tagline, where the project does not carry it as its own prose further
+   down. One line under the title, at reading size — not a second display line. */
+.pj-lead {
+  font-family: var(--font-body);
+  font-weight: 400;
+  font-size: var(--t-lead);
+  line-height: 1.45;
+  max-inline-size: 46ch;
+  white-space: pre-line;
+  margin: 0;
+}
+.pj-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--t-feature);
+  line-height: var(--lh-tight);
+  letter-spacing: var(--tracking-display);
+  margin: 0;
+}
+
+/* ════════════════════════════════════════════════════════════════════ film ══
+   Façade first. Nothing reaches YouTube until someone presses play, and the poster box
+   is already 16:9 so mounting the iframe cannot shift the layout. */
+
+.pj-film { position: relative; inline-size: 100%; aspect-ratio: 16 / 9; background: #000; overflow: hidden; }
+.pj-film img,
+.pj-film iframe {
+  position: absolute; inset: 0; inline-size: 100%; block-size: 100%; border: 0; display: block;
+}
+.pj-film img { object-fit: cover; }
+
+/* Both the script's button and the <noscript> anchor wear this: same box, same label,
+   same target. With scripting on, only the button exists. */
+.pj-play {
+  position: absolute;
+  inset: 0;
+  z-index: var(--z-media);
+  display: grid;
+  place-items: center;
+  appearance: none;
+  border: 0;
+  background: rgb(0 0 0 / 0.28);
+  color: var(--ink-on-dark);
+  cursor: pointer;
+  transition: background-color var(--dur-ui) var(--ease-ui);
+}
+.pj-play:hover, .pj-play:focus-visible { background: rgb(0 0 0 / 0.12); }
+a.pj-play { text-decoration: none; }
+.pj-play__label {
+  font-family: var(--font-mono);
+  font-size: var(--t-metaline);
+  letter-spacing: var(--tracking-eyebrow);
+  text-transform: uppercase;
+  padding: var(--space-3) var(--space-5);
+  border: 1px solid currentColor;
+  /* Legible over any frame, without a panel: the border carries it and the scrim above
+     already lifted the whole poster. */
+  text-shadow: 0 1px 3px rgb(0 0 0 / 0.6);
+  min-block-size: 2.75rem;
+  display: inline-flex;
+  align-items: center;
+  transition: background-color var(--dur-fast) var(--ease-ui), color var(--dur-fast) var(--ease-ui);
+}
+.pj-play:hover .pj-play__label,
+.pj-play:focus-visible .pj-play__label {
+  background: var(--ground-cream);
+  color: var(--ground-dark);
+  border-color: var(--ground-cream);
+  text-shadow: none;
+}
+
+/* ══════════════════════════════════════════════════════════════════ blocks ══ */
+
+.pj-block + .pj-block { margin-block-start: 0; }
+
+/* Two consecutive blocks of FRAMES are one passage of looking, so they are separated by a
+   breath rather than by a full section break. Prose to pictures keeps the full break,
+   because that is a change of activity — and a ground change keeps more still, since the
+   next section's own padding is added to this one.
+
+   Applied at every width: on a phone the frames are shorter than the seam was, which made
+   the same gap read as a hole there too. */
+.pj-block--media:has(+ .pj-block--media) { padding-block-end: var(--space-7); }
+
+/* text — the only prose the project publishes, which is its tagline. Set as a lyric:
+   the author's own line breaks survive, and it is nowhere near display size. */
+.pj-text {
+  font-family: var(--font-body);
+  font-weight: 400;
+  font-size: var(--t-lead);
+  line-height: 1.5;
+  white-space: pre-line;
+  margin: 0;
+}
+.pj-text--narrow { max-inline-size: 46ch; }
+.pj-text--wide { max-inline-size: 68ch; }
+
+/* pair — two frames, one dominant. Aligned on the baseline, because both are the film's
+   own 1.9:1 and forcing them to a shared height would mean cropping one. */
+.pj-pair { display: grid; gap: var(--frame-gap); align-items: end; }
+@media (min-width: 48rem) {
+  .pj-pair--left { grid-template-columns: 7fr 5fr; }
+  .pj-pair--right { grid-template-columns: 5fr 7fr; }
+  .pj-pair--equal { grid-template-columns: 1fr 1fr; }
+}
+
+/* grid — a strip of frames in the order they occur in the film.
+
+   Not three equal thumbnails. The widths ascend 3 : 4 : 5 and the frames sit on a shared
+   baseline, so the strip opens up from left to right and hands the reader to the
+   full-width plate that follows. Every frame still keeps the film's 1.9:1 — the sizes
+   carry the hierarchy, nothing is cropped to make a shape.
+   
+   The strip is also the one editorial block that leaves the film's 1140px column, because
+   it is the moment the page widens. That width contrast against the text and the pair is
+   the asymmetry; making all three the same size inside the same column was what left the
+   composition under-filled. */
+.pj-grid { display: grid; gap: var(--frame-gap); }
+@media (min-width: 48rem) {
+  .pj-grid--strip { grid-template-columns: 3fr 4fr 5fr; align-items: end; }
+  .pj-grid--stack { grid-template-columns: 1fr; }
+}
+
+.pj-frame {
+  position: relative;
+  display: block;
+  inline-size: 100%;
+  aspect-ratio: var(--film-ar);
+  overflow: hidden;
+  background: var(--ground-dark);
+}
+.pj-frame img { position: absolute; inset: 0; inline-size: 100%; block-size: 100%; object-fit: cover; display: block; }
+
+/* plate — the closing frame, alone in the room and larger than anything else. It is the
+   one place a little upscale is accepted, and 1.26× is the whole of it. */
+.pj-plate { padding-inline: var(--gutter); padding-block: var(--space-9); }
+.pj-plate__inner { max-inline-size: var(--w-wide); margin-inline: auto; }
+
+.pj-figcaption {
+  margin-block-start: var(--space-3);
+  color: var(--dim);
+}
+
+/* ══════════════════════════════════════════════════════════ next / previous ══
+   A route into the next film, at the scale of a film — not a pagination footer. */
+
+.pj-next { padding-inline: var(--gutter); padding-block: var(--space-9); }
+.pj-next__inner { max-inline-size: var(--w-wide); margin-inline: auto; }
+.pj-next__link { display: block; }
+.pj-next__frame {
+  position: relative;
+  /* A <span> is inline, and an inline box ignores aspect-ratio — which collapsed this
+     frame to nothing. Every framed box on this page is explicitly block. */
+  display: block;
+  inline-size: 100%;
+  /* 16:9, not 21:9. The next project's still is its own composition, and a wider crop
+     would cut a sixth of it away purely for effect. */
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  background: #000;
+}
+.pj-next__frame img {
+  position: absolute; inset: 0; inline-size: 100%; block-size: 100%; object-fit: cover; display: block;
+  transition: transform var(--dur-reveal) var(--ease-reveal);
+}
+.pj-next__link:hover .pj-next__frame img,
+.pj-next__link:focus-visible .pj-next__frame img { transform: scale(var(--scale-media)); }
+.pj-next__title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--t-feature);
+  line-height: var(--lh-tight);
+  letter-spacing: var(--tracking-display);
+  margin: var(--space-5) 0 0;
+}
+.pj-next__foot {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4) var(--space-6);
+  justify-content: space-between;
+  align-items: baseline;
+  margin-block-start: var(--space-7);
+  padding-block-start: var(--space-4);
+  border-block-start: 1px solid var(--rule);
+}
+.pj-next__foot a { padding-block: var(--space-2); }
+.pj-next__foot a:hover, .pj-next__foot a:focus-visible { color: var(--brand-gold); }
+
+/* ══════════════════════════════════════════════════════════════════ mobile ══ */
+
+@media (max-width: 47.99rem) {
+  /* The hero stops being a room and becomes the frame: at 375px, air around the film is
+     wasted screen, and the film is the point. The screen leaves the gutter and runs edge
+     to edge, so the page opens on the film rather than on a card of it. */
+  .pj-hero { min-block-size: 0; padding-block: calc(var(--header-h) + var(--space-6)) var(--space-7); }
+  .pj-hero__inner { max-inline-size: none; }
+  .pj-screen {
+    margin-inline: calc(var(--gutter) * -1);
+    inline-size: calc(100% + var(--gutter) * 2);
+    box-shadow: none;
+  }
+  .pj-room { padding-block: var(--space-8); }
+  .pj-plate, .pj-next { padding-block: var(--space-8); }
+  .pj-next__frame { aspect-ratio: 4 / 5; }
+}
+
+/* ══════════════════════════════════════════════════════════════════ motion ══ */
+
+:root[data-motion='reduced'] .pj-screen > video,
+:root[data-motion='minimal'] .pj-screen > video { display: none; }
+@media (prefers-reduced-motion: reduce) {
+  .pj-screen > video { display: none !important; }
+  .pj-screen, .pj-next__frame img, .pj-play { transition: none !important; }
+}
+
+/* ════════════════════════════════════════════════════════════ related work ══
+   A footnote to the offer above it, not a second offer. It shares the Next Project
+   section's dark ground and sits under the same rule, at caption scale: two small frames,
+   a title and a date. Nothing here competes with the film-sized invitation above.
+
+   Renders only where the taxonomy derives it — the two single-project categories show
+   nothing at all rather than an empty heading (src/lib/related.ts). */
+
+.pj-related { margin-block-start: var(--space-7); }
+.pj-related__list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-5);
+  margin-block-start: var(--space-4);
+  list-style: none;
+  padding: 0;
+  /* Two frames at caption scale, never more than a third of the width they sit in. */
+  max-inline-size: 34rem;
+}
+.pj-related__link { display: grid; gap: var(--space-3); }
+.pj-related__frame {
+  position: relative;
+  display: block;
+  inline-size: 100%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  background: #000;
+}
+.pj-related__frame img {
+  position: absolute; inset: 0; inline-size: 100%; block-size: 100%;
+  object-fit: cover; display: block;
+  transition: opacity var(--dur-ui) var(--ease-ui);
+}
+.pj-related__link:hover .pj-related__frame img,
+.pj-related__link:focus-visible .pj-related__frame img { opacity: 0.72; }
+.pj-related__title {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: var(--t-body);
+  line-height: var(--lh-tight);
+}
+.pj-related__meta { color: var(--dim); }
+
+@media (max-width: 47.99rem) {
+  .pj-related__list { gap: var(--space-4); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pj-related__frame img { transition: none !important; }
+}

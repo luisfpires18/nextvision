@@ -1,0 +1,74 @@
+---
+/**
+ * Portfolio — REVIEW C. The canonical index.
+ *
+ * On WordPress this URL serves the CPT archive: five category cards, and seeing all the
+ * work means visiting five separate pages. Yoast also lists an unreachable page id 36 for
+ * it (audit §1.1, ROUTE_MIGRATION §6). This route now has ONE meaning — the complete,
+ * curated catalogue, with the categories demoted to filters over it.
+ *
+ * SEO metadata is the live page's own, verbatim. Every one of the twenty projects is a
+ * real link in the served HTML; nothing about the catalogue is client-side only.
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PortfolioIndex from '../portfolio/PortfolioIndex.astro';
+import ContactClose from '../site/ContactClose.astro';
+import { portfolioProjects } from '../../lib/curated.ts';
+import { PORTFOLIO } from '../../lib/portfolio.ts';
+import { organizationSchema, websiteSchema, absoluteUrl } from '../../lib/seo.ts';
+import { pagePath } from '../../i18n/routes.ts';
+import type { Locale } from '../../config/i18n.ts';
+import { getEntry } from 'astro:content';
+import { say } from '../../lib/homepage.ts';
+import { pageTitle, pageDescription } from '../../lib/page-meta.ts';
+import '../../styles/portfolio.css';
+
+interface Props { locale: Locale }
+const { locale } = Astro.props;
+const projects = await portfolioProjects(locale);
+const settings = await getEntry('settings', 'site');
+
+/**
+ * A CollectionPage listing every project, so the catalogue is legible to a crawler as a
+ * list rather than as twenty unrelated links. Only real, published fields are emitted.
+ */
+const schema = [
+  organizationSchema({
+    sameAs: (settings?.data.socials ?? []).map((s) => s.url),
+    email: settings?.data.email ?? null,
+  }),
+  websiteSchema(locale),
+  {
+    '@type': 'CollectionPage',
+    name: say(PORTFOLIO.title, locale),
+    url: absoluteUrl(pagePath('portfolio', locale)),
+    mainEntity: {
+      '@type': 'ItemList',
+      numberOfItems: projects.length,
+      itemListElement: projects.map((p, i) => ({
+        '@type': 'ListItem',
+        position: i + 1,
+        url: absoluteUrl(p.href),
+        name: p.title,
+      })),
+    },
+  },
+];
+---
+
+<BaseLayout
+  title={pageTitle('portfolio', locale)}
+  description={pageDescription('portfolio', locale) ?? undefined}
+  locale={locale}
+  ground="cream"
+  schema={schema}
+>
+  <PortfolioIndex
+    projects={projects}
+    total={projects.length}
+    heading={say(PORTFOLIO.title, locale)}
+    enhance
+    locale={locale}
+  />
+  <ContactClose locale={locale} />
+</BaseLayout>

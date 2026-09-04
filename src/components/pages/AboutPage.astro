@@ -1,0 +1,214 @@
+---
+/**
+ * /sobre/ — PHASE 10.
+ *
+ * The most editorial page on the site, and the only one with no film on it. It is cream
+ * from top to bottom, and that is a decision rather than a default: the ground goes dark
+ * where there is media at scale, and this page has two photographs of two people. Making
+ * it cinematic would mean borrowing footage that is not about them.
+ *
+ * ── The one dark moment that was considered and cut ──────────────────────────
+ * The live /sobre/ runs `We-are-NVF-copia.mp4` as a background video, so the material
+ * exists and the obvious move was a Projection band behind the closing statement. It was
+ * checked frame by frame instead of assumed: the file carries a burned-in `We are NVF`
+ * wordmark on EVERY frame plus a burned-in caption strip across its lower third. Text
+ * over text. So the page has no dark band, and the reason is measurement rather than
+ * taste (docs/STATIC_PAGES_ROLLOUT.md §2).
+ *
+ * ── The hierarchy is not the live page's ─────────────────────────────────────
+ * `/sobre/` publishes `Sobre Nós` as its <h1> and `De uma ideia a um movimento.` as the
+ * <h2> under it. Here the label becomes the eyebrow and the statement becomes the <h1> —
+ * both strings published, both unchanged, and the reordering is what CLAUDE.md §2 allows
+ * ("reorder preserved content for presentation if meaning is not changed"). The <title>
+ * is untouched.
+ *
+ * ── Two things the live page does that this one does not ─────────────────────
+ * It prints the `Consultar Portfólio` button twice in the same section. One is enough.
+ * And it repeats the closing block the homepage already carries; here the closing runs
+ * once, on the page whose material it is.
+ */
+import { getCollection, getEntry } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHead from '../site/PageHead.astro';
+import ContactClose from '../site/ContactClose.astro';
+import { ABOUT } from '../../lib/static-pages.ts';
+import { imageProps, getMedia } from '../../lib/media.ts';
+import { navHref } from '../../lib/nav.ts';
+import { organizationSchema, breadcrumbSchema, absoluteUrl } from '../../lib/seo.ts';
+import type { Locale } from '../../config/i18n.ts';
+import { pagePath } from '../../i18n/routes.ts';
+import { say } from '../../lib/homepage.ts';
+import { pageTitle, pageDescription } from '../../lib/page-meta.ts';
+import { portraitAlt } from '../../lib/alt.ts';
+import '../../styles/pages.css';
+
+interface Props { locale: Locale }
+const { locale } = Astro.props;
+
+const team = (await getCollection('team')).sort((a, b) => a.data.order - b.data.order);
+const settings = await getEntry('settings', 'site');
+
+/**
+ * Each portrait keeps its own shape. Francisco's is 1.25 landscape and Helder's is 0.74
+ * portrait, and neither is cropped to match the other: an aspect ratio is a fact about
+ * the picture, read from the manifest, never typed into a component (decision A75).
+ */
+const portraits = team.map((member) => {
+  const key = member.data.portrait?.key;
+  const item = key ? getMedia(key) : null;
+  return {
+    member,
+    ratio: item?.aspectRatio ?? null,
+    /**
+     * PHASE 11 — the portraits are the one place on this page where a picture is the
+     * subject rather than an illustration, and the content already holds the only fact
+     * that describes it: whose portrait it is. Everything else on this site keeps its
+     * empty alt, because a card or a hero is already named by the text beside it
+     * (src/lib/alt.ts).
+     */
+    image: key
+      ? imageProps(key, {
+          alt: portraitAlt(member.data.name, locale),
+          sizes: '(min-width: 48rem) 44vw, 92vw',
+        })
+      : null,
+  };
+});
+
+/**
+ * The columns ARE the aspect ratios.
+ *
+ * Equal height ⟺ ratioₙ/ratioₘ = colₙ/colₘ (decision A37). Making each track's `fr`
+ * value the ratio of the picture in it satisfies that relation by construction, at every
+ * width, for any number of people — so the two frames end on the same line and the two
+ * captions sit on one baseline, with neither photograph cropped to make it happen.
+ *
+ * Written from the manifest, never typed. If a portrait has no recorded dimensions the
+ * property is omitted and the stylesheet's `1fr 1fr` fallback applies.
+ */
+const teamCols = portraits.every((p) => p.ratio)
+  ? portraits.map((p) => `minmax(0, ${p.ratio}fr)`).join(' ')
+  : undefined;
+
+/**
+ * og:image — a technical fix, not a copy change.
+ *
+ * The live /sobre/ publishes `colors.png` as its og:image: a 100x22 colour strip, which
+ * the audit flags as unusable as a social preview (§3.2) and which every platform rejects
+ * on size. The replacement is the page's OWN first photograph, so the card shows what the
+ * page shows. Carried over from Phase 10 and confirmed here as the Phase 11 fix; the
+ * card now also declares what that photograph is, rather than repeating the page title.
+ */
+const ogImage = portraits[0]?.image?.src ?? null;
+
+const schema = [
+  organizationSchema({
+    sameAs: (settings?.data.socials ?? []).map((s) => s.url),
+    // Deliberately null: the canonical address is contested (decision D2).
+    email: settings?.data.email ?? null,
+  }),
+  breadcrumbSchema([
+    { name: 'Next Vision Films', path: pagePath('home', locale) },
+    { name: say(ABOUT.eyebrow, locale), path: pagePath('about', locale) },
+  ]),
+];
+---
+
+<BaseLayout
+  title={pageTitle('about', locale)}
+  description={pageDescription('about', locale) ?? undefined}
+  locale={locale}
+  ground="cream"
+  ogType="article"
+  ogImage={ogImage ? absoluteUrl(ogImage) : null}
+  ogImageAlt={portraits[0] ? portraitAlt(portraits[0].member.data.name, locale) : undefined}
+  schema={schema}
+>
+  {/* ── A · THE STATEMENT AND THE STORY ────────────────────────────────── */}
+  <PageHead eyebrow={say(ABOUT.eyebrow, locale)} title={say(ABOUT.lead, locale)} layout="beside">
+    <Fragment slot="aside">
+      <div class="pg-prose" data-reveal>
+        <p class="lead">{say(ABOUT.storyA, locale)}</p>
+        <p class="body">{say(ABOUT.storyB, locale)}</p>
+      </div>
+    </Fragment>
+  </PageHead>
+
+  {/* ── B · THE PEOPLE ─────────────────────────────────────────────────────
+      The rule between the story and the team is the company's own colour reference —
+      `colors.png`, published twice on this page and the source of the whole accent
+      palette. It divides two sections AND it is the identity, which is the only kind of
+      ornament this site allows. */}
+  <section class="section ground-cream" data-ground="cream" data-header="cream" aria-label={say(ABOUT.eyebrow, locale)}>
+    <div class="wide">
+      <hr class="pg-swatches ab-rule" aria-hidden="true" />
+
+      <div class="ab-team" style={teamCols ? `--cols:${teamCols}` : undefined}>
+        {portraits.map(({ member, ratio, image }) => (
+          <article class="ab-person" data-reveal>
+            {image && (
+              <div class="ab-person__frame" style={ratio ? `--ar:${ratio}` : undefined}>
+                <picture>
+                  {image.avifSrcset && <source type="image/avif" srcset={image.avifSrcset} sizes={image.sizes} />}
+                  <img
+                    src={image.src}
+                    srcset={image.srcset}
+                    sizes={image.sizes}
+                    alt={image.alt}
+                    width={image.width}
+                    height={image.height}
+                    loading="lazy"
+                    decoding="async"
+                  />
+                </picture>
+              </div>
+            )}
+            <h2 class="ab-person__name">{member.data.name}</h2>
+            <p class="metaline">{member.data.role[locale] ?? member.data.role.pt}</p>
+            {member.data.links.length > 0 && (
+              <ul class="ab-links">
+                {member.data.links.map((link) => (
+                  <li>
+                    <a href={link.url} rel="noopener me" target="_blank">
+                      {link.label}
+                      <span class="visually-hidden">{` — ${member.data.name}`}</span>
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  {/* ── C · WHAT THE WORK IS FOR ───────────────────────────────────────────
+      The published closing statement, and the page's own invitation to the portfolio.
+      On the live page the invitation comes first and the statement second, with the same
+      button printed on both sides of it. Heading, then the prose it introduces, then one
+      way onward. */}
+  <section class="section ground-cream" data-ground="cream" data-header="cream" aria-labelledby="about-work">
+    <div class="wide ab-close">
+      <div>
+        <h2 class="display" id="about-work">
+          {say(ABOUT.workLineA, locale)} <b>{say(ABOUT.workLineB, locale)}</b>
+        </h2>
+      </div>
+      <div>
+        <div class="ab-close__body" data-reveal>
+          <p class="lead">{say(ABOUT.closing[0]!, locale)}</p>
+          {ABOUT.closing.slice(1).map((line) => <p class="body dim">{say(line, locale)}</p>)}
+        </div>
+        <p class="ab-actions">
+          <a class="ctl" href={navHref('portfolio', locale)}>
+            <span>{say(ABOUT.ctaPortfolio, locale)}</span>
+          </a>
+        </p>
+      </div>
+    </div>
+  </section>
+
+  {/* ── D · THE CLOSE — shared with every other page. */}
+  <ContactClose locale={locale} />
+</BaseLayout>

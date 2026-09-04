@@ -1,0 +1,10 @@
+{
+  "note": "SHA-256 of the read-only legal archive. Verified by scripts/validate-legal.mjs. Re-lock ONLY after a genuine re-capture of the live site — never to silence a failure.",
+  "lockedAt": "2026-09-03",
+  "algorithm": "sha256",
+  "encoding": "utf8",
+  "files": {
+    "docs/content/termos-e-condicoes.txt": "5bdb9bbda2d5d95eb23254144ffe0256fd5ab8da67cd7fbd2724248957589cc7",
+    "docs/content/politica-de-privacidade.txt": "5dff2741ccb100c1d65ff3d1adb0fcd43aeb19c974cdf1afb4e60eb90c21db2a"
+  }
+}

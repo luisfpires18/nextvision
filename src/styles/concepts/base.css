@@ -1,0 +1,353 @@
+/**
+ * Shared foundation for all three Review A concepts.
+ *
+ * ONE CSS architecture, three presentations. Everything here is structural — layout,
+ * rhythm, media behaviour, accessibility, motion tiering. Each concept file overrides
+ * PRESENTATION only (colour, type scale, easing character). No concept redefines
+ * layout primitives or invents its own z-index.
+ *
+ * All visual values are PROVISIONAL (CLAUDE.md §4).
+ */
+
+/* ─────────────────────────────────────── the concepts' own motion vocabulary ──
+   REVIEW E moved these here.
+
+   The Review A prototypes are frozen reference material — the record of what the owners
+   compared before choosing — so they are not refactored onto the production tokens, and
+   their motion character is part of what they document (docs/VISUAL_DIRECTIONS.md).
+   What changed is WHERE the vocabulary lives: the production token file no longer
+   carries three easings and two durations that only these four pages use.
+
+   `--dur-base` / `--dur-slow` / `--ease-out` / `--ease-in-out` are the pre-Review E
+   names. They are defined here, against the production tiers, so a concept still
+   answers `prefers-reduced-motion` correctly without the production system having to
+   keep the old names alive. */
+:root {
+  --dur-base: var(--dur-ui);
+  --dur-slow: var(--dur-reveal);
+  --ease-out: var(--ease-reveal);
+  --ease-in-out: var(--ease-cinematic);
+
+  /* Each direction has its OWN motion character; these are the vocabulary it picks from
+     (docs/VISUAL_DIRECTIONS.md). */
+  --ease-shutter: cubic-bezier(0.7, 0, 0.2, 1);   /* Projection: heavy in, quick settle */
+  --ease-advance: cubic-bezier(0.2, 0.9, 0.1, 1); /* Contact Sheet: mechanical snap */
+  --ease-cut-hold: steps(2, end);                  /* Slate: no glide at all */
+}
+
+/* Links inherit by default inside a concept. The base stylesheet deliberately does not
+   reset <a> globally, so without this the brand renders as a blue underlined link. */
+[data-concept] a { color: inherit; text-decoration: none; }
+[data-concept] a:where(:not(.c-link):not([class])) { text-decoration: underline; text-underline-offset: 0.15em; }
+
+/* ------------------------------------------------------- concept-scoped surface */
+
+[data-concept] {
+  background: var(--c-ground);
+  color: var(--c-fg);
+  font-family: var(--font-body);
+}
+
+/* The four brand colours from colors.png, exposed once. Concepts vary EMPHASIS,
+   never the values. */
+[data-concept] {
+  --c-gold: var(--brand-gold);
+  --c-rust: var(--brand-rust);
+  --c-accent: var(--brand-oxblood);
+  --c-teal: var(--brand-teal);
+  --c-ink: var(--brand-ink);
+  --c-cream: var(--brand-cream);
+}
+
+/* Category → brand colour. Colour carries information, but never alone: every use is
+   paired with the text label (CLAUDE.md §11 accessibility floor). */
+.cat-accent { --cat: var(--c-accent); }
+.cat-rust   { --cat: var(--c-rust); }
+.cat-gold   { --cat: var(--c-gold); }
+.cat-teal   { --cat: var(--c-teal); }
+.cat-ink    { --cat: var(--c-fg); }
+
+/* ------------------------------------------------------------------- structure */
+
+.c-shell { min-height: 100dvh; display: flex; flex-direction: column; }
+.c-main { flex: 1; }
+
+.c-section {
+  padding-block: var(--space-section);
+  padding-inline: var(--gutter);
+}
+.c-wide { max-width: var(--w-wide); margin-inline: auto; }
+.c-content { max-width: var(--w-content); margin-inline: auto; }
+.c-text { max-width: var(--w-text); }
+
+:root { --gutter: clamp(1rem, 0.5rem + 3vw, 4rem); }
+
+/* ----------------------------------------------------------------- typography */
+
+.c-display {
+  font-family: var(--font-display);
+  font-weight: 700;
+  line-height: var(--lh-display);
+  letter-spacing: var(--tracking-display);
+  text-wrap: balance;
+  margin: 0;
+}
+.c-display--xl { font-size: var(--t-display-xl); }
+.c-display--l { font-size: var(--t-display-l); }
+.c-display--m { font-size: var(--t-display-m); }
+
+.c-meta {
+  font-family: var(--font-mono);
+  font-size: var(--t-meta);
+  letter-spacing: var(--tracking-meta);
+  text-transform: uppercase;
+  margin: 0;
+}
+.c-lead { font-size: var(--t-lead); line-height: 1.5; max-width: var(--w-text); margin: 0; }
+.c-body { font-size: var(--t-body); line-height: var(--lh-body); max-width: var(--w-text); margin: 0; }
+
+/* ------------------------------------------------------------- the brand stripe
+   colors.png is four EQUAL bands separated by black — a colour-reference strip. It is
+   the connective tissue across all three directions; each uses it at a different scale. */
+
+.c-stripe {
+  display: flex;
+  block-size: var(--stripe-h, 4px);
+  inline-size: 100%;
+  gap: var(--stripe-gap, 0);
+}
+.c-stripe > i { flex: 1; display: block; }
+.c-stripe > i:nth-child(1) { background: var(--c-gold); }
+.c-stripe > i:nth-child(2) { background: var(--c-rust); }
+.c-stripe > i:nth-child(3) { background: var(--c-accent); }
+.c-stripe > i:nth-child(4) { background: var(--c-teal); }
+
+/* ---------------------------------------------------------------- media frames
+   Aspect ratios, never fixed pixel heights — the live site's bug (audit §9.14). */
+
+.c-frame {
+  position: relative;
+  aspect-ratio: var(--frame-ratio, 16 / 9);
+  overflow: hidden;
+  background: var(--c-ink);
+  isolation: isolate;
+}
+.c-frame > img,
+.c-frame > video {
+  position: absolute;
+  inset: 0;
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: cover;
+  display: block;
+}
+/* The preview loop sits above the still and fades in only once it can actually play,
+   so a stalled network never shows a black box. */
+.c-frame > video {
+  opacity: 0;
+  transition: opacity var(--dur-base) var(--ease-out);
+  z-index: var(--z-media);
+}
+.c-frame[data-playing='true'] > video { opacity: 1; }
+
+/* --------------------------------------------------------------------- links */
+
+.c-link {
+  color: inherit;
+  text-decoration: none;
+  display: block;
+}
+.c-link:focus-visible { outline: 2px solid var(--c-focus, currentColor); outline-offset: 4px; }
+
+/* Touch/keyboard parity: every hover reveal has a non-hover route. The affordance is
+   always in the DOM and always reachable; hover only accelerates it. */
+.c-cue {
+  font-family: var(--font-mono);
+  font-size: var(--t-meta);
+  letter-spacing: var(--tracking-meta);
+  text-transform: uppercase;
+}
+
+/* ------------------------------------------------------------------- reveals
+   Driven by IntersectionObserver adding [data-inview]. Under reduced motion or the
+   `minimal` tier, content is simply visible — nothing depends on JS to be readable. */
+
+/* Content is VISIBLE BY DEFAULT. The hidden state only applies once JS has armed the
+   system AND proved the observer actually fires. If IntersectionObserver is missing,
+   throttled or blocked — background tabs, embedded webviews, some privacy modes — the
+   page simply shows its content with no animation. Nothing is ever permanently hidden
+   by a motion system that did not run. */
+[data-reveal] {
+  transition:
+    opacity var(--dur-slow) var(--ease-out) var(--reveal-delay, 0ms),
+    transform var(--dur-slow) var(--ease-out) var(--reveal-delay, 0ms);
+}
+:root.reveal-armed [data-reveal]:not([data-inview]) {
+  opacity: 0;
+  transform: translate3d(0, var(--reveal-y, 1.5rem), 0);
+  will-change: opacity, transform;
+}
+[data-reveal][data-inview] { opacity: 1; transform: none; }
+[data-reveal][data-inview].is-settled { will-change: auto; }
+
+/* Line-by-line typographic reveal. Each line is clipped by its own wrapper. */
+.c-lines { display: block; }
+.c-lines > span {
+  display: block;
+  overflow: hidden;
+  /* Portuguese uppercase carries Ç cedillas and Ã/Õ tildes. At display sizes with
+     tight leading these collide with the neighbouring line and get clipped by the
+     reveal mask, so the clip needs real vertical room — not a token 0.08em. */
+  padding-block-end: 0.16em;
+}
+.c-lines > span > span {
+  display: block;
+  transition: transform var(--dur-slow) var(--ease-out) var(--line-delay, 0ms);
+}
+:root.reveal-armed .c-lines:not([data-inview]) > span > span,
+:root.reveal-armed [data-reveal]:not([data-inview]) .c-lines > span > span {
+  transform: translate3d(0, 110%, 0);
+}
+[data-inview] .c-lines > span > span,
+.c-lines[data-inview] > span > span { transform: none; }
+
+/* ------------------------------------------------------------------ the loader
+   A short branded hold that covers real work and never exceeds it. Capped, skipped on
+   repeat visits, bypassed entirely under reduced motion (ARCHITECTURE.md §16.5). */
+
+.c-loader {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-loader);
+  display: grid;
+  place-items: center;
+  background: var(--loader-bg, var(--c-ink));
+  transition: opacity 420ms var(--ease-out), visibility 0s linear 420ms;
+}
+.c-loader[hidden] { display: grid; opacity: 0; visibility: hidden; pointer-events: none; }
+.c-loader__bars { display: flex; inline-size: min(52vw, 26rem); block-size: 3px; }
+.c-loader__bars > i {
+  flex: 1;
+  transform: scaleX(0);
+  transform-origin: left;
+  animation: loader-bar 620ms var(--ease-shutter) forwards;
+}
+.c-loader__bars > i:nth-child(1) { background: var(--c-gold); animation-delay: 0ms; }
+.c-loader__bars > i:nth-child(2) { background: var(--c-rust); animation-delay: 90ms; }
+.c-loader__bars > i:nth-child(3) { background: var(--c-accent); animation-delay: 180ms; }
+.c-loader__bars > i:nth-child(4) { background: var(--c-teal); animation-delay: 270ms; }
+@keyframes loader-bar { to { transform: scaleX(1); } }
+
+/* --------------------------------------------------------------------- header */
+
+.c-header {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-header);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-4) var(--gutter);
+  mix-blend-mode: var(--header-blend, normal);
+}
+.c-header__nav { display: flex; gap: var(--space-5); }
+.c-header__nav a { color: inherit; text-decoration: none; }
+
+/* Emitted ONCE and restyled by CSS — never duplicated per breakpoint, which is what
+   gives the live site 20 tab stops for 4 destinations (audit §8.9). */
+@media (max-width: 47.99rem) {
+  .c-header__nav { display: none; }
+  .c-header__nav[data-open='true'] {
+    display: flex;
+    position: fixed;
+    inset: 0;
+    z-index: var(--z-menu);
+    flex-direction: column;
+    justify-content: center;
+    gap: var(--space-5);
+    padding: var(--gutter);
+    background: var(--c-ground);
+    font-size: var(--t-display-m);
+  }
+  .c-menu-toggle { display: inline-flex; }
+}
+@media (min-width: 48rem) { .c-menu-toggle { display: none; } }
+
+.c-menu-toggle {
+  appearance: none;
+  background: none;
+  border: 1px solid currentColor;
+  color: inherit;
+  font: inherit;
+  font-family: var(--font-mono);
+  font-size: var(--t-meta);
+  letter-spacing: var(--tracking-meta);
+  text-transform: uppercase;
+  padding: var(--space-2) var(--space-3);
+  cursor: pointer;
+  z-index: var(--z-menu);
+  position: relative;
+}
+
+/* ---------------------------------------------------------------- concept bar
+   Prototype-only affordance for switching directions during the review. */
+
+.c-switch {
+  position: fixed;
+  inset-block-end: var(--space-4);
+  inset-inline-start: 50%;
+  translate: -50% 0;
+  z-index: var(--z-debug);
+  display: flex;
+  gap: 1px;
+  background: color-mix(in srgb, var(--c-ink) 88%, transparent);
+  padding: 3px;
+  border-radius: var(--radius-m);
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  box-shadow: 0 4px 24px rgb(0 0 0 / 0.35);
+}
+.c-switch a {
+  color: var(--brand-cream);
+  text-decoration: none;
+  padding: 0.4rem 0.7rem;
+  border-radius: calc(var(--radius-m) - 2px);
+  white-space: nowrap;
+}
+.c-switch a[aria-current='page'] { background: var(--brand-cream); color: var(--brand-ink); }
+.c-switch a:focus-visible { outline: 2px solid var(--brand-gold); outline-offset: 1px; }
+/* Review affordance only. At narrow widths it must not be the thing that introduces
+   horizontal overflow into a concept being judged for its layout. */
+@media (max-width: 30rem) {
+  .c-switch {
+    inset-inline: var(--space-2);
+    translate: none;
+    max-inline-size: calc(100vw - var(--space-4));
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .c-switch a { padding: 0.4rem 0.55rem; font-size: 0.625rem; }
+}
+
+/* ------------------------------------------------- motion tiers, non-negotiable */
+
+@media (prefers-reduced-motion: reduce) {
+  [data-reveal] { opacity: 1 !important; transform: none !important; transition: none !important; }
+  .c-lines > span > span { transform: none !important; transition: none !important; }
+  .c-loader { display: none !important; }
+  .c-frame > video { transition: none; }
+  *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; }
+}
+:root[data-motion='reduced'] [data-reveal],
+:root[data-motion='minimal'] [data-reveal] { opacity: 1; transform: none; transition: none; }
+:root[data-motion='reduced'] .c-lines > span > span,
+:root[data-motion='minimal'] .c-lines > span > span { transform: none; transition: none; }
+:root[data-motion='minimal'] .c-frame > video { display: none; }
+
+/* No-JS: nothing above may hide content permanently. */
+.no-js [data-reveal] { opacity: 1; transform: none; }
+.no-js .c-lines > span > span { transform: none; }
+.no-js .c-loader { display: none; }

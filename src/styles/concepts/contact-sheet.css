@@ -1,0 +1,229 @@
+/**
+ * Direction B — CONTACT SHEET
+ *
+ * The film lab, not the cinema. Cream ground kept; the site is organised like a light
+ * table where a filmmaker lays work out and annotates it.
+ *
+ * The move that keeps this out of retro cosplay: NO sprocket holes, no grain overlays,
+ * no fake tape. Instead the *rhythm* of a contact sheet — a regular tick scale down the
+ * margin that is a real scroll-position indicator, and grease-pencil annotation set in
+ * the brand's own monospace. Function first; the reference is felt, not costumed.
+ *
+ * Colour does information work here: each category owns one of the four brand colours,
+ * always paired with its text label.
+ *
+ * PROVISIONAL.
+ */
+
+[data-concept='contact-sheet'] {
+  --c-ground: var(--brand-cream);
+  --c-fg: var(--brand-ink);
+  --c-dim: color-mix(in srgb, var(--c-fg) 55%, transparent);
+  --c-rule: color-mix(in srgb, var(--c-fg) 18%, transparent);
+  --c-focus: var(--brand-oxblood);
+  --loader-bg: var(--brand-cream);
+
+  /* Uppercase PT with tildes/cedillas needs clearance at display sizes. */
+  --lh-display: 1.02;
+  --tracking-display: -0.01em;
+}
+[data-concept='contact-sheet'] .c-loader__bars > i { filter: none; }
+
+/* ------------------------------------------------------------------- header */
+
+[data-concept='contact-sheet'] .c-header {
+  border-block-end: 1px solid var(--c-rule);
+  background: var(--c-ground);
+}
+[data-concept='contact-sheet'] .c-header__brand {
+  font-family: var(--font-display);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+  font-size: 1.05rem;
+}
+[data-concept='contact-sheet'] .c-header__nav {
+  font-family: var(--font-mono);
+  font-size: var(--t-meta);
+  letter-spacing: var(--tracking-meta);
+  text-transform: uppercase;
+}
+
+/* ------------------------------------------------------- the margin tick scale
+   A real scroll indicator, not decoration: the filled portion tracks progress. */
+
+[data-concept='contact-sheet'] .cs-scale {
+  position: fixed;
+  inset-block: 0;
+  inset-inline-start: 0;
+  inline-size: 26px;
+  z-index: var(--z-overlay);
+  border-inline-end: 1px solid var(--c-rule);
+  background: var(--c-ground);
+  display: grid;
+  grid-auto-rows: 1fr;
+  pointer-events: none;
+}
+[data-concept='contact-sheet'] .cs-scale i {
+  border-block-start: 1px solid var(--c-rule);
+  position: relative;
+}
+[data-concept='contact-sheet'] .cs-scale i::after {
+  content: '';
+  position: absolute;
+  inset-inline: 6px 6px;
+  inset-block-start: -1px;
+  block-size: 1px;
+  background: var(--c-fg);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform var(--dur-fast) var(--ease-advance);
+}
+[data-concept='contact-sheet'] .cs-scale i[data-passed]::after { transform: scaleX(1); }
+@media (max-width: 47.99rem) { [data-concept='contact-sheet'] .cs-scale { display: none; } }
+@media (min-width: 48rem) { [data-concept='contact-sheet'] .c-shell { padding-inline-start: 26px; } }
+
+/* --------------------------------------------------------------------- hero
+   A single frame that expands, rather than a fullscreen reel. */
+
+[data-concept='contact-sheet'] .cs-hero {
+  display: grid;
+  gap: var(--space-6);
+  padding-block: clamp(2rem, 6vh, 5rem);
+}
+[data-concept='contact-sheet'] .cs-hero__frame {
+  --frame-ratio: 21 / 9;
+  border: 1px solid var(--c-fg);
+}
+@media (max-width: 47.99rem) { [data-concept='contact-sheet'] .cs-hero__frame { --frame-ratio: 4 / 3; } }
+
+[data-concept='contact-sheet'] .cs-hero__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  justify-content: space-between;
+  gap: var(--space-5);
+}
+[data-concept='contact-sheet'] .cs-hero__title { font-size: clamp(2.4rem, 1.1rem + 5.4vw, 5.5rem); text-transform: uppercase; }
+
+/* Grease-pencil annotation: mono, small, sitting in the margin of the frame. */
+[data-concept='contact-sheet'] .cs-annot {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-5);
+  color: var(--c-dim);
+  border-block-start: 1px solid var(--c-rule);
+  padding-block-start: var(--space-3);
+}
+[data-concept='contact-sheet'] .cs-annot dt { font-weight: 700; color: var(--c-fg); }
+[data-concept='contact-sheet'] .cs-annot > div { display: flex; gap: 0.5rem; }
+[data-concept='contact-sheet'] .cs-annot dd { margin: 0; }
+
+/* ------------------------------------------------------------ the light table
+   Dense, regular, scannable. Column count follows available width — no hardcoded
+   breakpoint grid (fixes audit §6.4). */
+
+[data-concept='contact-sheet'] .cs-sheet {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 19rem), 1fr));
+  gap: 1px;
+  background: var(--c-rule);
+  border: 1px solid var(--c-rule);
+}
+[data-concept='contact-sheet'] .cs-cell {
+  background: var(--c-ground);
+  padding: var(--space-3);
+  display: grid;
+  gap: var(--space-3);
+  align-content: start;
+  transition: background var(--dur-fast) var(--ease-advance);
+}
+[data-concept='contact-sheet'] .cs-cell:hover,
+[data-concept='contact-sheet'] .cs-cell:focus-within { background: color-mix(in srgb, var(--cat) 8%, var(--c-ground)); }
+
+[data-concept='contact-sheet'] .cs-cell__frame { --frame-ratio: 16 / 9; }
+/* The category band. Colour + label, never colour alone. */
+[data-concept='contact-sheet'] .cs-cell__band {
+  block-size: 3px;
+  background: var(--cat);
+  transform: scaleX(var(--band, 0.18));
+  transform-origin: left;
+  transition: transform var(--dur-base) var(--ease-advance);
+}
+[data-concept='contact-sheet'] .cs-cell:hover .cs-cell__band,
+[data-concept='contact-sheet'] .cs-cell:focus-within .cs-cell__band { --band: 1; }
+
+[data-concept='contact-sheet'] .cs-cell__title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.35rem;
+  line-height: 1.05;
+  text-transform: uppercase;
+  margin: 0;
+}
+[data-concept='contact-sheet'] .cs-cell__meta { color: var(--c-dim); display: flex; justify-content: space-between; gap: var(--space-3); }
+
+/* Frame advance: a hard step, not a glide. Mechanical, like film through a gate. */
+[data-concept='contact-sheet'] .cs-cell__frame img {
+  transition: transform var(--dur-fast) var(--ease-advance);
+}
+@media (hover: hover) and (pointer: fine) {
+  [data-concept='contact-sheet'] .cs-cell:hover .cs-cell__frame img { transform: scale(1.04); }
+}
+
+/* ------------------------------------------------------------ filter / index */
+
+[data-concept='contact-sheet'] .cs-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-block-end: var(--space-6);
+}
+[data-concept='contact-sheet'] .cs-filters button {
+  appearance: none;
+  background: transparent;
+  border: 1px solid var(--c-rule);
+  color: inherit;
+  font: inherit;
+  font-family: var(--font-mono);
+  font-size: var(--t-meta);
+  letter-spacing: var(--tracking-meta);
+  text-transform: uppercase;
+  padding: 0.45rem 0.8rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+[data-concept='contact-sheet'] .cs-filters button::before {
+  content: '';
+  inline-size: 0.55rem; block-size: 0.55rem;
+  background: var(--cat, var(--c-fg));
+}
+[data-concept='contact-sheet'] .cs-filters button[aria-pressed='true'] { background: var(--c-fg); color: var(--c-ground); border-color: var(--c-fg); }
+
+/* -------------------------------------------------------------- text moment */
+
+[data-concept='contact-sheet'] .cs-statement {
+  border-block: 1px solid var(--c-fg);
+  padding-block: clamp(2.5rem, 7vh, 6rem);
+}
+[data-concept='contact-sheet'] .cs-statement__title { font-size: clamp(2rem, 1rem + 4vw, 4.25rem); text-transform: uppercase; }
+
+/* ----------------------------------------------------------------- inverted */
+
+[data-concept='contact-sheet'] .cs-invert {
+  background: var(--c-fg);
+  color: var(--c-ground);
+}
+[data-concept='contact-sheet'] .cs-invert .c-meta { color: color-mix(in srgb, var(--c-ground) 65%, transparent); }
+[data-concept='contact-sheet'] .cs-invert__email {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(1.5rem, 0.9rem + 2.8vw, 3.2rem);
+  text-transform: uppercase;
+  color: inherit;
+  text-decoration: none;
+  display: inline-block;
+}
+[data-concept='contact-sheet'] .cs-invert__email:hover { color: var(--c-gold); }

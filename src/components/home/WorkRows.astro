@@ -1,0 +1,64 @@
+---
+/**
+ * The contact sheet.
+ *
+ * A row's frames are the SAME HEIGHT at every viewport width, because their aspect
+ * ratios are chosen against their column widths:
+ *
+ *     equal height  ⟺  ratioₙ / ratioₘ  =  colₙ / colₘ
+ *
+ * With `7fr 5fr` and one gap both tracks scale from the same remainder, so the relation
+ * holds exactly — no subgrid, no measurement, no JavaScript. That is what removes the
+ * accidental voids the Review A grid produced: a row cannot leave a hole, because every
+ * row is complete by construction and its frames cannot disagree on height.
+ *
+ * Rows are keyed by POSITION, not by project, so re-curating the homepage is an edit to
+ * `homepageOrder` in the content files and nothing else.
+ */
+import ProjectCard from '../site/ProjectCard.astro';
+import type { EditorialRow } from '../../lib/homepage.ts';
+import type { CuratedProject } from '../../lib/curated.ts';
+import { DEFAULT_LOCALE, type Locale } from '../../config/i18n.ts';
+
+interface Props {
+  rows: EditorialRow[];
+  projects: CuratedProject[];
+  /** Marks the first frame as the eager, high-priority image. */
+  priorityFirst?: boolean;
+  locale?: Locale;
+}
+
+const { rows, projects, priorityFirst = false, locale = DEFAULT_LOCALE } = Astro.props;
+
+// Slice the curated list across the rows in order. A row is only emitted if it can be
+// filled completely — a half-filled row is exactly the void we are avoiding.
+let cursor = 0;
+const filled = rows
+  .map((row) => {
+    const take = projects.slice(cursor, cursor + row.ratios.length);
+    cursor += row.ratios.length;
+    return { row, take };
+  })
+  .filter(({ row, take }) => take.length === row.ratios.length);
+---
+
+<div class="rows">
+  {filled.map(({ row, take }, ri) => (
+    <div
+      class="row"
+      style={`--cols:${row.cols}${row.tabletSpans ? `; --tablet-span-3:${row.tabletSpans[2]}` : ''}`}
+    >
+      {take.map((p, i) => (
+        <ProjectCard
+          project={p}
+          ratio={row.ratios[i]!}
+          mobileRatio={row.mobileRatios[i] ?? row.ratios[i]!}
+          tabletRatio={row.tabletRatios[i] ?? row.ratios[i]!}
+          sizes="(min-width: 64rem) 42vw, (min-width: 34rem) 48vw, 92vw"
+          priority={priorityFirst && ri === 0 && i === 0}
+          locale={locale}
+        />
+      ))}
+    </div>
+  ))}
+</div>

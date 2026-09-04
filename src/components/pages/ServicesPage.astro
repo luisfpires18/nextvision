@@ -1,0 +1,163 @@
+---
+/**
+ * /servicos/ — PHASE 10.
+ *
+ * The homepage shows one sentence per service. This page shows all four in full, on the
+ * same ruled index — so the two pages are recognisably the same list read at two
+ * distances, not two designs of the same content.
+ *
+ * ── Four services, not five categories ───────────────────────────────────────
+ * `Ficção`, `Visual Storytelling`, `Casamentos`, `Corporativo` and `Moda & Identidade`
+ * are portfolio TAXONOMY. `Produção de Vídeo`, `Publicidade & Branding`,
+ * `Eventos & Experiências` and `Documentários & Storytelling` are the SERVICES. The live
+ * site publishes both lists and they do not correspond (audit §3.5). Merging them would
+ * invent an offer the company does not make, so nothing on this page mentions a category.
+ *
+ * ── The signature, and it is the source's own ────────────────────────────────
+ * The live page sets three phrases of its lead on a yellow ground — `transformar`,
+ * `ideias`, `visão autêntica`. That published emphasis is reproduced, and it is the one
+ * place on this site where gold behaves exactly as the token rules require: a surface
+ * with ink on it at 7.56:1, never text (ARCHITECTURE §5.2). Nothing else on the page is
+ * marked.
+ *
+ * ── What is NOT here, and why ────────────────────────────────────────────────
+ * The live page ends with a form whose heading reads `Vamos Conversar!` and whose submit
+ * button reads `Subscrever Newsletter` (decision D10, audit §3.5). The newsletter has no
+ * known destination (D18) and no endpoint — Phase 13 built the CONTACT endpoint only, and
+ * the newsletter one waits on D18 — so the published invitation is
+ * rendered as what it says — an invitation to make contact — and the control goes to
+ * /contactos/. A control is rendered only when it controls something (decision A41).
+ *
+ * No icon cards, no feature grid, no process diagram and no numbered method: the source
+ * describes four services and no sequence, and numbering things that are not a sequence
+ * is decoration pretending to be information.
+ */
+import { getCollection, getEntry } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHead from '../site/PageHead.astro';
+import { SERVICES_PAGE, SERVICES_LEAD } from '../../lib/static-pages.ts';
+import { imageProps, getMedia } from '../../lib/media.ts';
+import { navHref } from '../../lib/nav.ts';
+import { organizationSchema, breadcrumbSchema, absoluteUrl } from '../../lib/seo.ts';
+import type { Locale } from '../../config/i18n.ts';
+import { pagePath } from '../../i18n/routes.ts';
+import { t } from '../../i18n/index.ts';
+import { say } from '../../lib/homepage.ts';
+import { pageTitle, pageDescription } from '../../lib/page-meta.ts';
+import '../../styles/pages.css';
+
+interface Props { locale: Locale }
+const { locale } = Astro.props;
+
+const services = (await getCollection('services')).sort((a, b) => a.data.order - b.data.order);
+const settings = await getEntry('settings', 'site');
+
+/**
+ * The page's own photograph, and its own og:image. The original is 624px wide — the
+ * whole file — so it takes a column and never the page width. Nothing here is upscaled
+ * to fill a layout (decision A76).
+ */
+const leadKey = 'pages/servicos/lead';
+const leadItem = getMedia(leadKey);
+const leadImage = imageProps(leadKey, { alt: '', sizes: '(min-width: 60rem) 39rem, 92vw' });
+
+const schema = [
+  organizationSchema({
+    sameAs: (settings?.data.socials ?? []).map((s) => s.url),
+    email: settings?.data.email ?? null,
+  }),
+  breadcrumbSchema([
+    { name: 'Next Vision Films', path: pagePath('home', locale) },
+    { name: say(SERVICES_PAGE.title, locale), path: pagePath('services', locale) },
+  ]),
+  /**
+   * The four services as an ItemList, which is what they are. No `Service` nodes with
+   * invented `areaServed`, `provider` or price fields: only what the page publishes.
+   */
+  {
+    '@type': 'ItemList',
+    name: say(SERVICES_PAGE.title, locale),
+    itemListElement: services.map((s, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      name: s.data.title[locale] ?? s.data.title.pt,
+      description: s.data.description[locale] ?? s.data.description.pt,
+    })),
+  },
+];
+---
+
+<BaseLayout
+  title={pageTitle('services', locale)}
+  description={pageDescription('services', locale) ?? undefined}
+  locale={locale}
+  ground="cream"
+  ogType="article"
+  ogImage={leadImage ? absoluteUrl(leadImage.src) : null}
+  schema={schema}
+>
+  {/* ── A · THE LEAD, IN THE PAGE'S OWN EMPHASIS ───────────────────────── */}
+  <PageHead title={say(SERVICES_PAGE.title, locale)} layout="plate">
+    <p class="display sv-lead" style="margin-block-start: var(--space-6)" data-reveal>
+      {/* The three marked phrases are the SOURCE's own emphasis, in both languages —
+          the translation decides what the phrase is, never which phrase is marked. */}
+      {SERVICES_LEAD.map((seg) => {
+        const run = locale === 'en' ? seg.en : seg.text;
+        return seg.mark ? <span class="sv-mark">{run}</span> : <>{run}</>;
+      })}
+    </p>
+
+    <Fragment slot="aside">
+      {leadImage && (
+        <div class="sv-plate" style={leadItem?.aspectRatio ? `--ar:${leadItem.aspectRatio}` : undefined}>
+          <picture>
+            {leadImage.avifSrcset && <source type="image/avif" srcset={leadImage.avifSrcset} sizes={leadImage.sizes} />}
+            <img
+              src={leadImage.src}
+              srcset={leadImage.srcset}
+              sizes={leadImage.sizes}
+              alt=""
+              width={leadImage.width}
+              height={leadImage.height}
+              loading="lazy"
+              decoding="async"
+            />
+          </picture>
+        </div>
+      )}
+    </Fragment>
+  </PageHead>
+
+  {/* ── B · THE FOUR SERVICES, IN FULL ─────────────────────────────────── */}
+  <section class="section ground-cream" data-ground="cream" data-header="cream" aria-label={say(SERVICES_PAGE.title, locale)}>
+    <div class="wide">
+      <div class="sv-list">
+        {services.map((s) => (
+          <div class="sv-item" data-reveal>
+            <h2 class="sv-item__title">{s.data.title[locale] ?? s.data.title.pt}</h2>
+            <p class="body sv-item__body">{s.data.description[locale] ?? s.data.description.pt}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  {/* ── C · THE CLOSE — the page's own published invitation, on the dark ground
+      the site closes every page with. */}
+  <section class="section ground-dark" data-ground="dark" data-header="dark" aria-labelledby="services-close">
+    <div class="wide contact">
+      <div>
+        <p class="eyebrow">{say(SERVICES_PAGE.closeLineA, locale)}</p>
+        <h2 class="display" id="services-close" data-reveal>{say(SERVICES_PAGE.closeLineB, locale)}</h2>
+        <p class="body dim" style="margin-block-start:var(--space-5)" data-reveal>{say(SERVICES_PAGE.closeBody, locale)}</p>
+        <p class="contact__actions">
+          {/* The published nav label, so the destination is named the way the menu
+              names it rather than with a second word for the same page. */}
+          <a class="ctl" href={navHref('contact', locale)}>
+            <span>{t('nav.contact', locale)}</span>
+          </a>
+        </p>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

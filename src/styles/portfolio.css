@@ -1,0 +1,191 @@
+/**
+ * Portfolio layer — Review C.
+ *
+ * The homepage is the light table opening into the dark room. The portfolio is the light
+ * table itself: cream from the masthead to the closing section, top to bottom, with no
+ * ground change at all. That is a system rule, not an omission — dark means *watching*,
+ * and browsing twenty projects is reading. Keeping the index entirely light is what
+ * leaves Projection scarce enough to still mean something.
+ *
+ * The hierarchy comes from breaking a regular grid rarely, not from making every frame a
+ * different size: two full-bleed plates in twenty frames, and everything else on a
+ * composed 2 / 3 / 2 / 1 rhythm.
+ *
+ * Every value resolves to a token. Loaded only by the portfolio routes.
+ */
+
+/* ═════════════════════════════════════════════════════════════════ masthead ══ */
+
+.pf-head {
+  padding-block: calc(var(--header-h) + var(--space-9)) var(--space-7);
+  padding-inline: var(--gutter);
+}
+.pf-head__inner { max-inline-size: var(--w-wide); margin-inline: auto; }
+
+.pf-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--t-section);
+  line-height: var(--lh-tight);
+  letter-spacing: var(--tracking-display);
+  margin: 0;
+}
+.pf-lead { margin-block-start: var(--space-4); max-inline-size: 34ch; }
+
+/* ══════════════════════════════════════════════════════════════════ filters ══
+   Real links to real routes, styled as a quiet row of words. Not buttons, not chips,
+   not five coloured pills — the category colour appears only as a 6px marker and only
+   next to its own written name, so colour never carries meaning on its own. */
+
+.pf-filters {
+  margin-block-start: var(--space-7);
+  border-block-start: 1px solid var(--rule);
+  padding-block-start: var(--space-4);
+}
+.pf-filters__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-6);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.pf-filter {
+  position: relative;
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: var(--t-body-s);
+  /* 44px target without a box: the padding does it, the underline stays on the word. */
+  padding-block: var(--space-3);
+  color: var(--dim);
+  transition: color var(--dur-fast) var(--ease-ui);
+}
+.pf-filter:hover, .pf-filter:focus-visible { color: var(--fg); }
+.pf-filter[aria-current] { color: var(--fg); }
+
+/* Stripe use: the active filter, and nothing else on this page. */
+.pf-filter[aria-current]::after {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  inset-block-end: calc(var(--space-3) - 4px);
+  block-size: 2px;
+  background: linear-gradient(90deg,
+    var(--brand-gold) 0 25%, var(--brand-rust) 25% 50%,
+    var(--brand-oxblood) 50% 75%, var(--brand-teal) 75% 100%);
+}
+.pf-filter__dot {
+  inline-size: 6px;
+  block-size: 6px;
+  background: var(--cat, currentColor);
+  flex: none;
+  align-self: center;
+}
+.pf-filter__count {
+  font-family: var(--font-mono);
+  font-size: var(--t-metaline);
+  letter-spacing: var(--tracking-eyebrow);
+  color: var(--dim);
+}
+
+@media (max-width: 47.99rem) {
+  /* One line that scrolls, rather than a control that reflows the page as you read it.
+     Edge-to-edge so the last filter is never clipped mid-word. */
+  .pf-filters__list {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    gap: var(--space-5);
+    margin-inline: calc(var(--gutter) * -1);
+    padding-inline: var(--gutter);
+    scroll-snap-type: x proximity;
+  }
+  .pf-filters__list::-webkit-scrollbar { display: none; }
+  .pf-filter { white-space: nowrap; scroll-snap-align: start; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════ index ══ */
+
+.pf-index { padding-block-end: var(--space-9); }
+.pf-rows { display: grid; gap: var(--row-gap); }
+
+.pf-row {
+  display: grid;
+  gap: var(--frame-gap);
+  grid-template-columns: 1fr;
+  padding-inline: var(--gutter);
+  max-inline-size: calc(var(--w-wide) + var(--gutter) * 2);
+  margin-inline: auto;
+  inline-size: 100%;
+}
+@media (min-width: 34rem) {
+  .pf-row { grid-template-columns: 1fr 1fr; }
+  .pf-row > *:nth-child(3) { grid-column: span var(--tablet-span-3, 2); }
+}
+@media (min-width: 64rem) {
+  .pf-row { grid-template-columns: var(--cols); }
+  .pf-row > *:nth-child(3) { grid-column: auto; }
+}
+
+/* The plate. Twice on the page: it leaves the container and takes the full viewport,
+   which is the only moment the grid is allowed to break. */
+.pf-row--plate {
+  max-inline-size: none;
+  padding-inline: 0;
+  grid-template-columns: 1fr;
+}
+@media (min-width: 34rem) { .pf-row--plate { grid-template-columns: 1fr; } }
+@media (min-width: 64rem) { .pf-row--plate { grid-template-columns: 1fr; } }
+.pf-row--plate .item__title,
+.pf-row--plate .item__meta { padding-inline: var(--gutter); }
+.pf-row--plate .item__title { font-size: var(--t-service); }
+
+/* ══════════════════════════════════════════════════════════════ filtering ══
+   One DOM, two layouts.
+
+   `Todos` is the composed sequence — it is the designed artefact, and it is what
+   work-first browsing means. A filter is a utility view, so it drops to a plain contact
+   sheet: every visible frame the same size, three across. `display: contents` dissolves
+   the rows so the surviving cards flow into one grid, which means filtering can never
+   leave a half-empty row and never needs an animated reflow. */
+
+.pf-index[data-filter] .pf-rows {
+  display: grid;
+  /* Pinned rather than auto-filled: a filtered view should look like the contact-sheet
+     rows it came from, not re-column itself at every width. */
+  grid-template-columns: 1fr;
+  gap: var(--frame-gap);
+  padding-inline: var(--gutter);
+  max-inline-size: calc(var(--w-wide) + var(--gutter) * 2);
+  margin-inline: auto;
+}
+@media (min-width: 34rem) { .pf-index[data-filter] .pf-rows { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 64rem) { .pf-index[data-filter] .pf-rows { grid-template-columns: repeat(3, 1fr); } }
+.pf-index[data-filter] .pf-row { display: contents; }
+.pf-index[data-filter] .card {
+  --ar-use: var(--ar-filtered);
+  --ar-use-t: var(--ar-filtered);
+  --ar-use-m: var(--ar-filtered);
+}
+.pf-index[data-filter] .pf-row--plate .item__title,
+.pf-index[data-filter] .pf-row--plate .item__meta { padding-inline: 0; }
+.pf-index[data-filter] .pf-row--plate .item__title { font-size: var(--t-project); }
+
+/* Filtering has NO transition at all. A filter that plays an animation before you can
+   read the result is slower than one that does not, and twenty cards leaving at once is
+   the worst case for it. The cards are shown and hidden; the reader reads.
+   The `data-busy` dim this file used to declare was never set by anything, so it went. */
+
+.pf-empty { padding: var(--space-8) var(--gutter); max-inline-size: var(--w-wide); margin-inline: auto; }
+
+/* ═══════════════════════════════════════════════════════════════ no source ══
+   One published project has a broken video reference on the live site (decision D6).
+   Its card says so in the same mono voice as every other caption, rather than pretending
+   the film exists or hiding the project. */
+.item__flag { color: var(--brand-oxblood); }
+
+/* No tier override belongs here: every transition on this page already resolves through
+   --dur-fast, which the tier tokens answer for centrally (tokens.motion.css). */

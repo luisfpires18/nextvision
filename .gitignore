@@ -1,0 +1,98 @@
+# ---------------------------------------------------------------------------
+# Secrets — NEVER commit. Cloudflare / R2 credentials belong in env storage.
+# ---------------------------------------------------------------------------
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+.dev.vars
+.wrangler/
+credentials.json
+secrets.json
+
+# ---------------------------------------------------------------------------
+# Large media — lives in Cloudflare R2, not in Git.
+# Add explicit exceptions below if a small asset genuinely must be versioned.
+# ---------------------------------------------------------------------------
+*.mp4
+*.mov
+*.webm
+*.avi
+*.mkv
+*.m4v
+*.psd
+*.ai
+*.zip
+*.tar.gz
+/media/
+/public/media/
+/assets/media/
+
+# Owner-supplied source media. docs/Smash/ is 469 MB of masters and web exports —
+# inventoried in docs/SMASH_MEDIA_INVENTORY.md, never committed.
+# (The *.mp4 / *.mov rules above already cover it; this is belt and braces.)
+/docs/Smash/
+/media-staging/
+
+# The local bucket mirror and the incoming drop, both covered by /media/ above.
+# Named here so the rule is legible rather than incidental:
+#   media/dist/       byte-identical to the R2 delivery bucket; rebuild with media:build
+#   media/incoming/   where a new source file is dropped before it has a recipe entry
+#   media/.*.json     encoder cache and the sync/backup ledgers
+
+# ---------------------------------------------------------------------------
+# Source preservation archive (scripts/archive-source.mjs).
+# Byte-faithful copies of the live WordPress site: raw HTML, REST responses and
+# 175 MB of media binaries. NEVER committed — but it is our only durable copy,
+# so it must be backed up outside this repo. See docs/SOURCE_ARCHIVE.md.
+# The *derived* JSON in docs/source-archive/ IS committed and is the record.
+# ---------------------------------------------------------------------------
+/source-archive/
+
+# Fonts: the supplied TTF originals are OFL-licensed and small, so they stay in
+# source-assets/fonts/. Built WOFF2 output is generated, not committed.
+/src/assets/fonts/
+
+# ---------------------------------------------------------------------------
+# Dependencies & build output
+# ---------------------------------------------------------------------------
+node_modules/
+.pnp
+.pnp.js
+dist/
+build/
+out/
+.next/
+.astro/
+.output/
+.vercel/
+.cache/
+*.tsbuildinfo
+
+# ---------------------------------------------------------------------------
+# Tooling / OS
+# ---------------------------------------------------------------------------
+.DS_Store
+Thumbs.db
+desktop.ini
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.idea/
+.vscode/*
+!.vscode/extensions.json
+coverage/
+.eslintcache
+
+# Disposable prototype media for the Review A concepts (scripts/build-concept-media.mjs).
+# Regenerated on demand; never shipped, never committed.
+/public/__generated/
+
+# Generated WOFF2 binaries live under /public/__generated/ (already ignored above).
+# src/styles/fonts.css IS committed: it is the record of which faces and which real
+# usWeightClass values are declared, and a fresh clone must still build. Without the
+# binaries the faces simply fall back to the system stack until build-fonts.mjs runs.

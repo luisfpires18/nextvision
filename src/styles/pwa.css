@@ -1,0 +1,76 @@
+/**
+ * The update prompt — PHASE 11.
+ *
+ * Deliberately the quietest thing on any page it appears on. It is not an announcement,
+ * it is an offer, and it sits where the site's own progress stripe sits so it reads as
+ * chrome rather than as content.
+ *
+ * Every value is a token (CLAUDE.md §4). It respects `data-motion` the way everything
+ * else does: the tier is decided once, before paint, and this only READS it — no second
+ * `prefers-reduced-motion` block is introduced here (PROJECT_CONTEXT §5).
+ */
+
+.pwa-update {
+  position: fixed;
+  inset-block-end: var(--space-5);
+  inset-inline: var(--gutter);
+  z-index: 40;
+
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-4);
+
+  max-inline-size: 34rem;
+  margin-inline: auto;
+  padding: var(--space-4) var(--space-5);
+
+  /* `--fg` is what `--rule` and `--dim` are derived from (site.css), so setting it here
+     is what makes a hairline on a dark panel resolve correctly rather than being typed. */
+  --fg: var(--ink-on-dark);
+  color: var(--ink-on-dark);
+  background: var(--ground-dark);
+  border: 1px solid var(--rule);
+}
+
+.pwa-update__text {
+  flex: 1 1 12rem;
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--t-metaline);
+  letter-spacing: var(--tracking-eyebrow);
+}
+
+/* The dismiss control is a real button with a real accessible name; the glyph is what
+   is seen and the name is what is heard. Sized to a touch target rather than to a
+   character. */
+.pwa-update__dismiss {
+  flex: none;
+  inline-size: var(--space-7);
+  block-size: var(--space-7);
+  display: grid;
+  place-items: center;
+
+  font: inherit;
+  font-size: var(--t-body);
+  line-height: 1;
+  color: inherit;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  opacity: 0.62;
+}
+
+.pwa-update__dismiss:hover,
+.pwa-update__dismiss:focus-visible { opacity: 1; }
+
+/* The entrance is a dissolve, which is one of the four verbs the site allows
+   (docs/MOTION_REVIEW.md). At the reduced and minimal tiers it simply appears. */
+:root[data-motion='full'] .pwa-update {
+  animation: pwa-in var(--dur-reveal) var(--ease-reveal) both;
+}
+
+@keyframes pwa-in {
+  from { opacity: 0; transform: translateY(var(--rise-reveal)); }
+  to { opacity: 1; transform: none; }
+}

@@ -1,0 +1,50 @@
+---
+/**
+ * The published film, façade-loaded.
+ *
+ * Nothing reaches YouTube until someone presses play — no iframe, no cookie, no script,
+ * no request (ARCHITECTURE.md §6.5). The poster box is already 16:9, the shape the iframe
+ * will take, so mounting the player cannot shift the layout.
+ *
+ * The control is a real <button> with a real accessible name. Its label names the
+ * destination the way the rest of the site does: "Ver o filme".
+ */
+import { imageProps, youtubeEmbedUrl } from '../../lib/media.ts';
+import { t } from '../../i18n/index.ts';
+import { DEFAULT_LOCALE, type Locale } from '../../config/i18n.ts';
+
+interface Props {
+  /** 11-character YouTube id, validated by the content schema. */
+  videoId: string;
+  posterKey: string;
+  /** Used for the button's accessible name, so it is never a bare "play". */
+  title: string;
+  locale?: Locale;
+}
+
+const { videoId, posterKey, title, locale = DEFAULT_LOCALE } = Astro.props;
+const poster = imageProps(posterKey, { sizes: '(min-width: 72rem) 1140px, 92vw' });
+const label = t('media.playFilm', locale);
+---
+
+<div class="pj-film" data-film data-embed={youtubeEmbedUrl(videoId)} data-title={title}>
+  {poster && (
+    <picture>
+      {poster.avifSrcset && <source type="image/avif" srcset={poster.avifSrcset} sizes={poster.sizes} />}
+      <img
+        src={poster.src}
+        srcset={poster.srcset}
+        sizes={poster.sizes}
+        alt=""
+        width={poster.width}
+        height={poster.height}
+        loading="lazy"
+        decoding="async"
+      />
+    </picture>
+  )}
+  <button class="pj-play" type="button" data-film-play>
+    <span class="pj-play__label">{label}</span>
+    <span class="visually-hidden">{`${label}: ${title}`}</span>
+  </button>
+</div>

@@ -1,0 +1,63 @@
+---
+/**
+ * More work in the same category.
+ *
+ * Deliberately secondary. The Next Project block above it offers one film at the scale of
+ * a film; this offers at most two at the scale of a caption, sitting on the same dark
+ * ground with no rule between them, so the eye reads it as a footnote to that offer
+ * rather than as a second, competing one.
+ *
+ * The heading states the relationship exactly: these are the other projects filed under
+ * this category. It makes no claim about resemblance, because none can be derived
+ * (src/lib/related.ts).
+ *
+ * Renders nothing at all when nothing can be derived — the two single-project categories.
+ */
+import { imageProps } from '../../lib/media.ts';
+import { t } from '../../i18n/index.ts';
+import { DEFAULT_LOCALE, type Locale } from '../../config/i18n.ts';
+import type { CuratedProject } from '../../lib/curated.ts';
+
+interface Props {
+  projects: CuratedProject[];
+  /** The category these projects share, printed as published. */
+  category: string;
+  locale?: Locale;
+}
+
+const { projects, category, locale = DEFAULT_LOCALE } = Astro.props;
+const cards = projects
+  .map((p) => ({ p, still: imageProps(`projects/${p.slug}/poster`, { sizes: '(min-width: 48rem) 280px, 44vw' }) }))
+  .filter((c): c is { p: CuratedProject; still: NonNullable<ReturnType<typeof imageProps>> } => c.still !== null);
+---
+
+{cards.length > 0 && (
+  <nav class="pj-related" aria-labelledby="related-h">
+    <p class="eyebrow" id="related-h">{`${t('project.moreIn', locale)} ${category}`}</p>
+    <ul class="pj-related__list">
+      {cards.map(({ p, still }) => (
+        <li>
+          <a class="pj-related__link" href={p.href}>
+            <span class="pj-related__frame">
+              <picture>
+                {still.avifSrcset && <source type="image/avif" srcset={still.avifSrcset} sizes={still.sizes} />}
+                <img
+                  src={still.src}
+                  srcset={still.srcset}
+                  sizes={still.sizes}
+                  alt=""
+                  width={still.width}
+                  height={still.height}
+                  loading="lazy"
+                  decoding="async"
+                />
+              </picture>
+            </span>
+            <span class="pj-related__title">{p.title}</span>
+            <span class="metaline pj-related__meta">{p.date}</span>
+          </a>
+        </li>
+      ))}
+    </ul>
+  </nav>
+)}

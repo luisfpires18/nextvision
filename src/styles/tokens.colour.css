@@ -1,0 +1,56 @@
+/* Colour tokens — PROVISIONAL (CLAUDE.md §4, ARCHITECTURE.md §5.2, §5.8).
+   Sampled from the owners' own colors.png; the final identity is Tatiana's call.
+   Themes are attribute overrides so a dark and a cream direction can be compared
+   at Review A without a rebuild. NO component may contain a raw hex. */
+:root {
+  --brand-gold: #efb025;
+  --brand-rust: #d54b27;
+  --brand-oxblood: #982703;
+  --brand-teal: #3d7d70;
+  --brand-ink: #292929;
+  --brand-cream: #f0ead6;
+
+  --ground: var(--brand-cream);
+  --ink: var(--brand-ink);
+  --accent: var(--brand-oxblood); /* 6.64:1 on cream, 8.00:1 with white — the accessible workhorse */
+  --surface-dark: #1e1e1e;
+  --surface-muted: #e6dfc9;
+  --focus-ring: var(--brand-oxblood);
+}
+:root[data-theme='dark'] {
+  --ground: var(--surface-dark);
+  --ink: var(--brand-cream);
+  --accent: var(--brand-gold);
+  --surface-muted: #2a2a2a;
+  --focus-ring: var(--brand-gold);
+}
+
+/* ── Site surfaces (Review B) ────────────────────────────────────────────────
+   The cinematic ground is deliberately deeper than --surface-dark: it is the
+   "lights down" state behind footage, not a UI panel. Both are PROVISIONAL. */
+:root {
+  --ground-cream: var(--brand-cream);
+  --ground-dark: #0c0c0c;
+  --ink-on-cream: var(--brand-ink);
+  --ink-on-dark: var(--brand-cream);
+
+  /* Scrim strengths. Measured against the real media, not guessed.
+     The hero's header band peaks at Y'=179 — but the PROJECT STILLS are far brighter:
+     their top bands average up to 213 and peak at 249. The alpha that matters is the one
+     under the header's text row, and it has to clear 4.5:1 against 249. It does not need
+     to clear it against white, because nothing on this page is white.
+       0.62 → 5.2:1 over the brightest still, and 5.5:1 over the cream ground, which is
+     what makes the same treatment safe during a ground crossing.
+     See docs/HOMEPAGE_REVIEW.md §5. */
+  --scrim-header: 0.74;
+  --scrim-header-row: 0.64;
+  --scrim-header-mid: 0.30;
+  --scrim-hero-top: 0.35;
+  --scrim-hero-foot: 0.74;
+
+  /* Print. Paper is white and ink is black — a cream ground on paper is wasted toner and
+     a lower-contrast document. Declared as tokens because no stylesheet may contain a
+     raw hex (CLAUDE.md §4), and used only by the legal pages' print rules. */
+  --print-paper: #ffffff;
+  --print-ink: #000000;
+}

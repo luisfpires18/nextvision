@@ -1,0 +1,42 @@
+---
+/**
+ * The analytics beacon. Cloudflare Web Analytics, or nothing at all.
+ *
+ * Renders EXACTLY ONE `<script>` when a token is configured and the environment is one
+ * that should be measured, and renders nothing whatsoever otherwise — no comment, no
+ * empty tag, no placeholder. `src/config/analytics.ts` decides; this file only places.
+ *
+ * ── Why it is safe to ship with no consent UI ────────────────────────────────
+ * The beacon sets no cookie, writes no `localStorage`, and stores no identifier on the
+ * device, so it does not engage the ePrivacy rule that a banner exists to satisfy. It
+ * reports timing metrics for the page it is on. It is not given, and cannot reach, any
+ * form value: the contact form is `method="post"`, so nothing a visitor types has ever
+ * been in a URL, and this script is passed no callback and wraps nothing of ours.
+ * `npm run validate:analytics` re-checks both of those against the built site.
+ *
+ * The remaining question is legal rather than technical — the published privacy policy
+ * describes Google Analytics cookies this site no longer sets — and it is recorded for
+ * the owners in docs/BLOCKED_TODOS.md rather than answered here.
+ *
+ * ── Why it is in the head, and persisted ─────────────────────────────────────
+ * `defer` keeps it off the critical path; `data-astro-transition-persist` keeps it ALIVE
+ * across ClientRouter navigations instead of being torn down and re-executed on the first
+ * one. The beacon's own SPA support then reports each route change once. See
+ * ANALYTICS_PERSIST_KEY for the mechanism and why the obvious alternative silently
+ * double-counts.
+ *
+ * Concept routes (`/__concepts/*`) use ConceptLayout and are deliberately not measured.
+ */
+import {
+  ANALYTICS_BEACON_CONFIG, ANALYTICS_ENABLED, ANALYTICS_PERSIST_KEY, ANALYTICS_SCRIPT_URL,
+} from '../../config/analytics.ts';
+---
+{ANALYTICS_ENABLED && (
+  <script
+    is:inline
+    defer
+    src={ANALYTICS_SCRIPT_URL}
+    data-cf-beacon={ANALYTICS_BEACON_CONFIG}
+    data-astro-transition-persist={ANALYTICS_PERSIST_KEY}
+  ></script>
+)}

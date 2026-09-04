@@ -1,0 +1,34 @@
+---
+/**
+ * /portfolio/{slug}/ — a ROUTE.
+ *
+ * The page is ProjectPage.astro, mounted once per locale. `getStaticPaths` has to live
+ * in the route file (Astro reads it from the page module), so this file answers exactly
+ * two questions — which slugs exist, and what each one needs — and the page answers
+ * everything else.
+ *
+ * Project slugs are LOCALE-INVARIANT by design: /portfolio/epitafio/ and
+ * /en/portfolio/epitafio/ are the same URL in two prefixes, because a slug is a proper
+ * noun and translating it would double the URL surface for nothing
+ * (docs/ARCHITECTURE.md §10.1).
+ */
+import type { GetStaticPaths } from 'astro';
+import { getCollection } from 'astro:content';
+import ProjectPage from '../../components/pages/ProjectPage.astro';
+
+export const getStaticPaths = (async () => {
+  const projects = await getCollection('projects', (p) => !p.data.draft);
+  return projects.map((p) => ({
+    params: { slug: p.id },
+    props: {
+      slug: p.id,
+      blocks: p.data.blocks,
+      youtubeId: p.data.film?.provider === 'youtube' ? p.data.film.id : null,
+    },
+  }));
+}) satisfies GetStaticPaths;
+
+const { slug, blocks, youtubeId } = Astro.props;
+---
+
+<ProjectPage locale="pt" slug={slug} blocks={blocks} youtubeId={youtubeId} />

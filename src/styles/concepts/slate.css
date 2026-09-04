@@ -1,0 +1,202 @@
+/**
+ * Direction C — SLATE
+ *
+ * Production vernacular, taken graphically rather than literally.
+ *
+ * The move that avoids clapperboard cosplay: instead of drawing a slate, take the
+ * brand's own colour bar to its logical extreme. Each section becomes a FULL-BLEED
+ * COLOUR FIELD, and each category owns one of the four brand colours. The page reads
+ * as a sequence of coloured chapters with the work punched out of them.
+ *
+ * Motion is the opposite of the genre default: HARD CUTS, no crossfades. The
+ * transition IS the cut. That is honest to editing, and it is cheap and fast.
+ *
+ * This is the boldest direction and the one that most constrains a later typography
+ * change — the fields are sized around heavy condensed caps.
+ *
+ * PROVISIONAL.
+ */
+
+[data-concept='slate'] {
+  --c-ground: var(--brand-ink);
+  --c-fg: var(--brand-cream);
+  --c-dim: color-mix(in srgb, var(--c-fg) 60%, transparent);
+  --c-focus: var(--brand-gold);
+  --loader-bg: var(--brand-ink);
+
+  /* 0.86 clipped the cedilla on EMOÇÕES; 0.92 keeps the density and clears diacritics. */
+  --lh-display: 0.92;
+  --tracking-display: -0.03em;
+}
+
+/* ------------------------------------------------------------------- header */
+
+[data-concept='slate'] .c-header {
+  border-block-end: 2px solid currentColor;
+  background: var(--c-ground);
+  color: var(--c-fg);
+}
+[data-concept='slate'] .c-header__brand {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+[data-concept='slate'] .c-header__nav {
+  font-family: var(--font-mono);
+  font-size: var(--t-meta);
+  letter-spacing: var(--tracking-meta);
+  text-transform: uppercase;
+}
+
+/* Live timecode — technical, honest, and genuinely a running value. */
+[data-concept='slate'] .sl-tc {
+  font-family: var(--font-mono);
+  font-size: var(--t-meta);
+  letter-spacing: 0.08em;
+  font-variant-numeric: tabular-nums;
+  color: var(--c-dim);
+}
+
+/* ------------------------------------------------------- the colour chapters */
+
+[data-concept='slate'] .sl-field {
+  --field: var(--brand-ink);
+  --on-field: var(--brand-cream);
+  background: var(--field);
+  color: var(--on-field);
+  padding-block: clamp(3rem, 9vh, 8rem);
+  padding-inline: var(--gutter);
+  position: relative;
+  overflow: hidden;
+}
+/* Contrast is chosen per field, never assumed: gold and cream both need ink on them. */
+[data-concept='slate'] .sl-field--gold { --field: var(--brand-gold); --on-field: var(--brand-ink); }
+[data-concept='slate'] .sl-field--rust { --field: var(--brand-rust); --on-field: #fff; }
+[data-concept='slate'] .sl-field--accent { --field: var(--brand-oxblood); --on-field: #fff; }
+[data-concept='slate'] .sl-field--teal { --field: var(--brand-teal); --on-field: #fff; }
+[data-concept='slate'] .sl-field--cream { --field: var(--brand-cream); --on-field: var(--brand-ink); }
+[data-concept='slate'] .sl-field--ink { --field: var(--brand-ink); --on-field: var(--brand-cream); }
+
+[data-concept='slate'] .sl-field .c-meta { color: color-mix(in srgb, var(--on-field) 70%, transparent); }
+
+/* Type cropped by the field edge — the field is a frame, not a container. */
+[data-concept='slate'] .sl-huge {
+  font-family: var(--font-display);
+  font-weight: 700;
+  text-transform: uppercase;
+  line-height: 0.92;
+  letter-spacing: -0.035em;
+  font-size: clamp(3rem, 0.5rem + 13vw, 12rem);
+  margin: 0;
+  text-wrap: balance;
+}
+
+/* --------------------------------------------------------------------- hero */
+
+[data-concept='slate'] .sl-hero {
+  min-block-size: 100svh;
+  display: grid;
+  grid-template-rows: 1fr auto;
+  gap: var(--space-6);
+  align-content: center;
+}
+[data-concept='slate'] .sl-hero__media {
+  position: relative;
+  aspect-ratio: 21 / 9;
+  overflow: hidden;
+  border: 2px solid currentColor;
+}
+@media (max-width: 47.99rem) { [data-concept='slate'] .sl-hero__media { aspect-ratio: 3 / 4; } }
+[data-concept='slate'] .sl-hero__media video,
+[data-concept='slate'] .sl-hero__media img { position: absolute; inset: 0; inline-size: 100%; block-size: 100%; object-fit: cover; }
+
+[data-concept='slate'] .sl-hero__bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-4);
+  border-block-start: 2px solid currentColor;
+  padding-block-start: var(--space-3);
+}
+
+/* ------------------------------------------------------------- work chapters
+   Each project is a band. Colour tells you the category before you read the label. */
+
+[data-concept='slate'] .sl-band {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  border-block-end: 2px solid currentColor;
+}
+@media (min-width: 56rem) {
+  [data-concept='slate'] .sl-band { grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); align-items: stretch; }
+  [data-concept='slate'] .sl-band--flip .sl-band__media { order: -1; }
+}
+[data-concept='slate'] .sl-band__body {
+  padding: clamp(1.5rem, 1rem + 3vw, 4rem);
+  display: grid;
+  align-content: center;
+  gap: var(--space-4);
+}
+[data-concept='slate'] .sl-band__media { position: relative; min-block-size: 14rem; }
+[data-concept='slate'] .sl-band__media .c-frame { block-size: 100%; --frame-ratio: auto; }
+[data-concept='slate'] .sl-band__title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: clamp(2rem, 1rem + 4.4vw, 4.5rem);
+  line-height: 0.96;
+  letter-spacing: -0.03em;
+  margin: 0;
+}
+[data-concept='slate'] .sl-band__index {
+  font-family: var(--font-mono);
+  font-size: var(--t-meta);
+  letter-spacing: 0.1em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* No crossfade anywhere. Hover is a step change. */
+@media (hover: hover) and (pointer: fine) {
+  [data-concept='slate'] .sl-band__media .c-frame img { transition: none; }
+  [data-concept='slate'] .sl-band:hover .sl-band__title { text-decoration: underline; text-underline-offset: 0.12em; text-decoration-thickness: 0.06em; }
+}
+
+/* ------------------------------------------------------------ category index */
+
+[data-concept='slate'] .sl-cats { display: grid; gap: 2px; }
+@media (min-width: 40rem) { [data-concept='slate'] .sl-cats { grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr)); } }
+[data-concept='slate'] .sl-cat {
+  padding: var(--space-5) var(--space-4);
+  display: grid;
+  gap: var(--space-2);
+  align-content: space-between;
+  min-block-size: 9rem;
+  color: var(--on-field);
+  background: var(--field);
+  text-decoration: none;
+}
+[data-concept='slate'] .sl-cat__name {
+  font-family: var(--font-display);
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 1.4rem;
+  line-height: 0.95;
+}
+
+/* ------------------------------------------------------------------- footer */
+
+[data-concept='slate'] .sl-footer__email {
+  font-family: var(--font-display);
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: clamp(1.8rem, 0.8rem + 5vw, 5rem);
+  line-height: 0.9;
+  color: inherit;
+  text-decoration: none;
+  display: inline-block;
+  word-break: break-word;
+}
+[data-concept='slate'] .sl-footer__email:hover { text-decoration: underline; text-underline-offset: 0.1em; }

@@ -1,0 +1,173 @@
+---
+/**
+ * The whole index: masthead, filters, and all twenty projects in the composed sequence.
+ *
+ * Shared by `/portfolio/` and by the five preserved `/categoria-portfolio/{slug}/`
+ * archives, so a filtered view is literally the same page — same markup, same order,
+ * same links — with one attribute set. Nothing is fetched or re-rendered to filter.
+ */
+import ProjectCard from '../site/ProjectCard.astro';
+import { PORTFOLIO, ROWS, ROW_CAPACITY, FILTERED_RATIO, FILTER_ALL } from '../../lib/portfolio.ts';
+import { say } from '../../lib/homepage.ts';
+import { categoryFacets, type CuratedProject } from '../../lib/curated.ts';
+import { pagePath } from '../../i18n/routes.ts';
+import { categoryPath } from '../../i18n/routes.ts';
+import { DEFAULT_LOCALE, type Locale } from '../../config/i18n.ts';
+
+interface Props {
+  projects: CuratedProject[];
+  /** Category slug when this is one of the preserved archive routes, else the "all" view. */
+  active?: string;
+  /** Heading for this view. The archives get their own, which the live ones lack. */
+  heading: string;
+  /** Size of the whole catalogue — the "Ver Tudo" count, even on a filtered route. */
+  total: number;
+  /** Only the full index can filter in place; a category route has no other cards to show. */
+  enhance?: boolean;
+  locale?: Locale;
+}
+
+const { projects, active = FILTER_ALL, heading, total, enhance = false, locale = DEFAULT_LOCALE } = Astro.props;
+const facets = await categoryFacets(locale);
+
+if (projects.length > ROW_CAPACITY) {
+  throw new Error(
+    `PortfolioIndex: ${projects.length} projects but the composed sequence holds ${ROW_CAPACITY}. ` +
+    'Add a row to ROWS in src/lib/portfolio.ts rather than letting work fall off the page.',
+  );
+}
+
+/**
+ * Slice the curated order across the composed rows. A row renders only if it can fill.
+ *
+ * The cursor advances ONLY when a row actually fills. It used to advance for every row
+ * whether or not that row rendered, so after the map it had run to the full capacity of
+ * the sequence and `overflow` — the clause whose whole job is to catch what the
+ * composition could not place — was always empty.
+ *
+ * That was invisible on `/portfolio/` and on three of the five archives, because 20, 5
+ * and 8 all happen to land on a prefix sum of the row sizes (2, 5, 7, 8, …). It was not
+ * invisible on the two single-project categories: `Corporativo` and `Moda & Identidade`
+ * shipped their heading, their filters and **no work at all**. Found by walking the
+ * archives during Review E's navigation testing, not by looking at the code.
+ *
+ * With the cursor honest, one project skips past the rows it cannot fill and lands on the
+ * first row that takes exactly one — the full-bleed plate — which is the right answer for
+ * an archive holding a single film anyway.
+ */
+const rows: { row: (typeof ROWS)[number]; take: typeof projects }[] = [];
+let cursor = 0;
+for (const row of ROWS) {
+  const take = projects.slice(cursor, cursor + row.ratios.length);
+  if (take.length !== row.ratios.length) continue;
+  cursor += row.ratios.length;
+  rows.push({ row, take });
+}
+
+/** Anything the sequence could not place still has to appear. */
+const overflow = projects.slice(cursor);
+
+/**
+ * The guard that makes the bug above unrepeatable.
+ *
+ * There was already a throw for too MANY projects; silently dropping too few is the worse
+ * failure of the two, because it looks like a finished page. Now neither can ship.
+ */
+const placed = rows.reduce((n, r) => n + r.take.length, 0) + overflow.length;
+if (placed !== projects.length) {
+  throw new Error(
+    `PortfolioIndex: ${projects.length} projects in, ${placed} rendered. ` +
+    'Every project must reach the page; fix the row assignment in src/lib/portfolio.ts.',
+  );
+}
+
+const twoDigits = (n: number): string => String(n).padStart(2, '0');
+---
+
+<header class="pf-head ground-cream">
+  <div class="pf-head__inner">
+    <h1 class="pf-title">{heading}</h1>
+    <p class="lead pf-lead">{say(PORTFOLIO.lead, locale)}</p>
+
+    <nav class="pf-filters" aria-label={say(PORTFOLIO.title, locale)}>
+      <ul class="pf-filters__list">
+        <li>
+          <a
+            class="pf-filter"
+            href={pagePath('portfolio', locale)}
+            data-filter={FILTER_ALL}
+            aria-current={active === FILTER_ALL ? 'page' : undefined}
+          >
+            <span class="pf-filter__name">{say(PORTFOLIO.all, locale)}</span>
+            <span class="pf-filter__count">{twoDigits(total)}</span>
+          </a>
+        </li>
+        {facets.map((c) => (
+          <li>
+            <a
+              class={`pf-filter cat-${c.token}`}
+              href={categoryPath(c.slug, locale)}
+              data-filter={c.slug}
+              aria-current={active === c.slug ? 'page' : undefined}
+            >
+              <span class="pf-filter__dot" aria-hidden="true"></span>
+              <span class="pf-filter__name">{c.name}</span>
+              <span class="pf-filter__count">{twoDigits(c.count)}</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<div
+  class="pf-index ground-cream"
+  data-portfolio
+  data-portfolio-enhance={enhance ? '' : undefined}
+  data-ground="cream"
+  data-header="cream"
+  data-filter={active === FILTER_ALL ? undefined : active}
+  style={`--ar-filtered:${FILTERED_RATIO}`}
+>
+  {/* Announced on filter change; silent on first paint. */}
+  <p class="visually-hidden" role="status" data-portfolio-status></p>
+
+  <div class="pf-rows">
+    {rows.map(({ row, take }, ri) => (
+      <div
+        class={`pf-row${row.fullBleed ? ' pf-row--plate' : ''}`}
+        style={`--cols:${row.cols}${row.tabletSpans ? `; --tablet-span-3:${row.tabletSpans[2]}` : ''}`}
+      >
+        {take.map((p, i) => (
+          <ProjectCard
+            project={p}
+            ratio={row.ratios[i]!}
+            tabletRatio={row.tabletRatios[i] ?? row.ratios[i]!}
+            mobileRatio={row.mobileRatios[i] ?? row.ratios[i]!}
+            sizes={row.fullBleed
+              ? '100vw'
+              : '(min-width: 64rem) 34vw, (min-width: 34rem) 48vw, 92vw'}
+            priority={ri === 0}
+            locale={locale}
+          />
+        ))}
+      </div>
+    ))}
+
+    {overflow.length > 0 && (
+      <div class="pf-row" style="--cols:4fr 4fr 4fr">
+        {overflow.map((p) => (
+          <ProjectCard
+            project={p}
+            ratio={FILTERED_RATIO}
+            tabletRatio={FILTERED_RATIO}
+            mobileRatio={FILTERED_RATIO}
+            sizes="(min-width: 64rem) 34vw, (min-width: 34rem) 48vw, 92vw"
+            locale={locale}
+          />
+        ))}
+      </div>
+    )}
+  </div>
+</div>

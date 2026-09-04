@@ -1,0 +1,2055 @@
+{
+ "generatedAt": "2026-09-03T09:03:18.444Z",
+ "generatedBy": "scripts/build-media-source-map.mjs",
+ "rules": {
+  "heroFloor": {
+   "minHeight": 1080,
+   "minBitrate": 8000000
+  },
+  "note": "Smash/ is not treated as a master source merely because a file exists. Every project whose best local source is below the hero floor is marked MASTER_REQUIRED."
+ },
+ "counts": {
+  "projects": 20,
+  "withYouTube": 19,
+  "withSmash": 8,
+  "heroReady": 1,
+  "loopCapable": 8,
+  "noLocalHeroSource": 11,
+  "masterRequired": 19,
+  "previewUnknown": 10
+ },
+ "projects": [
+  {
+   "slug": "ana-e-filipe-metro",
+   "title": "Don’t Let It Fool You",
+   "legacyCategory": "Visual Storytelling",
+   "wordpress": {
+    "poster": "https://www.nextvisionfilms.com/wp-content/uploads/2025/02/metro.png",
+    "posterArchived": "source-archive/wordpress/media/2025/02/metro.png",
+    "posterSha256": "0fd0dbd2bc13871c2ee51166ddf5427ab249fbc2d8d90717f748e06d2b6f5c2e",
+    "ogImage": "https://www.nextvisionfilms.com/wp-content/uploads/2025/02/metro-1024x536.png",
+    "previewVideo": {
+     "filename": "ana_e_filipe_metro.mov",
+     "archived": "source-archive/wordpress/media/2025/02/ana_e_filipe_metro.mov",
+     "sha256": "4877bebaaf669794597daa5d7f341d001961924968daa647b700d196999cb718",
+     "sizeMB": 11.774,
+     "tech": {
+      "durationSec": 4.96,
+      "bitrate": 19919291,
+      "width": 1920,
+      "height": 1080,
+      "codec": "h264",
+      "pixFmt": "yuv420p",
+      "fps": 24,
+      "hasAudio": true
+     },
+     "loopCapable": {
+      "ok": true,
+      "reason": "1920x1080 at 19919 kbps, 4.96s — enough for a loop and stills, not for a long cut"
+     }
+    }
+   },
+   "youtube": {
+    "id": "e6aK4vEn420",
+    "rawValue": "https://www.youtube.com/watch?v=e6aK4vEn420",
+    "url": "https://www.youtube.com/watch?v=e6aK4vEn420"
+   },
+   "smash": [],
+   "preferredSource": {
+    "poster": {
+     "from": "wordpress",
+     "ref": "https://www.nextvisionfilms.com/wp-content/uploads/2025/02/metro.png"
+    },
+    "hoverPreview": {
+     "from": "wordpress",
+     "ref": "ana_e_filipe_metro.mov",
+     "note": "Existing hover loop; re-encode to MP4 + WebM, strip audio"
+    },
+    "fullFilm": {
+     "from": "youtube",
+     "ref": "e6aK4vEn420"
+    },
+    "hero": {
+     "from": "wordpress",
+     "ref": "ana_e_filipe_metro.mov",
+     "scope": "loop+stills",
+     "note": "1920x1080 at 19919 kbps, 4.96s — enough for a loop and stills, not for a long cut"
+    }
+   },
+   "sourceQualityWarning": [
+    "NO_SMASH_SOURCE",
+    "MASTER_REQUIRED",
+    "LOOP_CAPABLE_1080P"
+   ]
+  },
+  {
+   "slug": "ana-reels",
+   "title": "The Lie we tell ourselves",
+   "legacyCategory": "Visual Storytelling",
+   "wordpress": {
+    "poster": "https://www.nextvisionfilms.com/wp-content/uploads/2025/02/ana.png",
+    "posterArchived": "source-archive/wordpress/media/2025/02/ana.png",
+    "posterSha256": "826a3e9204314bdfbf4fd15c6f4eca37deed3d7131ea3f99062139e94e6daf1c",
+    "ogImage": "https://www.nextvisionfilms.com/wp-content/uploads/2025/02/ana-1024x538.png",
+    "previewVideo": {
+     "filename": "ana_reels.mov",
+     "archived": "source-archive/wordpress/media/2025/02/ana_reels.mov",
+     "sha256": "d25d78b0fdb643d7c6773da15a4af6e7887a0f649f8039e9062d752268b5c174",
+     "sizeMB": 11.048,
+     "tech": {
+      "durationSec": 4.79,
+      "bitrate": 19341674,
+      "width": 1920,
+      "height": 1080,
+      "codec": "h264",
+      "pixFmt": "yuv420p",
+      "fps": 24,
+      "hasAudio": true
+     },
+     "loopCapable": {
+      "ok": true,
+      "reason": "1920x1080 at 19342 kbps, 4.79s — enough for a loop and stills, not for a long cut"
+     }
+    }
+   },
+   "youtube": {
+    "id": "o9X1s3ge_IE",
+    "rawValue": "https://www.youtube.com/watch?v=o9X1s3ge_IE",
+    "url": "https://www.youtube.com/watch?v=o9X1s3ge_IE"
+   },
+   "smash": [
+    {
+     "file": "The lie we tell ourselves.mp4",
+     "sizeMB": 5.61,
+     "tech": {
+      "durationSec": 50.69,
+      "bitrate": 928882,
+      "width": 1280,
+      "height": 720,
+      "codec": "h264",
+      "pixFmt": "yuv420p",
+      "fps": 24,
+      "hasAudio": true
+     },
+     "confidence": "high",
+     "basis": "Exact project title «The Lie we tell ourselves»"
+    }
+   ],
+   "preferredSource": {
+    "poster": {
+     "from": "wordpress",
+     "ref": "https://www.nextvisionfilms.com/wp-content/uploads/2025/02/ana.png"
+    },
+    "hoverPreview": {
+     "from": "smash",
+     "ref": "The lie we tell ourselves.mp4",
+     "note": "Crop to <=6 s, strip audio, 720p is acceptable for a silent loop"
+    },
+    "fullFilm": {
+     "from": "youtube",
+     "ref": "o9X1s3ge_IE"
+    },
+    "hero": {
+     "from": "wordpress",
+     "ref": "ana_reels.mov",
+     "scope": "loop+stills",
+     "note": "1920x1080 at 19342 kbps, 4.79s — enough for a loop and stills, not for a long cut"
+    }
+   },
+   "sourceQualityWarning": [
+    "MASTER_REQUIRED",
+    "LOOP_CAPABLE_1080P"
+   ]
+  },
+  {
+   "slug": "ananuno",
+   "title": "Ana&Nuno",
+   "legacyCategory": "Casamentos",
+   "wordpress": {
+    "poster": "https://www.nextvisionfilms.com/wp-content/uploads/2025/05/ana-e-nuno-1.png",
+    "posterArchived": "source-archive/wordpress/media/2025/05/ana-e-nuno-1.png",
+    "posterSha256": "48f5baebc6ea27fc0835e7f3c027ee8d55f2ae72a3160d474159a1f3748c46c2",
+    "ogImage": "https://www.nextvisionfilms.com/wp-content/uploads/2025/05/ana-e-nuno-1.png",
+    "previewVideo": null
+   },
+   "youtube": {
+    "id": "DSUXz5VeXiY",
+    "rawValue": "https://youtu.be/DSUXz5VeXiY",
+    "url": "https://www.youtube.com/watch?v=DSUXz5VeXiY"
+   },
+   "smash": [],
+   "preferredSource": {
+    "poster": {
+     "from": "wordpress",
+     "ref": "https://www.nextvisionfilms.com/wp-content/uploads/2025/05/ana-e-nuno-1.png"
+    },
+    "hoverPreview": {
+     "from": "UNKNOWN",
+     "ref": null,
+     "note": "No local source; a preview clip must be supplied or the card ships still-only"
+    },
+    "fullFilm": {
+     "from": "youtube",
+     "ref": "DSUXz5VeXiY"
+    },
+    "hero": {
+     "from": "MASTER_REQUIRED",
+     "ref": null,
+     "scope": "none",
+     "note": "No local source file exists for this project"
+    }
+   },
+   "sourceQualityWarning": [
+    "NO_LOCAL_SOURCE",
+    "MASTER_REQUIRED"
+   ]
+  },
+  {
+   "slug": "carolinapedro",
+   "title": "Carolina&Pedro",
+   "legacyCategory": "Casamentos",
+   "wordpress": {
+    "poster": "https://www.nextvisionfilms.com/wp-content/uploads/2025/05/carolina-e-pedro-1.png",
+    "posterArchived": "source-archive/wordpress/media/2025/05/carolina-e-pedro-1.png",
+    "posterSha256": "42b4c1d4baf84b43f4ef76fcff9e2a29630ff819d022d24b637116fee199c929",
+    "ogImage": "https://www.nextvisionfilms.com/wp-content/uploads/2025/05/carolina-e-pedro-1.png",
+    "previewVideo": null
+   },
+   "youtube": {
+    "id": "BDJAOp6Eh3E",
+    "rawValue": "https://youtu.be/BDJAOp6Eh3E",
+    "url": "https://www.youtube.com/watch?v=BDJAOp6Eh3E"
+   },
+   "smash": [],
+   "preferredSource": {
+    "poster": {
+     "from": "wordpress",
+     "ref": "https://www.nextvisionfilms.com/wp-content/uploads/2025/05/carolina-e-pedro-1.png"
+    },
+    "hoverPreview": {
+     "from": "UNKNOWN",
+     "ref": null,
+     "note": "No local source; a preview clip must be supplied or the card ships still-only"
+    },
+    "fullFilm": {
+     "from": "youtube",
+     "ref": "BDJAOp6Eh3E"
+    },
+    "hero": {
+     "from": "MASTER_REQUIRED",
+     "ref": null,
+     "scope": "none",
+     "note": "No local source file exists for this project"
+    }
+   },
+   "sourceQualityWarning": [
+    "NO_LOCAL_SOURCE",
+    "MASTER_REQUIRED"
+   ]
+  },
+  {
+   "slug": "danieladuarte",
+   "title": "Daniela&Duarte",
+   "legacyCategory": "Casamentos",
+   "wordpress": {
+    "poster": "https://www.nextvisionfilms.com/wp-content/uploads/2025/05/Daniela-e-duarte.png",
+    "posterArchived": "source-archive/wordpress/media/2025/05/Daniela-e-duarte.png",
+    "posterSha256": "1d462a7b3249ec9693daa22b8e03b818d4fbdccb373be0a7c6441ea15c8a184f",
+    "ogImage": "https://www.nextvisionfilms.com/wp-content/uploads/2025/05/Daniela-e-duarte.png",
+    "previewVideo": null
+   },
+   "youtube": {
+    "id": "GJpdoynz2QA",
+    "rawValue": "https://youtu.be/GJpdoynz2QA",
+    "url": "https://www.youtube.com/watch?v=GJpdoynz2QA"
+   },
+   "smash": [],
+   "preferredSource": {
+    "poster": {
+     "from": "wordpress",
+     "ref": "https://www.nextvisionfilms.com/wp-content/uploads/2025/05/Daniela-e-duarte.png"
+    },
+    "hoverPreview": {
+     "from": "UNKNOWN",
+     "ref": null,
+     "note": "No local source; a preview clip must be supplied or the card ships still-only"
+    },
+    "fullFilm": {
+     "from": "youtube",
+     "ref": "GJpdoynz2QA"
+    },
+    "hero": {
+     "from": "MASTER_REQUIRED",
+     "ref": null,
+     "scope": "none",
+     "note": "No local source file exists for this project"
+    }
+   },
+   "sourceQualityWarning": [
+    "NO_LOCAL_SOURCE",
+    "MASTER_REQUIRED"
+   ]
+  },
+  {
+   "slug": "dont-let-it-fool-you",
+   "title": "Don’t let it fool you",
+   "legacyCategory": "Ficção",
+   "wordpress": {
+    "poster": "https://www.nextvisionfilms.com/wp-content/uploads/2025/05/ana-e-filipeee.png",
+    "posterArchived": "source-archive/wordpress/media/2025/05/ana-e-filipeee.png",
+    "posterSha256": "1123cd870aeb2ef55f44dfba1d3ea72596365cc1239fd9c1dd667961788c7ec4",
+    "ogImage": "https://www.nextvisionfilms.com/wp-content/uploads/2025/05/ana-e-filipeee.png",
+    "previewVideo": null
+   },
+   "youtube": {
+    "id": null,
+    "rawValue": "https://studio.youtube.com/video/e6aK4vEn420/edit",
+    "url": null
+   },
+   "smash": [],
+   "preferredSource": {
+    "poster": {
+     "from": "wordpress",
+     "ref": "https://www.nextvisionfilms.com/wp-content/uploads/2025/05/ana-e-filipeee.png"
+    },
+    "hoverPreview": {
+     "from": "UNKNOWN",
+     "ref": null,
+     "note": "No local source; a preview clip must be supplied or the card ships still-only"
+    },
+    "fullFilm": {
+     "from": "UNKNOWN",
+     "ref": null
+    },
+    "hero": {
+     "from": "MASTER_REQUIRED",
+     "ref": null,
+     "scope": "none",
+     "note": "No local source file exists for this project"
+    }
+   },
+   "sourceQualityWarning": [
+    "NO_VALID_YOUTUBE_ID",
+    "YOUTUBE_URL_IS_A_STUDIO_EDIT_LINK",
+    "NO_LOCAL_SOURCE",
+    "MASTER_REQUIRED"
+   ]
+  },
+  {
+   "slug": "dormencia-48h",
+   "title": "Dormência 48h",
+   "legacyCategory": "Ficção",
+   "wordpress": {
+    "poster": "https://www.nextvisionfilms.com/wp-content/uploads/2025/05/WhatsApp-Image-2025-05-26-at-10.16.54.jpeg",
+    "posterArchived": "source-archive/wordpress/media/2025/05/WhatsApp-Image-2025-05-26-at-10.16.54.jpeg",
+    "posterSha256": "6c6dab96ef1bc9cf6cf49ffb3d0734cfefe5c944a7ce37ca237cffb134838eb2",
+    "ogImage": "https://www.nextvisionfilms.com/wp-content/uploads/2025/05/WhatsApp-Image-2025-05-26-at-10.16.54.jpeg",
+    "previewVideo": null
+   },
+   "youtube": {
+    "id": "4Xur7raVaqU",
+    "rawValue": "https://youtu.be/4Xur7raVaqU",
+    "url": "https://www.youtube.com/watch?v=4Xur7raVaqU"
+   },
+   "smash": [],
+   "preferredSource": {
+    "poster": {
+     "from": "wordpress",
+     "ref": "https://www.nextvisionfilms.com/wp-content/uploads/2025/05/WhatsApp-Image-2025-05-26-at-10.16.54.jpeg"
+    },
+    "hoverPreview": {
+     "from": "UNKNOWN",
+     "ref": null,
+     "note": "No local source; a preview clip must be supplied or the card ships still-only"
+    },
+    "fullFilm": {
+     "from": "youtube",
+     "ref": "4Xur7raVaqU"
+    },
+    "hero": {
+     "from": "MASTER_REQUIRED",
+     "ref": null,
+     "scope": "none",
+     "note": "No local source file exists for this project"
+    }
+   },
+   "sourceQualityWarning": [
+    "NO_LOCAL_SOURCE",
+    "MASTER_REQUIRED"
+   ]
+  },
+  {
+   "slug": "epitafio",
+   "title": "Epitáfio",
+   "legacyCategory": "Ficção",
+   "wordpress": {
+    "poster": "https://www.nextvisionfilms.com/wp-content/uploads/2025/05/Epitafio.png",
+    "posterArchived": "source-archive/wordpress/media/2025/05/Epitafio.png",
+    "posterSha256": "b49f0147ef8d16efd2c2aded71b4544608be9649a54384b7db8fdb5c51aab3a2",
+    "ogImage": "https://www.nextvisionfilms.com/wp-content/uploads/2025/05/Epitafio.png",
+    "previewVideo": null
+   },
+   "youtube": {
+    "id": "RIvUTLvdwX8",
+    "rawValue": "https://youtu.be/RIvUTLvdwX8",
+    "url": "https://www.youtube.com/watch?v=RIvUTLvdwX8"
+   },
+   "smash": [],
+   "preferredSource": {
+    "poster": {
+     "from": "wordpress",
+     "ref": "https://www.nextvisionfilms.com/wp-content/uploads/2025/05/Epitafio.png"
+    },
+    "hoverPreview": {
+     "from": "UNKNOWN",
+     "ref": null,
+     "note": "No local source; a preview clip must be supplied or the card ships still-only"
+    },
+    "fullFilm": {
+     "from": "youtube",
+     "ref": "RIvUTLvdwX8"
+    },
+    "hero": {
+     "from": "MASTER_REQUIRED",
+     "ref": null,
+     "scope": "none",
+     "note": "No local source file exists for this project"
+    }
+   },
+   "sourceQualityWarning": [
+    "NO_LOCAL_SOURCE",
+    "MASTER_REQUIRED"
+   ]
+  },
+  {
+   "slug": "helder-museu",
+   "title": "Yves Saint Laurent",
+   "legacyCategory": "Moda & Identidade",
+   "wordpress": {
+    "poster": "https://www.nextvisionfilms.com/wp-content/uploads/2025/02/museuuu.png",
+    "posterArchived": "source-archive/wordpress/media/2025/02/museuuu.png",
+    "posterSha256": "bab9d10d367994215d9c9ded3b325ca281e565c3fe634bac1d42ac73991e4187",
+    "ogImage": "https://www.nextvisionfilms.com/wp-content/uploads/2025/02/museuuu-1024x462.png",
+    "previewVideo": {
+     "filename": "helder_museu.mov",
+     "archived": "source-archive/wordpress/media/2025/02/helder_museu.mov",
+     "sha256": "2ba7e4b473c93f79d89e6c858413b037ac50e52b914aa2992c54fb272bd96580",
+     "sizeMB": 12.333,
+     "tech": {
+      "durationSec": 5.54,
+      "bitrate": 18668278,
+      "width": 1920,
+      "height": 1080,
+      "codec": "h264",
+      "pixFmt": "yuv420p",
+      "fps": 24,
+      "hasAudio": true
+     },
+     "loopCapable": {
+      "ok": true,
+      "reason": "1920x1080 at 18668 kbps, 5.54s — enough for a loop and stills, not for a long cut"
+     }
+    }
+   },
+   "youtube": {
+    "id": "dFehZUbaGWU",
+    "rawValue": "https://www.youtube.com/watch?v=dFehZUbaGWU",
+    "url": "https://www.youtube.com/watch?v=dFehZUbaGWU"
+   },
+   "smash": [
+    {
+     "file": "Fading.mp4",
+     "sizeMB": 6.91,
+     "tech": {
+      "durationSec": 55.05,
+      "bitrate": 1052156,
+      "width": 1280,
+      "height": 720,
+      "codec": "h264",
+      "pixFmt": "yuv420p",
+      "fps": 24,
+      "hasAudio": true
+     },
+     "confidence": "medium",
+     "basis": "Taglines of BOTH helder-museu and helder-praia end «…Fading»; helder-praia already has its own file, so this is probably helder-museu. NOT confirmed — see M3"
+    }
+   ],
+   "preferredSource": {
+    "poster": {
+     "from": "wordpress",
+     "ref": "https://www.nextvisionfilms.com/wp-content/uploads/2025/02/museuuu.png"
+    },
+    "hoverPreview": {
+     "from": "smash",
+     "ref": "Fading.mp4",
+     "note": "Crop to <=6 s, strip audio, 720p is acceptable for a silent loop"
+    },
+    "fullFilm": {
+     "from": "youtube",
+     "ref": "dFehZUbaGWU"
+    },
+    "hero": {
+     "from": "wordpress",
+     "ref": "helder_museu.mov",
+     "scope": "loop+stills",
+     "note": "1920x1080 at 18668 kbps, 5.54s — enough for a loop and stills, not for a long cut"
+    }
+   },
+   "sourceQualityWarning": [
+    "MASTER_REQUIRED",
+    "LOOP_CAPABLE_1080P"
+   ]
+  },
+  {
+   "slug": "helder-praia",
+   "title": "The endless “WAVES”",
+   "legacyCategory": "Visual Storytelling",
+   "wordpress": {
+    "poster": "https://www.nextvisionfilms.com/wp-content/uploads/2025/02/ffffffffff.png",
+    "posterArchived": "source-archive/wordpress/media/2025/02/ffffffffff.png",
+    "posterSha256": "f7296945feaee3a624684b3b7bfa85f96eb890b6b5538f31b9e1d308a5c600b5",
+    "ogImage": "https://www.nextvisionfilms.com/wp-content/uploads/2025/02/ffffffffff-1024x562.png",
+    "previewVideo": {
+     "filename": "helder_praia.mov",
+     "archived": "source-archive/wordpress/media/2025/02/helder_praia.mov",
+     "sha256": "477811fec1fee8b323b6a286e9d39f14ed8060813d5cb1262269d06591ba4f98",
+     "sizeMB": 11.676,
+     "tech": {
+      "durationSec": 5,
+      "bitrate": 19588902,
+      "width": 1920,
+      "height": 1080,
+      "codec": "h264",
+      "pixFmt": "yuv420p",
+      "fps": 24,
+      "hasAudio": true
+     },
+     "loopCapable": {
+      "ok": true,
+      "reason": "1920x1080 at 19589 kbps, 5s — enough for a loop and stills, not for a long cut"
+     }
+    }
+   },
+   "youtube": {
+    "id": "O7g2AM9lAo0",
+    "rawValue": "https://www.youtube.com/watch?v=O7g2AM9lAo0",
+    "url": "https://www.youtube.com/watch?v=O7g2AM9lAo0"
+   },
+   "smash": [
+    {
+     "file": "The endless _WAVES_.mp4",
+     "sizeMB": 11.63,
+     "tech": {
+      "durationSec": 54.85,
+      "bitrate": 1778660,
+      "width": 1280,
+      "height": 720,
+      "codec": "h264",
+      "pixFmt": "yuv420p",
+      "fps": 24,
+      "hasAudio": true
+     },
+     "confidence": "high",
+     "basis": "Exact project title «The endless \"WAVES\"» (underscores stand in for quotes)"
+    }
+   ],
+   "preferredSource": {
+    "poster": {
+     "from": "wordpress",
+     "ref": "https://www.nextvisionfilms.com/wp-content/uploads/2025/02/ffffffffff.png"
+    },
+    "hoverPreview": {
+     "from": "smash",
+     "ref": "The endless _WAVES_.mp4",
+     "note": "Crop to <=6 s, strip audio, 720p is acceptable for a silent loop"
+    },
+    "fullFilm": {
+     "from": "youtube",
+     "ref": "O7g2AM9lAo0"
+    },
+    "hero": {
+     "from": "wordpress",
+     "ref": "helder_praia.mov",
+     "scope": "loop+stills",
+     "note": "1920x1080 at 19589 kbps, 5s — enough for a loop and stills, not for a long cut"
+    }
+   },
+   "sourceQualityWarning": [
+    "MASTER_REQUIRED",
+    "LOOP_CAPABLE_1080P"
+   ]
+  },
+  {
+   "slug": "leonor",
+   "title": "Words of our story",
+   "legacyCategory": "Visual Storytelling",
+   "wordpress": {
+    "poster": "https://www.nextvisionfilms.com/wp-content/uploads/2025/02/Capture.png",
+    "posterArchived": "source-archive/wordpress/media/2025/02/Capture.png",
+    "posterSha256": "7c66735dce685b4a0dbdd06b24a65c4bc91080962bf96b883128ff915ce09ce9",
+    "ogImage": "https://www.nextvisionfilms.com/wp-content/uploads/2025/02/Capture.png",
+    "previewVideo": {
+     "filename": "leonor.mov",
+     "archived": "source-archive/wordpress/media/2025/02/leonor.mov",
+     "sha256": "7cfae693d2eb30c4ef61476cb902a5428062c339f3689341c66a8cbcd66aa0e8",
+     "sizeMB": 10.401,
+     "tech": {
+      "durationSec": 4.42,
+      "bitrate": 19755516,
+      "width": 1920,
+      "height": 1080,
+      "codec": "h264",
+      "pixFmt": "yuv420p",
+      "fps": 24,
+      "hasAudio": true
+     },
+     "loopCapable": {
+      "ok": true,
+      "reason": "1920x1080 at 19756 kbps, 4.42s — enough for a loop and stills, not for a long cut"
+     }
+    }
+   },
+   "youtube": {
+    "id": "0C-yySHAzCI",
+    "rawValue": "https://www.youtube.com/watch?v=0C-yySHAzCI",
+    "url": "https://www.youtube.com/watch?v=0C-yySHAzCI"
+   },
+   "smash": [
+    {
+     "file": "Can´t live in you books anymore.mp4",
+     "sizeMB": 13.94,
+     "tech": {
+      "durationSec": 53.92,
+      "bitrate": 2168354,
+      "width": 1280,
+      "height": 720,
+      "codec": "h264",
+      "pixFmt": "yuv420p",
+      "fps": 24,
+      "hasAudio": true
+     },
+     "confidence": "high",
+     "basis": "Project tagline ends «I can't live in your book anymore.»"
+    }
+   ],
+   "preferredSource": {
+    "poster": {
+     "from": "wordpress",
+     "ref": "https://www.nextvisionfilms.com/wp-content/uploads/2025/02/Capture.png"
+    },
+    "hoverPreview": {
+     "from": "smash",
+     "ref": "Can´t live in you books anymore.mp4",
+     "note": "Crop to <=6 s, strip audio, 720p is acceptable for a silent loop"
+    },
+    "fullFilm": {
+     "from": "youtube",
+     "ref": "0C-yySHAzCI"
+    },
+    "hero": {
+     "from": "wordpress",
+     "ref": "leonor.mov",
+     "scope": "loop+stills",
+     "note": "1920x1080 at 19756 kbps, 4.42s — enough for a loop and stills, not for a long cut"
+    }
+   },
+   "sourceQualityWarning": [
+    "MASTER_REQUIRED",
+    "LOOP_CAPABLE_1080P"
+   ]
+  },
+  {
+   "slug": "lost-lines-trailer",
+   "title": "Lost Lines Trailer",
+   "legacyCategory": "Ficção",
+   "wordpress": {
+    "poster": "https://www.nextvisionfilms.com/wp-content/uploads/2025/05/lost-lines.png",
+    "posterArchived": "source-archive/wordpress/media/2025/05/lost-lines.png",
+    "posterSha256": "0ee832c9216731421ad952bbe1eee393e5c8f5e003441814d366e6e65b9e4616",
+    "ogImage": "https://www.nextvisionfilms.com/wp-content/uploads/2025/05/lost-lines.png",
+    "previewVideo": null
+   },
+   "youtube": {
+    "id": "JIKvD9Y74oU",
+    "rawValue": "www.youtube.com/watch?v=JIKvD9Y74oU&feature=youtu.be",
+    "url": "https://www.youtube.com/watch?v=JIKvD9Y74oU"
+   },
+   "smash": [],
+   "preferredSource": {
+    "poster": {
+     "from": "wordpress",
+     "ref": "https://www.nextvisionfilms.com/wp-content/uploads/2025/05/lost-lines.png"
+    },
+    "hoverPreview": {
+     "from": "UNKNOWN",
+     "ref": null,
+     "note": "No local source; a preview clip must be supplied or the card ships still-only"
+    },
+    "fullFilm": {
+     "from": "youtube",
+     "ref": "JIKvD9Y74oU"
+    },
+    "hero": {
+     "from": "MASTER_REQUIRED",
+     "ref": null,
+     "scope": "none",
+     "note": "No local source file exists for this project"
+    }
+   },
+   "sourceQualityWarning": [
+    "NO_LOCAL_SOURCE",
+    "MASTER_REQUIRED"
+   ]
+  },
+  {
+   "slug": "madrugada-prince-mark",
+   "title": "Madrugada – Prince Mark",
+   "legacyCategory": "Visual Storytelling",
+   "wordpress": {
+    "poster": "https://www.nextvisionfilms.com/wp-content/uploads/2025/08/prince-mark.png",
+    "posterArchived": "source-archive/wordpress/media/2025/08/prince-mark.png",
+    "posterSha256": "5baf1616859426bddc1a6bc728fe381519ff57ed8bc740e4ace54a151b55a4d8",
+    "ogImage": "https://www.nextvisionfilms.com/wp-content/uploads/2025/08/prince-mark.png",
+    "previewVideo": null
+   },
+   "youtube": {
+    "id": "gbXbnpttShw",
+    "rawValue": "https://www.youtube.com/watch?v=gbXbnpttShw",
+    "url": "https://www.youtube.com/watch?v=gbXbnpttShw"
+   },
+   "smash": [],
+   "preferredSource": {
+    "poster": {
+     "from": "wordpress",
+     "ref": "https://www.nextvisionfilms.com/wp-content/uploads/2025/08/prince-mark.png"
+    },
+    "hoverPreview": {
+     "from": "UNKNOWN",
+     "ref": null,
+     "note": "No local source; a preview clip must be supplied or the card ships still-only"
+    },
+    "fullFilm": {
+     "from": "youtube",
+     "ref": "gbXbnpttShw"
+    },
+    "hero": {
+     "from": "MASTER_REQUIRED",
+     "ref": null,
+     "scope": "none",
+     "note": "No local source file exists for this project"
+    }
+   },
+   "sourceQualityWarning": [
+    "NO_LOCAL_SOURCE",
+    "MASTER_REQUIRED"
+   ]
+  },
+  {
+   "slug": "martacharles",
+   "title": "Marta&Charles",
+   "legacyCategory": "Casamentos",
+   "wordpress": {
+    "poster": "https://www.nextvisionfilms.com/wp-content/uploads/2025/05/Marta-e-charles.png",
+    "posterArchived": "source-archive/wordpress/media/2025/05/Marta-e-charles.png",
+    "posterSha256": "4ad4197f31bbd8cbbb1ad1a3c02802177e9f22aace4f0aaf4b5f80d80cc4de19",
+    "ogImage": "https://www.nextvisionfilms.com/wp-content/uploads/2025/05/Marta-e-charles.png",
+    "previewVideo": null
+   },
+   "youtube": {
+    "id": "DT3wUv-vPe4",
+    "rawValue": "https://youtu.be/DT3wUv-vPe4",
+    "url": "https://www.youtube.com/watch?v=DT3wUv-vPe4"
+   },
+   "smash": [],
+   "preferredSource": {
+    "poster": {
+     "from": "wordpress",
+     "ref": "https://www.nextvisionfilms.com/wp-content/uploads/2025/05/Marta-e-charles.png"
+    },
+    "hoverPreview": {
+     "from": "UNKNOWN",
+     "ref": null,
+     "note": "No local source; a preview clip must be supplied or the card ships still-only"
+    },
+    "fullFilm": {
+     "from": "youtube",
+     "ref": "DT3wUv-vPe4"
+    },
+    "hero": {
+     "from": "MASTER_REQUIRED",
+     "ref": null,
+     "scope": "none",
+     "note": "No local source file exists for this project"
+    }
+   },
+   "sourceQualityWarning": [
+    "NO_LOCAL_SOURCE",
+    "MASTER_REQUIRED"
+   ]
+  },
+  {
+   "slug": "nazaryi",
+   "title": "Unfinished",
+   "legacyCategory": "Visual Storytelling",
+   "wordpress": {
+    "poster": "https://www.nextvisionfilms.com/wp-content/uploads/2025/02/nazary.png",
+    "posterArchived": "source-archive/wordpress/media/2025/02/nazary.png",
+    "posterSha256": "2d0160df700ec3689351e1ad5d9e66ff4cda3bbd6b455372067e00ef57b6e4f9",
+    "ogImage": "https://www.nextvisionfilms.com/wp-content/uploads/2025/02/nazary.png",
+    "previewVideo": {
+     "filename": "nazaryi.mov",
+     "archived": "source-archive/wordpress/media/2025/02/nazaryi.mov",
+     "sha256": "ca57c36c1458199af8f87e2ccc56a4e18e66289a7993a49031700ada35198bcf",
+     "sizeMB": 10.166,
+     "tech": {
+      "durationSec": 4.38,
+      "bitrate": 19491668,
+      "width": 1920,
+      "height": 1080,
+      "codec": "h264",
+      "pixFmt": "yuv420p",
+      "fps": 24,
+      "hasAudio": true
+     },
+     "loopCapable": {
+      "ok": true,
+      "reason": "1920x1080 at 19492 kbps, 4.38s — enough for a loop and stills, not for a long cut"
+     }
+    }
+   },
+   "youtube": {
+    "id": "sBVD2TxbM-w",
+    "rawValue": "https://www.youtube.com/watch?v=sBVD2TxbM-w",
+    "url": "https://www.youtube.com/watch?v=sBVD2TxbM-w"
+   },
+   "smash": [
+    {
+     "file": "Unfinished.mp4",
+     "sizeMB": 7.57,
+     "tech": {
+      "durationSec": 80.36,
+      "bitrate": 790490,
+      "width": 1280,
+      "height": 720,
+      "codec": "h264",
+      "pixFmt": "yuv420p",
+      "fps": 25,
+      "hasAudio": true
+     },
+     "confidence": "high",
+     "basis": "Exact project title «Unfinished»"
+    }
+   ],
+   "preferredSource": {
+    "poster": {
+     "from": "wordpress",
+     "ref": "https://www.nextvisionfilms.com/wp-content/uploads/2025/02/nazary.png"
+    },
+    "hoverPreview": {
+     "from": "smash",
+     "ref": "Unfinished.mp4",
+     "note": "Crop to <=6 s, strip audio, 720p is acceptable for a silent loop"
+    },
+    "fullFilm": {
+     "from": "youtube",
+     "ref": "sBVD2TxbM-w"
+    },
+    "hero": {
+     "from": "wordpress",
+     "ref": "nazaryi.mov",
+     "scope": "loop+stills",
+     "note": "1920x1080 at 19492 kbps, 4.38s — enough for a loop and stills, not for a long cut"
+    }
+   },
+   "sourceQualityWarning": [
+    "MASTER_REQUIRED",
+    "LOOP_CAPABLE_1080P"
+   ]
+  },
+  {
+   "slug": "nvf-vs-antiqvvm",
+   "title": "Antiqvvm",
+   "legacyCategory": "Corporativo",
+   "wordpress": {
+    "poster": "https://www.nextvisionfilms.com/wp-content/uploads/2025/04/Antiqvvm-imagem.png",
+    "posterArchived": "source-archive/wordpress/media/2025/04/Antiqvvm-imagem.png",
+    "posterSha256": "320e7a22399a1b3e68bdb66691c5a57e580568aaa37cc3a176b085f0d3b2fe33",
+    "ogImage": "https://www.nextvisionfilms.com/wp-content/uploads/2025/04/Antiqvvm-imagem.png",
+    "previewVideo": null
+   },
+   "youtube": {
+    "id": "seuAOrDs3oo",
+    "rawValue": "https://youtu.be/seuAOrDs3oo",
+    "url": "https://www.youtube.com/watch?v=seuAOrDs3oo"
+   },
+   "smash": [
+    {
+     "file": "NVF VS Antiqvvm.mp4",
+     "sizeMB": 14.62,
+     "tech": {
+      "durationSec": 64.46,
+      "bitrate": 1902512,
+      "width": 1280,
+      "height": 720,
+      "codec": "h264",
+      "pixFmt": "yuv420p",
+      "fps": 24,
+      "hasAudio": true
+     },
+     "confidence": "high",
+     "basis": "Exact project slug"
+    }
+   ],
+   "preferredSource": {
+    "poster": {
+     "from": "wordpress",
+     "ref": "https://www.nextvisionfilms.com/wp-content/uploads/2025/04/Antiqvvm-imagem.png"
+    },
+    "hoverPreview": {
+     "from": "smash",
+     "ref": "NVF VS Antiqvvm.mp4",
+     "note": "Crop to <=6 s, strip audio, 720p is acceptable for a silent loop"
+    },
+    "fullFilm": {
+     "from": "youtube",
+     "ref": "seuAOrDs3oo"
+    },
+    "hero": {
+     "from": "MASTER_REQUIRED",
+     "ref": null,
+     "scope": "none",
+     "note": "Best local source is NVF VS Antiqvvm.mp4 — 1280x720 is below 1080p"
+    }
+   },
+   "sourceQualityWarning": [
+    "MASTER_REQUIRED"
+   ]
+  },
+  {
+   "slug": "nvf-vs-filmin-details",
+   "title": "Filmin",
+   "legacyCategory": "Visual Storytelling",
+   "wordpress": {
+    "poster": "https://www.nextvisionfilms.com/wp-content/uploads/2025/04/Filmin_1.1.1.jpg",
+    "posterArchived": "source-archive/wordpress/media/2025/04/Filmin_1.1.1.jpg",
+    "posterSha256": "0b92c9406147e6363358b01d77cb78c8051767e5df11730fdff289572adbd70c",
+    "ogImage": "https://www.nextvisionfilms.com/wp-content/uploads/2025/04/Filmin_1.1.1.jpg",
+    "previewVideo": {
+     "filename": "FILM-IN-video-2-sem-nvf-v2.mp4",
+     "archived": "source-archive/wordpress/media/2025/04/FILM-IN-video-2-sem-nvf-v2.mp4",
+     "sha256": "1e28058d5c45f206ea2fdaf275faf74f090f72a3d882f8031d9b4fe35251f434",
+     "sizeMB": 47.75,
+     "tech": {
+      "durationSec": 28.31,
+      "bitrate": 14149358,
+      "width": 1920,
+      "height": 1080,
+      "codec": "h264",
+      "pixFmt": "yuv420p",
+      "fps": 24,
+      "hasAudio": true
+     },
+     "loopCapable": {
+      "ok": true,
+      "reason": "1920x1080 at 14149 kbps, 28.31s — enough for a loop and stills, not for a long cut"
+     }
+    }
+   },
+   "youtube": {
+    "id": "8HjA-SOs7Ws",
+    "rawValue": "https://youtu.be/8HjA-SOs7Ws",
+    "url": "https://www.youtube.com/watch?v=8HjA-SOs7Ws"
+   },
+   "smash": [
+    {
+     "file": "NVF VS Filmin.mp4",
+     "sizeMB": 2.16,
+     "tech": {
+      "durationSec": 28.31,
+      "bitrate": 639960,
+      "width": 1280,
+      "height": 720,
+      "codec": "h264",
+      "pixFmt": "yuv420p",
+      "fps": 24,
+      "hasAudio": true
+     },
+     "confidence": "high",
+     "basis": "Exact project slug"
+    },
+    {
+     "file": "film in 1 v2.mp4",
+     "sizeMB": 64.43,
+     "tech": {
+      "durationSec": 37.72,
+      "bitrate": 14328991,
+      "width": 1920,
+      "height": 1080,
+      "codec": "h264",
+      "pixFmt": "yuv420p",
+      "fps": 24,
+      "hasAudio": true
+     },
+     "confidence": "high",
+     "basis": "Matches WordPress FILM-IN-video-2-sem-nvf-v2.mp4; 1080p 14 Mbps — the master of the above"
+    }
+   ],
+   "preferredSource": {
+    "poster": {
+     "from": "wordpress",
+     "ref": "https://www.nextvisionfilms.com/wp-content/uploads/2025/04/Filmin_1.1.1.jpg"
+    },
+    "hoverPreview": {
+     "from": "smash",
+     "ref": "film in 1 v2.mp4",
+     "note": "Crop to <=6 s, strip audio, 720p is acceptable for a silent loop"
+    },
+    "fullFilm": {
+     "from": "youtube",
+     "ref": "8HjA-SOs7Ws"
+    },
+    "hero": {
+     "from": "smash",
+     "ref": "film in 1 v2.mp4",
+     "scope": "full",
+     "note": "1920x1080 at 14329 kbps"
+    }
+   },
+   "sourceQualityWarning": [
+    "MULTIPLE_SMASH_CANDIDATES"
+   ]
+  },
+  {
+   "slug": "paradox-of-affection",
+   "title": "I Feel Lost",
+   "legacyCategory": "Visual Storytelling",
+   "wordpress": {
+    "poster": "https://www.nextvisionfilms.com/wp-content/uploads/2025/02/nath.png",
+    "posterArchived": "source-archive/wordpress/media/2025/02/nath.png",
+    "posterSha256": "53a20c212789234dbd6d1873533b757c45a01a5b2a8670f6a2860cded153716f",
+    "ogImage": "https://www.nextvisionfilms.com/wp-content/uploads/2025/02/nath-1024x574.png",
+    "previewVideo": {
+     "filename": "paradox_of_affection.mov",
+     "archived": "source-archive/wordpress/media/2025/02/paradox_of_affection.mov",
+     "sha256": "207f7d7a6c0a8d816bd3fe62109727308bee55dbf4d323937bb9b9dcb4d74057",
+     "sizeMB": 11.398,
+     "tech": {
+      "durationSec": 4.83,
+      "bitrate": 19782822,
+      "width": 1920,
+      "height": 1080,
+      "codec": "h264",
+      "pixFmt": "yuv420p",
+      "fps": 24,
+      "hasAudio": true
+     },
+     "loopCapable": {
+      "ok": true,
+      "reason": "1920x1080 at 19783 kbps, 4.83s — enough for a loop and stills, not for a long cut"
+     }
+    }
+   },
+   "youtube": {
+    "id": "HHB93FuKNrg",
+    "rawValue": "https://www.youtube.com/watch?v=HHB93FuKNrg",
+    "url": "https://www.youtube.com/watch?v=HHB93FuKNrg"
+   },
+   "smash": [],
+   "preferredSource": {
+    "poster": {
+     "from": "wordpress",
+     "ref": "https://www.nextvisionfilms.com/wp-content/uploads/2025/02/nath.png"
+    },
+    "hoverPreview": {
+     "from": "wordpress",
+     "ref": "paradox_of_affection.mov",
+     "note": "Existing hover loop; re-encode to MP4 + WebM, strip audio"
+    },
+    "fullFilm": {
+     "from": "youtube",
+     "ref": "HHB93FuKNrg"
+    },
+    "hero": {
+     "from": "wordpress",
+     "ref": "paradox_of_affection.mov",
+     "scope": "loop+stills",
+     "note": "1920x1080 at 19783 kbps, 4.83s — enough for a loop and stills, not for a long cut"
+    }
+   },
+   "sourceQualityWarning": [
+    "NO_SMASH_SOURCE",
+    "MASTER_REQUIRED",
+    "LOOP_CAPABLE_1080P"
+   ]
+  },
+  {
+   "slug": "susanarafael",
+   "title": "Susana&Rafael",
+   "legacyCategory": "Casamentos",
+   "wordpress": {
+    "poster": "https://www.nextvisionfilms.com/wp-content/uploads/2025/05/Susana-e-rafael.png",
+    "posterArchived": "source-archive/wordpress/media/2025/05/Susana-e-rafael.png",
+    "posterSha256": "ce692f4263c356f3144237ff6ba34cb82ad32263ca8ad1f33bb53296775f62ab",
+    "ogImage": "https://www.nextvisionfilms.com/wp-content/uploads/2025/05/Susana-e-rafael.png",
+    "previewVideo": null
+   },
+   "youtube": {
+    "id": "h8aaihpcLGU",
+    "rawValue": "https://youtu.be/h8aaihpcLGU",
+    "url": "https://www.youtube.com/watch?v=h8aaihpcLGU"
+   },
+   "smash": [],
+   "preferredSource": {
+    "poster": {
+     "from": "wordpress",
+     "ref": "https://www.nextvisionfilms.com/wp-content/uploads/2025/05/Susana-e-rafael.png"
+    },
+    "hoverPreview": {
+     "from": "UNKNOWN",
+     "ref": null,
+     "note": "No local source; a preview clip must be supplied or the card ships still-only"
+    },
+    "fullFilm": {
+     "from": "youtube",
+     "ref": "h8aaihpcLGU"
+    },
+    "hero": {
+     "from": "MASTER_REQUIRED",
+     "ref": null,
+     "scope": "none",
+     "note": "No local source file exists for this project"
+    }
+   },
+   "sourceQualityWarning": [
+    "NO_LOCAL_SOURCE",
+    "MASTER_REQUIRED"
+   ]
+  },
+  {
+   "slug": "the-end",
+   "title": "The End",
+   "legacyCategory": "Ficção",
+   "wordpress": {
+    "poster": "https://www.nextvisionfilms.com/wp-content/uploads/2025/02/image_2025-02-21_161051815.png",
+    "posterArchived": "source-archive/wordpress/media/2025/02/image_2025-02-21_161051815.png",
+    "posterSha256": "bd24055a739767e15305174c0d071ce31e72fc2de31c0dfc41411d440a82639f",
+    "ogImage": "https://www.nextvisionfilms.com/wp-content/uploads/2025/02/image_2025-02-21_161051815.png",
+    "previewVideo": {
+     "filename": "the_end.mov",
+     "archived": "source-archive/wordpress/media/2025/02/the_end.mov",
+     "sha256": "6672dd0674ccabb8a8cf18a09f66a87272ccd0fc01fe3eea367142fcefb297d6",
+     "sizeMB": 11.362,
+     "tech": {
+      "durationSec": 4.88,
+      "bitrate": 19551335,
+      "width": 1920,
+      "height": 1080,
+      "codec": "h264",
+      "pixFmt": "yuv420p",
+      "fps": 24,
+      "hasAudio": true
+     },
+     "loopCapable": {
+      "ok": true,
+      "reason": "1920x1080 at 19551 kbps, 4.88s — enough for a loop and stills, not for a long cut"
+     }
+    }
+   },
+   "youtube": {
+    "id": "_3cbRqvPKsk",
+    "rawValue": "https://www.youtube.com/watch?v=_3cbRqvPKsk",
+    "url": "https://www.youtube.com/watch?v=_3cbRqvPKsk"
+   },
+   "smash": [
+    {
+     "file": "In the end.mp4",
+     "sizeMB": 7.74,
+     "tech": {
+      "durationSec": 29.26,
+      "bitrate": 2220367,
+      "width": 1280,
+      "height": 720,
+      "codec": "h264",
+      "pixFmt": "yuv420p",
+      "fps": 24,
+      "hasAudio": true
+     },
+     "confidence": "medium",
+     "basis": "Title similarity to «The End»; conflicts with the file below — see M2"
+    },
+    {
+     "file": "Sometimes it´s just the start (1).mp4",
+     "sizeMB": 35.25,
+     "tech": {
+      "durationSec": 143.85,
+      "bitrate": 2055605,
+      "width": 1280,
+      "height": 720,
+      "codec": "h264",
+      "pixFmt": "yuv420p",
+      "fps": 24,
+      "hasAudio": true
+     },
+     "confidence": "medium",
+     "basis": "Project tagline is «\"THE END\" sometimes is just a start.»; conflicts with the file above — see M2"
+    }
+   ],
+   "preferredSource": {
+    "poster": {
+     "from": "wordpress",
+     "ref": "https://www.nextvisionfilms.com/wp-content/uploads/2025/02/image_2025-02-21_161051815.png"
+    },
+    "hoverPreview": {
+     "from": "smash",
+     "ref": "In the end.mp4",
+     "note": "Crop to <=6 s, strip audio, 720p is acceptable for a silent loop"
+    },
+    "fullFilm": {
+     "from": "youtube",
+     "ref": "_3cbRqvPKsk"
+    },
+    "hero": {
+     "from": "wordpress",
+     "ref": "the_end.mov",
+     "scope": "loop+stills",
+     "note": "1920x1080 at 19551 kbps, 4.88s — enough for a loop and stills, not for a long cut"
+    }
+   },
+   "sourceQualityWarning": [
+    "MASTER_REQUIRED",
+    "LOOP_CAPABLE_1080P",
+    "MULTIPLE_SMASH_CANDIDATES"
+   ]
+  }
+ ],
+ "smashInventory": [
+  {
+   "file": "Can´t live in you books anymore.mp4",
+   "localPath": "docs/Smash/Can´t live in you books anymore.mp4",
+   "bytes": 14613824,
+   "sizeMB": 13.94,
+   "tech": {
+    "durationSec": 53.92,
+    "bitrate": 2168354,
+    "width": 1280,
+    "height": 720,
+    "codec": "h264",
+    "pixFmt": "yuv420p",
+    "fps": 24,
+    "hasAudio": true
+   },
+   "heroCapable": {
+    "ok": false,
+    "reason": "1280x720 is below 1080p"
+   },
+   "match": {
+    "slug": "leonor",
+    "confidence": "high",
+    "basis": "Project tagline ends «I can't live in your book anymore.»",
+    "kind": null,
+    "candidates": null
+   }
+  },
+  {
+   "file": "Celebrate Pride with Dr Bernard (1).mp4",
+   "localPath": "docs/Smash/Celebrate Pride with Dr Bernard (1).mp4",
+   "bytes": 17204518,
+   "sizeMB": 16.41,
+   "tech": {
+    "durationSec": 59.21,
+    "bitrate": 2324507,
+    "width": 1280,
+    "height": 720,
+    "codec": "h264",
+    "pixFmt": "yuv420p",
+    "fps": 24,
+    "hasAudio": true
+   },
+   "heroCapable": {
+    "ok": false,
+    "reason": "1280x720 is below 1080p"
+   },
+   "match": {
+    "slug": null,
+    "confidence": "none",
+    "basis": "No matching project on the live site",
+    "kind": "unpublished",
+    "candidates": null
+   }
+  },
+  {
+   "file": "DigiUp anúncio.mp4",
+   "localPath": "docs/Smash/DigiUp anúncio.mp4",
+   "bytes": 5462576,
+   "sizeMB": 5.21,
+   "tech": {
+    "durationSec": 49.09,
+    "bitrate": 890268,
+    "width": 1280,
+    "height": 720,
+    "codec": "h264",
+    "pixFmt": "yuv420p",
+    "fps": 24,
+    "hasAudio": true
+   },
+   "heroCapable": {
+    "ok": false,
+    "reason": "1280x720 is below 1080p"
+   },
+   "match": {
+    "slug": null,
+    "confidence": "none",
+    "basis": "Advert for digiUP, the agency credited in the site footer. Not a published project",
+    "kind": "unpublished",
+    "candidates": null
+   }
+  },
+  {
+   "file": "Don´t let it fool you.mp4",
+   "localPath": "docs/Smash/Don´t let it fool you.mp4",
+   "bytes": 17476100,
+   "sizeMB": 16.67,
+   "tech": {
+    "durationSec": 114.43,
+    "bitrate": 1221806,
+    "width": 1280,
+    "height": 720,
+    "codec": "h264",
+    "pixFmt": "yuv420p",
+    "fps": 24,
+    "hasAudio": true
+   },
+   "heroCapable": {
+    "ok": false,
+    "reason": "1280x720 is below 1080p"
+   },
+   "match": {
+    "slug": null,
+    "confidence": "ambiguous",
+    "basis": "Title matches BOTH halves of the known duplicate pair (audit §9.7 / decision D6). Owner must disambiguate — see M-A",
+    "kind": null,
+    "candidates": [
+     "ana-e-filipe-metro",
+     "dont-let-it-fool-you"
+    ]
+   }
+  },
+  {
+   "file": "Fading.mp4",
+   "localPath": "docs/Smash/Fading.mp4",
+   "bytes": 7240743,
+   "sizeMB": 6.91,
+   "tech": {
+    "durationSec": 55.05,
+    "bitrate": 1052156,
+    "width": 1280,
+    "height": 720,
+    "codec": "h264",
+    "pixFmt": "yuv420p",
+    "fps": 24,
+    "hasAudio": true
+   },
+   "heroCapable": {
+    "ok": false,
+    "reason": "1280x720 is below 1080p"
+   },
+   "match": {
+    "slug": "helder-museu",
+    "confidence": "medium",
+    "basis": "Taglines of BOTH helder-museu and helder-praia end «…Fading»; helder-praia already has its own file, so this is probably helder-museu. NOT confirmed — see M3",
+    "kind": null,
+    "candidates": null
+   }
+  },
+  {
+   "file": "Helder Vs Karl Largerfeld.mp4",
+   "localPath": "docs/Smash/Helder Vs Karl Largerfeld.mp4",
+   "bytes": 12265959,
+   "sizeMB": 11.7,
+   "tech": {
+    "durationSec": 63.76,
+    "bitrate": 1538968,
+    "width": 1280,
+    "height": 720,
+    "codec": "h264",
+    "pixFmt": "yuv420p",
+    "fps": 24,
+    "hasAudio": true
+   },
+   "heroCapable": {
+    "ok": false,
+    "reason": "1280x720 is below 1080p"
+   },
+   "match": {
+    "slug": null,
+    "confidence": "none",
+    "basis": "The published fashion project is «Yves Saint Laurent» (helder-museu) — a DIFFERENT designer. Possible mislabel or separate unpublished piece — see M4",
+    "kind": "unpublished",
+    "candidates": null
+   }
+  },
+  {
+   "file": "In the end.mp4",
+   "localPath": "docs/Smash/In the end.mp4",
+   "bytes": 8120201,
+   "sizeMB": 7.74,
+   "tech": {
+    "durationSec": 29.26,
+    "bitrate": 2220367,
+    "width": 1280,
+    "height": 720,
+    "codec": "h264",
+    "pixFmt": "yuv420p",
+    "fps": 24,
+    "hasAudio": true
+   },
+   "heroCapable": {
+    "ok": false,
+    "reason": "1280x720 is below 1080p"
+   },
+   "match": {
+    "slug": "the-end",
+    "confidence": "medium",
+    "basis": "Title similarity to «The End»; conflicts with the file below — see M2",
+    "kind": null,
+    "candidates": null
+   }
+  },
+  {
+   "file": "NVF Showreel.mp4",
+   "localPath": "docs/Smash/NVF Showreel.mp4",
+   "bytes": 26708340,
+   "sizeMB": 25.47,
+   "tech": {
+    "durationSec": 189.1,
+    "bitrate": 1129894,
+    "width": 1280,
+    "height": 720,
+    "codec": "h264",
+    "pixFmt": "yuv420p",
+    "fps": 24,
+    "hasAudio": true
+   },
+   "heroCapable": {
+    "ok": false,
+    "reason": "1280x720 is below 1080p"
+   },
+   "match": {
+    "slug": null,
+    "confidence": "confirmed",
+    "basis": "Duration 189.10 s exactly matches WordPress orphan vcompress_210.mov (3:09) — same content",
+    "kind": "showreel",
+    "candidates": null
+   }
+  },
+  {
+   "file": "NVF VS Antiqvvm.mp4",
+   "localPath": "docs/Smash/NVF VS Antiqvvm.mp4",
+   "bytes": 15329159,
+   "sizeMB": 14.62,
+   "tech": {
+    "durationSec": 64.46,
+    "bitrate": 1902512,
+    "width": 1280,
+    "height": 720,
+    "codec": "h264",
+    "pixFmt": "yuv420p",
+    "fps": 24,
+    "hasAudio": true
+   },
+   "heroCapable": {
+    "ok": false,
+    "reason": "1280x720 is below 1080p"
+   },
+   "match": {
+    "slug": "nvf-vs-antiqvvm",
+    "confidence": "high",
+    "basis": "Exact project slug",
+    "kind": null,
+    "candidates": null
+   }
+  },
+  {
+   "file": "NVF VS Filmin.mp4",
+   "localPath": "docs/Smash/NVF VS Filmin.mp4",
+   "bytes": 2264272,
+   "sizeMB": 2.16,
+   "tech": {
+    "durationSec": 28.31,
+    "bitrate": 639960,
+    "width": 1280,
+    "height": 720,
+    "codec": "h264",
+    "pixFmt": "yuv420p",
+    "fps": 24,
+    "hasAudio": true
+   },
+   "heroCapable": {
+    "ok": false,
+    "reason": "1280x720 is below 1080p"
+   },
+   "match": {
+    "slug": "nvf-vs-filmin-details",
+    "confidence": "high",
+    "basis": "Exact project slug",
+    "kind": null,
+    "candidates": null
+   }
+  },
+  {
+   "file": "NVF showreel 2026.mp4",
+   "localPath": "docs/Smash/NVF showreel 2026.mp4",
+   "bytes": 8533169,
+   "sizeMB": 8.14,
+   "tech": {
+    "durationSec": 55.17,
+    "bitrate": 1237349,
+    "width": 1280,
+    "height": 720,
+    "codec": "h264",
+    "pixFmt": "yuv420p",
+    "fps": 30,
+    "hasAudio": true
+   },
+   "heroCapable": {
+    "ok": false,
+    "reason": "1280x720 is below 1080p"
+   },
+   "match": {
+    "slug": null,
+    "confidence": "confirmed",
+    "basis": "Newer showreel, not published on the website. Which showreel is current is decision R9",
+    "kind": "showreel",
+    "candidates": null
+   }
+  },
+  {
+   "file": "Prato 2 v1.mov",
+   "localPath": "docs/Smash/Prato 2 v1.mov",
+   "bytes": 119368293,
+   "sizeMB": 113.84,
+   "tech": {
+    "durationSec": 52.38,
+    "bitrate": 18232865,
+    "width": 1920,
+    "height": 1080,
+    "codec": "h264",
+    "pixFmt": "yuv420p",
+    "fps": 24,
+    "hasAudio": true
+   },
+   "heroCapable": {
+    "ok": true,
+    "reason": "1920x1080 at 18233 kbps"
+   },
+   "match": {
+    "slug": null,
+    "confidence": "none",
+    "basis": "Gastronomy. 1080p ~18 Mbps PCM — a genuine master. No matching project",
+    "kind": "unpublished",
+    "candidates": null
+   }
+  },
+  {
+   "file": "Prato sobremesa v1.mov",
+   "localPath": "docs/Smash/Prato sobremesa v1.mov",
+   "bytes": 69071931,
+   "sizeMB": 65.87,
+   "tech": {
+    "durationSec": 30,
+    "bitrate": 18419181,
+    "width": 1920,
+    "height": 1080,
+    "codec": "h264",
+    "pixFmt": "yuv420p",
+    "fps": 24,
+    "hasAudio": true
+   },
+   "heroCapable": {
+    "ok": true,
+    "reason": "1920x1080 at 18419 kbps"
+   },
+   "match": {
+    "slug": null,
+    "confidence": "none",
+    "basis": "Gastronomy, same series. 1080p ~18 Mbps PCM master. No matching project",
+    "kind": "unpublished",
+    "candidates": null
+   }
+  },
+  {
+   "file": "Sometimes it´s just the start (1).mp4",
+   "localPath": "docs/Smash/Sometimes it´s just the start (1).mp4",
+   "bytes": 36961742,
+   "sizeMB": 35.25,
+   "tech": {
+    "durationSec": 143.85,
+    "bitrate": 2055605,
+    "width": 1280,
+    "height": 720,
+    "codec": "h264",
+    "pixFmt": "yuv420p",
+    "fps": 24,
+    "hasAudio": true
+   },
+   "heroCapable": {
+    "ok": false,
+    "reason": "1280x720 is below 1080p"
+   },
+   "match": {
+    "slug": "the-end",
+    "confidence": "medium",
+    "basis": "Project tagline is «\"THE END\" sometimes is just a start.»; conflicts with the file above — see M2",
+    "kind": null,
+    "candidates": null
+   }
+  },
+  {
+   "file": "The endless _WAVES_.mp4",
+   "localPath": "docs/Smash/The endless _WAVES_.mp4",
+   "bytes": 12193946,
+   "sizeMB": 11.63,
+   "tech": {
+    "durationSec": 54.85,
+    "bitrate": 1778660,
+    "width": 1280,
+    "height": 720,
+    "codec": "h264",
+    "pixFmt": "yuv420p",
+    "fps": 24,
+    "hasAudio": true
+   },
+   "heroCapable": {
+    "ok": false,
+    "reason": "1280x720 is below 1080p"
+   },
+   "match": {
+    "slug": "helder-praia",
+    "confidence": "high",
+    "basis": "Exact project title «The endless \"WAVES\"» (underscores stand in for quotes)",
+    "kind": null,
+    "candidates": null
+   }
+  },
+  {
+   "file": "The lie we tell ourselves.mp4",
+   "localPath": "docs/Smash/The lie we tell ourselves.mp4",
+   "bytes": 5885537,
+   "sizeMB": 5.61,
+   "tech": {
+    "durationSec": 50.69,
+    "bitrate": 928882,
+    "width": 1280,
+    "height": 720,
+    "codec": "h264",
+    "pixFmt": "yuv420p",
+    "fps": 24,
+    "hasAudio": true
+   },
+   "heroCapable": {
+    "ok": false,
+    "reason": "1280x720 is below 1080p"
+   },
+   "match": {
+    "slug": "ana-reels",
+    "confidence": "high",
+    "basis": "Exact project title «The Lie we tell ourselves»",
+    "kind": null,
+    "candidates": null
+   }
+  },
+  {
+   "file": "Unfinished.mp4",
+   "localPath": "docs/Smash/Unfinished.mp4",
+   "bytes": 7940897,
+   "sizeMB": 7.57,
+   "tech": {
+    "durationSec": 80.36,
+    "bitrate": 790490,
+    "width": 1280,
+    "height": 720,
+    "codec": "h264",
+    "pixFmt": "yuv420p",
+    "fps": 25,
+    "hasAudio": true
+   },
+   "heroCapable": {
+    "ok": false,
+    "reason": "1280x720 is below 1080p"
+   },
+   "match": {
+    "slug": "nazaryi",
+    "confidence": "high",
+    "basis": "Exact project title «Unfinished»",
+    "kind": null,
+    "candidates": null
+   }
+  },
+  {
+   "file": "Video Long Version O Gato que Bebe.mp4",
+   "localPath": "docs/Smash/Video Long Version O Gato que Bebe.mp4",
+   "bytes": 33303536,
+   "sizeMB": 31.76,
+   "tech": {
+    "durationSec": 227.56,
+    "bitrate": 1170827,
+    "width": 1280,
+    "height": 720,
+    "codec": "h264",
+    "pixFmt": "yuv420p",
+    "fps": 30,
+    "hasAudio": true
+   },
+   "heroCapable": {
+    "ok": false,
+    "reason": "1280x720 is below 1080p"
+   },
+   "match": {
+    "slug": null,
+    "confidence": "none",
+    "basis": "No matching project. «Long Version» implies a shorter cut also exists",
+    "kind": "unpublished",
+    "candidates": null
+   }
+  },
+  {
+   "file": "We are NVF.mp4",
+   "localPath": "docs/Smash/We are NVF.mp4",
+   "bytes": 3455740,
+   "sizeMB": 3.3,
+   "tech": {
+    "durationSec": 20.09,
+    "bitrate": 1376428,
+    "width": 1280,
+    "height": 720,
+    "codec": "h264",
+    "pixFmt": "yuv420p",
+    "fps": 24,
+    "hasAudio": true
+   },
+   "heroCapable": {
+    "ok": false,
+    "reason": "1280x720 is below 1080p"
+   },
+   "match": {
+    "slug": null,
+    "confidence": "confirmed",
+    "basis": "Duration 20.09 s exactly matches WordPress orphan videoplayback.mp4 (0:20). The live homepage hero We-are-NVF-copia.mp4 is a 16 s cut of this",
+    "kind": "brand",
+    "candidates": null
+   }
+  },
+  {
+   "file": "film in 1 v2.mp4",
+   "localPath": "docs/Smash/film in 1 v2.mp4",
+   "bytes": 67556418,
+   "sizeMB": 64.43,
+   "tech": {
+    "durationSec": 37.72,
+    "bitrate": 14328991,
+    "width": 1920,
+    "height": 1080,
+    "codec": "h264",
+    "pixFmt": "yuv420p",
+    "fps": 24,
+    "hasAudio": true
+   },
+   "heroCapable": {
+    "ok": true,
+    "reason": "1920x1080 at 14329 kbps"
+   },
+   "match": {
+    "slug": "nvf-vs-filmin-details",
+    "confidence": "high",
+    "basis": "Matches WordPress FILM-IN-video-2-sem-nvf-v2.mp4; 1080p 14 Mbps — the master of the above",
+    "kind": null,
+    "candidates": null
+   }
+  }
+ ],
+ "unmatchedSmash": [
+  {
+   "file": "Celebrate Pride with Dr Bernard (1).mp4",
+   "localPath": "docs/Smash/Celebrate Pride with Dr Bernard (1).mp4",
+   "bytes": 17204518,
+   "sizeMB": 16.41,
+   "tech": {
+    "durationSec": 59.21,
+    "bitrate": 2324507,
+    "width": 1280,
+    "height": 720,
+    "codec": "h264",
+    "pixFmt": "yuv420p",
+    "fps": 24,
+    "hasAudio": true
+   },
+   "heroCapable": {
+    "ok": false,
+    "reason": "1280x720 is below 1080p"
+   },
+   "match": {
+    "slug": null,
+    "confidence": "none",
+    "basis": "No matching project on the live site",
+    "kind": "unpublished",
+    "candidates": null
+   }
+  },
+  {
+   "file": "DigiUp anúncio.mp4",
+   "localPath": "docs/Smash/DigiUp anúncio.mp4",
+   "bytes": 5462576,
+   "sizeMB": 5.21,
+   "tech": {
+    "durationSec": 49.09,
+    "bitrate": 890268,
+    "width": 1280,
+    "height": 720,
+    "codec": "h264",
+    "pixFmt": "yuv420p",
+    "fps": 24,
+    "hasAudio": true
+   },
+   "heroCapable": {
+    "ok": false,
+    "reason": "1280x720 is below 1080p"
+   },
+   "match": {
+    "slug": null,
+    "confidence": "none",
+    "basis": "Advert for digiUP, the agency credited in the site footer. Not a published project",
+    "kind": "unpublished",
+    "candidates": null
+   }
+  },
+  {
+   "file": "Don´t let it fool you.mp4",
+   "localPath": "docs/Smash/Don´t let it fool you.mp4",
+   "bytes": 17476100,
+   "sizeMB": 16.67,
+   "tech": {
+    "durationSec": 114.43,
+    "bitrate": 1221806,
+    "width": 1280,
+    "height": 720,
+    "codec": "h264",
+    "pixFmt": "yuv420p",
+    "fps": 24,
+    "hasAudio": true
+   },
+   "heroCapable": {
+    "ok": false,
+    "reason": "1280x720 is below 1080p"
+   },
+   "match": {
+    "slug": null,
+    "confidence": "ambiguous",
+    "basis": "Title matches BOTH halves of the known duplicate pair (audit §9.7 / decision D6). Owner must disambiguate — see M-A",
+    "kind": null,
+    "candidates": [
+     "ana-e-filipe-metro",
+     "dont-let-it-fool-you"
+    ]
+   }
+  },
+  {
+   "file": "Helder Vs Karl Largerfeld.mp4",
+   "localPath": "docs/Smash/Helder Vs Karl Largerfeld.mp4",
+   "bytes": 12265959,
+   "sizeMB": 11.7,
+   "tech": {
+    "durationSec": 63.76,
+    "bitrate": 1538968,
+    "width": 1280,
+    "height": 720,
+    "codec": "h264",
+    "pixFmt": "yuv420p",
+    "fps": 24,
+    "hasAudio": true
+   },
+   "heroCapable": {
+    "ok": false,
+    "reason": "1280x720 is below 1080p"
+   },
+   "match": {
+    "slug": null,
+    "confidence": "none",
+    "basis": "The published fashion project is «Yves Saint Laurent» (helder-museu) — a DIFFERENT designer. Possible mislabel or separate unpublished piece — see M4",
+    "kind": "unpublished",
+    "candidates": null
+   }
+  },
+  {
+   "file": "NVF Showreel.mp4",
+   "localPath": "docs/Smash/NVF Showreel.mp4",
+   "bytes": 26708340,
+   "sizeMB": 25.47,
+   "tech": {
+    "durationSec": 189.1,
+    "bitrate": 1129894,
+    "width": 1280,
+    "height": 720,
+    "codec": "h264",
+    "pixFmt": "yuv420p",
+    "fps": 24,
+    "hasAudio": true
+   },
+   "heroCapable": {
+    "ok": false,
+    "reason": "1280x720 is below 1080p"
+   },
+   "match": {
+    "slug": null,
+    "confidence": "confirmed",
+    "basis": "Duration 189.10 s exactly matches WordPress orphan vcompress_210.mov (3:09) — same content",
+    "kind": "showreel",
+    "candidates": null
+   }
+  },
+  {
+   "file": "NVF showreel 2026.mp4",
+   "localPath": "docs/Smash/NVF showreel 2026.mp4",
+   "bytes": 8533169,
+   "sizeMB": 8.14,
+   "tech": {
+    "durationSec": 55.17,
+    "bitrate": 1237349,
+    "width": 1280,
+    "height": 720,
+    "codec": "h264",
+    "pixFmt": "yuv420p",
+    "fps": 30,
+    "hasAudio": true
+   },
+   "heroCapable": {
+    "ok": false,
+    "reason": "1280x720 is below 1080p"
+   },
+   "match": {
+    "slug": null,
+    "confidence": "confirmed",
+    "basis": "Newer showreel, not published on the website. Which showreel is current is decision R9",
+    "kind": "showreel",
+    "candidates": null
+   }
+  },
+  {
+   "file": "Prato 2 v1.mov",
+   "localPath": "docs/Smash/Prato 2 v1.mov",
+   "bytes": 119368293,
+   "sizeMB": 113.84,
+   "tech": {
+    "durationSec": 52.38,
+    "bitrate": 18232865,
+    "width": 1920,
+    "height": 1080,
+    "codec": "h264",
+    "pixFmt": "yuv420p",
+    "fps": 24,
+    "hasAudio": true
+   },
+   "heroCapable": {
+    "ok": true,
+    "reason": "1920x1080 at 18233 kbps"
+   },
+   "match": {
+    "slug": null,
+    "confidence": "none",
+    "basis": "Gastronomy. 1080p ~18 Mbps PCM — a genuine master. No matching project",
+    "kind": "unpublished",
+    "candidates": null
+   }
+  },
+  {
+   "file": "Prato sobremesa v1.mov",
+   "localPath": "docs/Smash/Prato sobremesa v1.mov",
+   "bytes": 69071931,
+   "sizeMB": 65.87,
+   "tech": {
+    "durationSec": 30,
+    "bitrate": 18419181,
+    "width": 1920,
+    "height": 1080,
+    "codec": "h264",
+    "pixFmt": "yuv420p",
+    "fps": 24,
+    "hasAudio": true
+   },
+   "heroCapable": {
+    "ok": true,
+    "reason": "1920x1080 at 18419 kbps"
+   },
+   "match": {
+    "slug": null,
+    "confidence": "none",
+    "basis": "Gastronomy, same series. 1080p ~18 Mbps PCM master. No matching project",
+    "kind": "unpublished",
+    "candidates": null
+   }
+  },
+  {
+   "file": "Video Long Version O Gato que Bebe.mp4",
+   "localPath": "docs/Smash/Video Long Version O Gato que Bebe.mp4",
+   "bytes": 33303536,
+   "sizeMB": 31.76,
+   "tech": {
+    "durationSec": 227.56,
+    "bitrate": 1170827,
+    "width": 1280,
+    "height": 720,
+    "codec": "h264",
+    "pixFmt": "yuv420p",
+    "fps": 30,
+    "hasAudio": true
+   },
+   "heroCapable": {
+    "ok": false,
+    "reason": "1280x720 is below 1080p"
+   },
+   "match": {
+    "slug": null,
+    "confidence": "none",
+    "basis": "No matching project. «Long Version» implies a shorter cut also exists",
+    "kind": "unpublished",
+    "candidates": null
+   }
+  },
+  {
+   "file": "We are NVF.mp4",
+   "localPath": "docs/Smash/We are NVF.mp4",
+   "bytes": 3455740,
+   "sizeMB": 3.3,
+   "tech": {
+    "durationSec": 20.09,
+    "bitrate": 1376428,
+    "width": 1280,
+    "height": 720,
+    "codec": "h264",
+    "pixFmt": "yuv420p",
+    "fps": 24,
+    "hasAudio": true
+   },
+   "heroCapable": {
+    "ok": false,
+    "reason": "1280x720 is below 1080p"
+   },
+   "match": {
+    "slug": null,
+    "confidence": "confirmed",
+    "basis": "Duration 20.09 s exactly matches WordPress orphan videoplayback.mp4 (0:20). The live homepage hero We-are-NVF-copia.mp4 is a 16 s cut of this",
+    "kind": "brand",
+    "candidates": null
+   }
+  }
+ ],
+ "openQuestions": {
+  "M-A": "Which project does «Don´t let it fool you.mp4» belong to — ana-e-filipe-metro or dont-let-it-fool-you? (decision D6)",
+  "M1": "Supply true masters (ProRes/DNxHR or >=1080p high-bitrate, 4K where it exists) for every project intended to have a cinematic hero.",
+  "M2": "Which of «In the end.mp4» / «Sometimes it´s just the start (1).mp4» is The End? Teaser vs full film?",
+  "M3": "Confirm «Fading.mp4» belongs to Yves Saint Laurent (helder-museu).",
+  "M4": "Clarify «Helder Vs Karl Largerfeld» against the published «Yves Saint Laurent».",
+  "M5": "Should the six unpublished pieces and the 2026 showreel be added to the portfolio?",
+  "M6": "Are masters available for the 10 projects with no local source file — especially the five weddings?",
+  "M7": "Which showreel is current — NVF Showreel (3:09) or NVF showreel 2026 (0:55)?"
+ }
+}

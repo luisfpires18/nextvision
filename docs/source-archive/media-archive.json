@@ -1,0 +1,783 @@
+{
+ "capturedAt": "2026-09-02T09:08:51.386Z",
+ "note": "Binaries live in source-archive/wordpress/media/ (gitignored). This manifest is the committed record.",
+ "downloaded": 39,
+ "skippedDerivatives": 38,
+ "failed": 0,
+ "totalBytes": 182972883,
+ "items": [
+  {
+   "url": "https://www.nextvisionfilms.com/wp-content/uploads/2025/02/ana_e_filipe_metro.mov",
+   "originalFilename": "ana_e_filipe_metro.mov",
+   "localPath": "source-archive/wordpress/media/2025/02/ana_e_filipe_metro.mov",
+   "bytes": 12345810,
+   "sizeMB": 11.774,
+   "contentType": "video/quicktime",
+   "ext": "mov",
+   "sha256": "4877bebaaf669794597daa5d7f341d001961924968daa647b700d196999cb718",
+   "referencedOnPages": 1,
+   "isOriginal": true,
+   "cached": false
+  },
+  {
+   "url": "https://www.nextvisionfilms.com/wp-content/uploads/2025/02/ana_reels.mov",
+   "originalFilename": "ana_reels.mov",
+   "localPath": "source-archive/wordpress/media/2025/02/ana_reels.mov",
+   "bytes": 11584858,
+   "sizeMB": 11.048,
+   "contentType": "video/quicktime",
+   "ext": "mov",
+   "sha256": "d25d78b0fdb643d7c6773da15a4af6e7887a0f649f8039e9062d752268b5c174",
+   "referencedOnPages": 1,
+   "isOriginal": true,
+   "cached": false
+  },
+  {
+   "url": "https://www.nextvisionfilms.com/wp-content/uploads/2025/02/ana.png",
+   "originalFilename": "ana.png",
+   "localPath": "source-archive/wordpress/media/2025/02/ana.png",
+   "bytes": 2470096,
+   "sizeMB": 2.356,
+   "contentType": "image/png",
+   "ext": "png",
+   "sha256": "826a3e9204314bdfbf4fd15c6f4eca37deed3d7131ea3f99062139e94e6daf1c",
+   "referencedOnPages": 2,
+   "isOriginal": true,
+   "cached": false
+  },
+  {
+   "url": "https://www.nextvisionfilms.com/wp-content/uploads/2025/02/Capture.png",
+   "originalFilename": "Capture.png",
+   "localPath": "source-archive/wordpress/media/2025/02/Capture.png",
+   "bytes": 1960773,
+   "sizeMB": 1.87,
+   "contentType": "image/png",
+   "ext": "png",
+   "sha256": "7c66735dce685b4a0dbdd06b24a65c4bc91080962bf96b883128ff915ce09ce9",
+   "referencedOnPages": 2,
+   "isOriginal": true,
+   "cached": false
+  },
+  {
+   "url": "https://www.nextvisionfilms.com/wp-content/uploads/2025/02/colors.png",
+   "originalFilename": "colors.png",
+   "localPath": "source-archive/wordpress/media/2025/02/colors.png",
+   "bytes": 238,
+   "sizeMB": 0,
+   "contentType": "image/png",
+   "ext": "png",
+   "sha256": "973f6a7b9f349cf4d78c934544b57a47ed8c85547029afe845638e938871bd70",
+   "referencedOnPages": 2,
+   "isOriginal": true,
+   "cached": false
+  },
+  {
+   "url": "https://www.nextvisionfilms.com/wp-content/uploads/2025/02/ffffffffff.png",
+   "originalFilename": "ffffffffff.png",
+   "localPath": "source-archive/wordpress/media/2025/02/ffffffffff.png",
+   "bytes": 2121238,
+   "sizeMB": 2.023,
+   "contentType": "image/png",
+   "ext": "png",
+   "sha256": "f7296945feaee3a624684b3b7bfa85f96eb890b6b5538f31b9e1d308a5c600b5",
+   "referencedOnPages": 2,
+   "isOriginal": true,
+   "cached": false
+  },
+  {
+   "url": "https://www.nextvisionfilms.com/wp-content/uploads/2025/02/helder_museu.mov",
+   "originalFilename": "helder_museu.mov",
+   "localPath": "source-archive/wordpress/media/2025/02/helder_museu.mov",
+   "bytes": 12931673,
+   "sizeMB": 12.333,
+   "contentType": "video/quicktime",
+   "ext": "mov",
+   "sha256": "2ba7e4b473c93f79d89e6c858413b037ac50e52b914aa2992c54fb272bd96580",
+   "referencedOnPages": 34,
+   "isOriginal": true,
+   "cached": false
+  },
+  {
+   "url": "https://www.nextvisionfilms.com/wp-content/uploads/2025/02/helder_praia.mov",
+   "originalFilename": "helder_praia.mov",
+   "localPath": "source-archive/wordpress/media/2025/02/helder_praia.mov",
+   "bytes": 12243064,
+   "sizeMB": 11.676,
+   "contentType": "video/quicktime",
+   "ext": "mov",
+   "sha256": "477811fec1fee8b323b6a286e9d39f14ed8060813d5cb1262269d06591ba4f98",
+   "referencedOnPages": 1,
+   "isOriginal": true,
+   "cached": false
+  },
+  {
+   "url": "https://www.nextvisionfilms.com/wp-content/uploads/2025/02/Helder-Afonso-1-scaled-700x1000-1-e1745226778827.jpeg",
+   "originalFilename": "Helder-Afonso-1-scaled-700x1000-1-e1745226778827.jpeg",
+   "localPath": "source-archive/wordpress/media/2025/02/Helder-Afonso-1-scaled-700x1000-1-e1745226778827.jpeg",
+   "bytes": 75773,
+   "sizeMB": 0.072,
+   "contentType": "image/jpeg",
+   "ext": "jpeg",
+   "sha256": "df02bc617e677d44caff97bcf28097c95c463867f70886900f992fdf47f0b5bb",
+   "referencedOnPages": 1,
+   "isOriginal": true,
+   "cached": false
+  },
+  {
+   "url": "https://www.nextvisionfilms.com/wp-content/uploads/2025/02/image_2025-02-21_161051815.png",
+   "originalFilename": "image_2025-02-21_161051815.png",
+   "localPath": "source-archive/wordpress/media/2025/02/image_2025-02-21_161051815.png",
+   "bytes": 1871142,
+   "sizeMB": 1.784,
+   "contentType": "image/png",
+   "ext": "png",
+   "sha256": "bd24055a739767e15305174c0d071ce31e72fc2de31c0dfc41411d440a82639f",
+   "referencedOnPages": 2,
+   "isOriginal": true,
+   "cached": false
+  },
+  {
+   "url": "https://www.nextvisionfilms.com/wp-content/uploads/2025/02/leonor.mov",
+   "originalFilename": "leonor.mov",
+   "localPath": "source-archive/wordpress/media/2025/02/leonor.mov",
+   "bytes": 10906692,
+   "sizeMB": 10.401,
+   "contentType": "video/quicktime",
+   "ext": "mov",
+   "sha256": "7cfae693d2eb30c4ef61476cb902a5428062c339f3689341c66a8cbcd66aa0e8",
+   "referencedOnPages": 1,
+   "isOriginal": true,
+   "cached": false
+  },
+  {
+   "url": "https://www.nextvisionfilms.com/wp-content/uploads/2025/02/metro.png",
+   "originalFilename": "metro.png",
+   "localPath": "source-archive/wordpress/media/2025/02/metro.png",
+   "bytes": 2306029,
+   "sizeMB": 2.199,
+   "contentType": "image/png",
+   "ext": "png",
+   "sha256": "0fd0dbd2bc13871c2ee51166ddf5427ab249fbc2d8d90717f748e06d2b6f5c2e",
+   "referencedOnPages": 2,
+   "isOriginal": true,
+   "cached": false
+  },
+  {
+   "url": "https://www.nextvisionfilms.com/wp-content/uploads/2025/02/Minya-Italic-TTF.ttf",
+   "originalFilename": "Minya-Italic-TTF.ttf",
+   "localPath": "source-archive/wordpress/media/2025/02/Minya-Italic-TTF.ttf",
+   "bytes": 88032,
+   "sizeMB": 0.084,
+   "contentType": "application/octet-stream",
+   "ext": "ttf",
+   "sha256": "758f3dd6f9f830c7fb5ac43815c8a9b596f163570a16a008495f71117d020921",
+   "referencedOnPages": 32,
+   "isOriginal": true,
+   "cached": false
+  },
+  {
+   "url": "https://www.nextvisionfilms.com/wp-content/uploads/2025/02/Minya-TTF.ttf",
+   "originalFilename": "Minya-TTF.ttf",
+   "localPath": "source-archive/wordpress/media/2025/02/Minya-TTF.ttf",
+   "bytes": 95468,
+   "sizeMB": 0.091,
+   "contentType": "application/octet-stream",
+   "ext": "ttf",
+   "sha256": "2c1f61a3470903072222987b47c7588bf0b65ac6a656e38b1d8fbfc6b031e24a",
+   "referencedOnPages": 32,
+   "isOriginal": true,
+   "cached": false
+  },
+  {
+   "url": "https://www.nextvisionfilms.com/wp-content/uploads/2025/02/museuuu.png",
+   "originalFilename": "museuuu.png",
+   "localPath": "source-archive/wordpress/media/2025/02/museuuu.png",
+   "bytes": 2651127,
+   "sizeMB": 2.528,
+   "contentType": "image/png",
+   "ext": "png",
+   "sha256": "bab9d10d367994215d9c9ded3b325ca281e565c3fe634bac1d42ac73991e4187",
+   "referencedOnPages": 2,
+   "isOriginal": true,
+   "cached": false
+  },
+  {
+   "url": "https://www.nextvisionfilms.com/wp-content/uploads/2025/02/nath.png",
+   "originalFilename": "nath.png",
+   "localPath": "source-archive/wordpress/media/2025/02/nath.png",
+   "bytes": 2824308,
+   "sizeMB": 2.693,
+   "contentType": "image/png",
+   "ext": "png",
+   "sha256": "53a20c212789234dbd6d1873533b757c45a01a5b2a8670f6a2860cded153716f",
+   "referencedOnPages": 2,
+   "isOriginal": true,
+   "cached": false
+  },
+  {
+   "url": "https://www.nextvisionfilms.com/wp-content/uploads/2025/02/nazary.png",
+   "originalFilename": "nazary.png",
+   "localPath": "source-archive/wordpress/media/2025/02/nazary.png",
+   "bytes": 1659846,
+   "sizeMB": 1.583,
+   "contentType": "image/png",
+   "ext": "png",
+   "sha256": "2d0160df700ec3689351e1ad5d9e66ff4cda3bbd6b455372067e00ef57b6e4f9",
+   "referencedOnPages": 2,
+   "isOriginal": true,
+   "cached": false
+  },
+  {
+   "url": "https://www.nextvisionfilms.com/wp-content/uploads/2025/02/nazaryi.mov",
+   "originalFilename": "nazaryi.mov",
+   "localPath": "source-archive/wordpress/media/2025/02/nazaryi.mov",
+   "bytes": 10659506,
+   "sizeMB": 10.166,
+   "contentType": "video/quicktime",
+   "ext": "mov",
+   "sha256": "ca57c36c1458199af8f87e2ccc56a4e18e66289a7993a49031700ada35198bcf",
+   "referencedOnPages": 1,
+   "isOriginal": true,
+   "cached": false
+  },
+  {
+   "url": "https://www.nextvisionfilms.com/wp-content/uploads/2025/02/paradox_of_affection.mov",
+   "originalFilename": "paradox_of_affection.mov",
+   "localPath": "source-archive/wordpress/media/2025/02/paradox_of_affection.mov",
+   "bytes": 11952121,
+   "sizeMB": 11.398,
+   "contentType": "video/quicktime",
+   "ext": "mov",
+   "sha256": "207f7d7a6c0a8d816bd3fe62109727308bee55dbf4d323937bb9b9dcb4d74057",
+   "referencedOnPages": 1,
+   "isOriginal": true,
+   "cached": false
+  },
+  {
+   "url": "https://www.nextvisionfilms.com/wp-content/uploads/2025/02/servicos3NextVision.jpg",
+   "originalFilename": "servicos3NextVision.jpg",
+   "localPath": "source-archive/wordpress/media/2025/02/servicos3NextVision.jpg",
+   "bytes": 39605,
+   "sizeMB": 0.038,
+   "contentType": "image/jpeg",
+   "ext": "jpg",
+   "sha256": "468288ae8aa5a937aae786bfeb317419ff987bad73c352136774fd8f6d456c4f",
+   "referencedOnPages": 1,
+   "isOriginal": true,
+   "cached": false
+  },
+  {
+   "url": "https://www.nextvisionfilms.com/wp-content/uploads/2025/02/the_end.mov",
+   "originalFilename": "the_end.mov",
+   "localPath": "source-archive/wordpress/media/2025/02/the_end.mov",
+   "bytes": 11914095,
+   "sizeMB": 11.362,
+   "contentType": "video/quicktime",
+   "ext": "mov",
+   "sha256": "6672dd0674ccabb8a8cf18a09f66a87272ccd0fc01fe3eea367142fcefb297d6",
+   "referencedOnPages": 1,
+   "isOriginal": true,
+   "cached": false
+  },
+  {
+   "url": "https://www.nextvisionfilms.com/wp-content/uploads/2025/02/Vintage_Colorful_Retro_Vibes_Typographic-e1744196498986.png",
+   "originalFilename": "Vintage_Colorful_Retro_Vibes_Typographic-e1744196498986.png",
+   "localPath": "source-archive/wordpress/media/2025/02/Vintage_Colorful_Retro_Vibes_Typographic-e1744196498986.png",
+   "bytes": 29127,
+   "sizeMB": 0.028,
+   "contentType": "image/png",
+   "ext": "png",
+   "sha256": "6c367ea7b1e69abfea7c1d186582cba52672a727f3e53ed9dc0445f400813e33",
+   "referencedOnPages": 34,
+   "isOriginal": true,
+   "cached": false
+  },
+  {
+   "url": "https://www.nextvisionfilms.com/wp-content/uploads/2025/03/We-are-NVF-copia.mp4",
+   "originalFilename": "We-are-NVF-copia.mp4",
+   "localPath": "source-archive/wordpress/media/2025/03/We-are-NVF-copia.mp4",
+   "bytes": 5960679,
+   "sizeMB": 5.685,
+   "contentType": "video/mp4",
+   "ext": "mp4",
+   "sha256": "b07f8799cb44d5434f7a07a35be7ff93e063bdf6cbde2ea2ec9a23a8b7b63240",
+   "referencedOnPages": 3,
+   "isOriginal": true,
+   "cached": false
+  },
+  {
+   "url": "https://www.nextvisionfilms.com/wp-content/uploads/2025/04/Antiqvvm-imagem.png",
+   "originalFilename": "Antiqvvm-imagem.png",
+   "localPath": "source-archive/wordpress/media/2025/04/Antiqvvm-imagem.png",
+   "bytes": 1931061,
+   "sizeMB": 1.842,
+   "contentType": "image/png",
+   "ext": "png",
+   "sha256": "320e7a22399a1b3e68bdb66691c5a57e580568aaa37cc3a176b085f0d3b2fe33",
+   "referencedOnPages": 2,
+   "isOriginal": true,
+   "cached": false
+  },
+  {
+   "url": "https://www.nextvisionfilms.com/wp-content/uploads/2025/04/banner-contactos-2-e1744213581116.jpg",
+   "originalFilename": "banner-contactos-2-e1744213581116.jpg",
+   "localPath": "source-archive/wordpress/media/2025/04/banner-contactos-2-e1744213581116.jpg",
+   "bytes": 150236,
+   "sizeMB": 0.143,
+   "contentType": "image/jpeg",
+   "ext": "jpg",
+   "sha256": "1cd3a0a69fb52fb397cae6d2f41a361fbf90d432b184ff3d1b7e5d359f43ad43",
+   "referencedOnPages": 1,
+   "isOriginal": true,
+   "cached": false
+  },
+  {
+   "url": "https://www.nextvisionfilms.com/wp-content/uploads/2025/04/FILM-IN-video-2-sem-nvf-v2.mp4",
+   "originalFilename": "FILM-IN-video-2-sem-nvf-v2.mp4",
+   "localPath": "source-archive/wordpress/media/2025/04/FILM-IN-video-2-sem-nvf-v2.mp4",
+   "bytes": 50069864,
+   "sizeMB": 47.75,
+   "contentType": "video/mp4",
+   "ext": "mp4",
+   "sha256": "1e28058d5c45f206ea2fdaf275faf74f090f72a3d882f8031d9b4fe35251f434",
+   "referencedOnPages": 1,
+   "isOriginal": true,
+   "cached": false
+  },
+  {
+   "url": "https://www.nextvisionfilms.com/wp-content/uploads/2025/04/Filmin_1.1.1.jpg",
+   "originalFilename": "Filmin_1.1.1.jpg",
+   "localPath": "source-archive/wordpress/media/2025/04/Filmin_1.1.1.jpg",
+   "bytes": 562628,
+   "sizeMB": 0.537,
+   "contentType": "image/jpeg",
+   "ext": "jpg",
+   "sha256": "0b92c9406147e6363358b01d77cb78c8051767e5df11730fdff289572adbd70c",
+   "referencedOnPages": 2,
+   "isOriginal": true,
+   "cached": false
+  },
+  {
+   "url": "https://www.nextvisionfilms.com/wp-content/uploads/2025/04/grommet-icons-language.svg",
+   "originalFilename": "grommet-icons-language.svg",
+   "localPath": "source-archive/wordpress/media/2025/04/grommet-icons-language.svg",
+   "bytes": 333,
+   "sizeMB": 0,
+   "contentType": "image/svg+xml",
+   "ext": "svg",
+   "sha256": "e7d0fb4d7eb0a9f03b94fe40a367773c54f834abf055e37e620ff60b3d663b5c",
+   "referencedOnPages": 34,
+   "isOriginal": true,
+   "cached": false
+  },
+  {
+   "url": "https://www.nextvisionfilms.com/wp-content/uploads/2025/05/ana-e-filipeee.png",
+   "originalFilename": "ana-e-filipeee.png",
+   "localPath": "source-archive/wordpress/media/2025/05/ana-e-filipeee.png",
+   "bytes": 1061696,
+   "sizeMB": 1.013,
+   "contentType": "image/png",
+   "ext": "png",
+   "sha256": "1123cd870aeb2ef55f44dfba1d3ea72596365cc1239fd9c1dd667961788c7ec4",
+   "referencedOnPages": 3,
+   "isOriginal": true,
+   "cached": false
+  },
+  {
+   "url": "https://www.nextvisionfilms.com/wp-content/uploads/2025/05/ana-e-nuno-1.png",
+   "originalFilename": "ana-e-nuno-1.png",
+   "localPath": "source-archive/wordpress/media/2025/05/ana-e-nuno-1.png",
+   "bytes": 1483028,
+   "sizeMB": 1.414,
+   "contentType": "image/png",
+   "ext": "png",
+   "sha256": "48f5baebc6ea27fc0835e7f3c027ee8d55f2ae72a3160d474159a1f3748c46c2",
+   "referencedOnPages": 2,
+   "isOriginal": true,
+   "cached": false
+  },
+  {
+   "url": "https://www.nextvisionfilms.com/wp-content/uploads/2025/05/carolina-e-pedro-1.png",
+   "originalFilename": "carolina-e-pedro-1.png",
+   "localPath": "source-archive/wordpress/media/2025/05/carolina-e-pedro-1.png",
+   "bytes": 1435355,
+   "sizeMB": 1.369,
+   "contentType": "image/png",
+   "ext": "png",
+   "sha256": "42b4c1d4baf84b43f4ef76fcff9e2a29630ff819d022d24b637116fee199c929",
+   "referencedOnPages": 21,
+   "isOriginal": true,
+   "cached": false
+  },
+  {
+   "url": "https://www.nextvisionfilms.com/wp-content/uploads/2025/05/Daniela-e-duarte.png",
+   "originalFilename": "Daniela-e-duarte.png",
+   "localPath": "source-archive/wordpress/media/2025/05/Daniela-e-duarte.png",
+   "bytes": 1512817,
+   "sizeMB": 1.443,
+   "contentType": "image/png",
+   "ext": "png",
+   "sha256": "1d462a7b3249ec9693daa22b8e03b818d4fbdccb373be0a7c6441ea15c8a184f",
+   "referencedOnPages": 4,
+   "isOriginal": true,
+   "cached": false
+  },
+  {
+   "url": "https://www.nextvisionfilms.com/wp-content/uploads/2025/05/Epitafio.png",
+   "originalFilename": "Epitafio.png",
+   "localPath": "source-archive/wordpress/media/2025/05/Epitafio.png",
+   "bytes": 773222,
+   "sizeMB": 0.737,
+   "contentType": "image/png",
+   "ext": "png",
+   "sha256": "b49f0147ef8d16efd2c2aded71b4544608be9649a54384b7db8fdb5c51aab3a2",
+   "referencedOnPages": 3,
+   "isOriginal": true,
+   "cached": false
+  },
+  {
+   "url": "https://www.nextvisionfilms.com/wp-content/uploads/2025/05/lost-lines.png",
+   "originalFilename": "lost-lines.png",
+   "localPath": "source-archive/wordpress/media/2025/05/lost-lines.png",
+   "bytes": 1141745,
+   "sizeMB": 1.089,
+   "contentType": "image/png",
+   "ext": "png",
+   "sha256": "0ee832c9216731421ad952bbe1eee393e5c8f5e003441814d366e6e65b9e4616",
+   "referencedOnPages": 3,
+   "isOriginal": true,
+   "cached": false
+  },
+  {
+   "url": "https://www.nextvisionfilms.com/wp-content/uploads/2025/05/Marta-e-charles.png",
+   "originalFilename": "Marta-e-charles.png",
+   "localPath": "source-archive/wordpress/media/2025/05/Marta-e-charles.png",
+   "bytes": 1997283,
+   "sizeMB": 1.905,
+   "contentType": "image/png",
+   "ext": "png",
+   "sha256": "4ad4197f31bbd8cbbb1ad1a3c02802177e9f22aace4f0aaf4b5f80d80cc4de19",
+   "referencedOnPages": 2,
+   "isOriginal": true,
+   "cached": false
+  },
+  {
+   "url": "https://www.nextvisionfilms.com/wp-content/uploads/2025/05/Susana-e-rafael.png",
+   "originalFilename": "Susana-e-rafael.png",
+   "localPath": "source-archive/wordpress/media/2025/05/Susana-e-rafael.png",
+   "bytes": 1578399,
+   "sizeMB": 1.505,
+   "contentType": "image/png",
+   "ext": "png",
+   "sha256": "ce692f4263c356f3144237ff6ba34cb82ad32263ca8ad1f33bb53296775f62ab",
+   "referencedOnPages": 2,
+   "isOriginal": true,
+   "cached": false
+  },
+  {
+   "url": "https://www.nextvisionfilms.com/wp-content/uploads/2025/05/WhatsApp-Image-2025-05-26-at-10.16.54.jpeg",
+   "originalFilename": "WhatsApp-Image-2025-05-26-at-10.16.54.jpeg",
+   "localPath": "source-archive/wordpress/media/2025/05/WhatsApp-Image-2025-05-26-at-10.16.54.jpeg",
+   "bytes": 176663,
+   "sizeMB": 0.168,
+   "contentType": "image/jpeg",
+   "ext": "jpeg",
+   "sha256": "6c6dab96ef1bc9cf6cf49ffb3d0734cfefe5c944a7ce37ca237cffb134838eb2",
+   "referencedOnPages": 3,
+   "isOriginal": true,
+   "cached": false
+  },
+  {
+   "url": "https://www.nextvisionfilms.com/wp-content/uploads/2025/08/prince-mark.png",
+   "originalFilename": "prince-mark.png",
+   "localPath": "source-archive/wordpress/media/2025/08/prince-mark.png",
+   "bytes": 352240,
+   "sizeMB": 0.336,
+   "contentType": "image/png",
+   "ext": "png",
+   "sha256": "5baf1616859426bddc1a6bc728fe381519ff57ed8bc740e4ace54a151b55a4d8",
+   "referencedOnPages": 22,
+   "isOriginal": true,
+   "cached": false
+  },
+  {
+   "url": "https://www.nextvisionfilms.com/wp-content/uploads/2025/08/WhatsApp-Image-2025-08-07-at-18.16.31_99256236.jpg",
+   "originalFilename": "WhatsApp-Image-2025-08-07-at-18.16.31_99256236.jpg",
+   "localPath": "source-archive/wordpress/media/2025/08/WhatsApp-Image-2025-08-07-at-18.16.31_99256236.jpg",
+   "bytes": 55013,
+   "sizeMB": 0.052,
+   "contentType": "image/jpeg",
+   "ext": "jpg",
+   "sha256": "20a5009746e16f04fd39a7827819b089fc7f53419baf14f398e122f6ae626c16",
+   "referencedOnPages": 1,
+   "isOriginal": true,
+   "cached": false
+  },
+  {
+   "url": "https://www.nextvisionfilms.com/wp-content/uploads/2025/02/ana-1024x538.png",
+   "localPath": null,
+   "skipped": true,
+   "reason": "WordPress-generated derivative; the original upload is archived instead",
+   "derivedFrom": "https://www.nextvisionfilms.com/wp-content/uploads/2025/02/ana.png"
+  },
+  {
+   "url": "https://www.nextvisionfilms.com/wp-content/uploads/2025/02/Capture-1024x596.png",
+   "localPath": null,
+   "skipped": true,
+   "reason": "WordPress-generated derivative; the original upload is archived instead",
+   "derivedFrom": "https://www.nextvisionfilms.com/wp-content/uploads/2025/02/Capture.png"
+  },
+  {
+   "url": "https://www.nextvisionfilms.com/wp-content/uploads/2025/02/cropped-NVF-180x180.png",
+   "localPath": null,
+   "skipped": true,
+   "reason": "WordPress-generated derivative; the original upload is archived instead",
+   "derivedFrom": "https://www.nextvisionfilms.com/wp-content/uploads/2025/02/cropped-NVF.png"
+  },
+  {
+   "url": "https://www.nextvisionfilms.com/wp-content/uploads/2025/02/cropped-NVF-192x192.png",
+   "localPath": null,
+   "skipped": true,
+   "reason": "WordPress-generated derivative; the original upload is archived instead",
+   "derivedFrom": "https://www.nextvisionfilms.com/wp-content/uploads/2025/02/cropped-NVF.png"
+  },
+  {
+   "url": "https://www.nextvisionfilms.com/wp-content/uploads/2025/02/cropped-NVF-270x270.png",
+   "localPath": null,
+   "skipped": true,
+   "reason": "WordPress-generated derivative; the original upload is archived instead",
+   "derivedFrom": "https://www.nextvisionfilms.com/wp-content/uploads/2025/02/cropped-NVF.png"
+  },
+  {
+   "url": "https://www.nextvisionfilms.com/wp-content/uploads/2025/02/cropped-NVF-32x32.png",
+   "localPath": null,
+   "skipped": true,
+   "reason": "WordPress-generated derivative; the original upload is archived instead",
+   "derivedFrom": "https://www.nextvisionfilms.com/wp-content/uploads/2025/02/cropped-NVF.png"
+  },
+  {
+   "url": "https://www.nextvisionfilms.com/wp-content/uploads/2025/02/digiUP_nvf-1024x607.png",
+   "localPath": null,
+   "skipped": true,
+   "reason": "WordPress-generated derivative; the original upload is archived instead",
+   "derivedFrom": "https://www.nextvisionfilms.com/wp-content/uploads/2025/02/digiUP_nvf.png"
+  },
+  {
+   "url": "https://www.nextvisionfilms.com/wp-content/uploads/2025/02/digiUP_nvf-1536x911.png",
+   "localPath": null,
+   "skipped": true,
+   "reason": "WordPress-generated derivative; the original upload is archived instead",
+   "derivedFrom": "https://www.nextvisionfilms.com/wp-content/uploads/2025/02/digiUP_nvf.png"
+  },
+  {
+   "url": "https://www.nextvisionfilms.com/wp-content/uploads/2025/02/digiUP_nvf-2048x1215.png",
+   "localPath": null,
+   "skipped": true,
+   "reason": "WordPress-generated derivative; the original upload is archived instead",
+   "derivedFrom": "https://www.nextvisionfilms.com/wp-content/uploads/2025/02/digiUP_nvf.png"
+  },
+  {
+   "url": "https://www.nextvisionfilms.com/wp-content/uploads/2025/02/digiUP_nvf-300x178.png",
+   "localPath": null,
+   "skipped": true,
+   "reason": "WordPress-generated derivative; the original upload is archived instead",
+   "derivedFrom": "https://www.nextvisionfilms.com/wp-content/uploads/2025/02/digiUP_nvf.png"
+  },
+  {
+   "url": "https://www.nextvisionfilms.com/wp-content/uploads/2025/02/digiUP_nvf-768x455.png",
+   "localPath": null,
+   "skipped": true,
+   "reason": "WordPress-generated derivative; the original upload is archived instead",
+   "derivedFrom": "https://www.nextvisionfilms.com/wp-content/uploads/2025/02/digiUP_nvf.png"
+  },
+  {
+   "url": "https://www.nextvisionfilms.com/wp-content/uploads/2025/02/ffffffffff-1024x562.png",
+   "localPath": null,
+   "skipped": true,
+   "reason": "WordPress-generated derivative; the original upload is archived instead",
+   "derivedFrom": "https://www.nextvisionfilms.com/wp-content/uploads/2025/02/ffffffffff.png"
+  },
+  {
+   "url": "https://www.nextvisionfilms.com/wp-content/uploads/2025/02/Helder-Afonso-1-scaled-700x1000-1-e1745226778827-222x300.jpeg",
+   "localPath": null,
+   "skipped": true,
+   "reason": "WordPress-generated derivative; the original upload is archived instead",
+   "derivedFrom": "https://www.nextvisionfilms.com/wp-content/uploads/2025/02/Helder-Afonso-1-scaled-700x1000-1-e1745226778827.jpeg"
+  },
+  {
+   "url": "https://www.nextvisionfilms.com/wp-content/uploads/2025/02/image_2025-02-21_161051815-1024x576.png",
+   "localPath": null,
+   "skipped": true,
+   "reason": "WordPress-generated derivative; the original upload is archived instead",
+   "derivedFrom": "https://www.nextvisionfilms.com/wp-content/uploads/2025/02/image_2025-02-21_161051815.png"
+  },
+  {
+   "url": "https://www.nextvisionfilms.com/wp-content/uploads/2025/02/metro-1024x536.png",
+   "localPath": null,
+   "skipped": true,
+   "reason": "WordPress-generated derivative; the original upload is archived instead",
+   "derivedFrom": "https://www.nextvisionfilms.com/wp-content/uploads/2025/02/metro.png"
+  },
+  {
+   "url": "https://www.nextvisionfilms.com/wp-content/uploads/2025/02/museuuu-1024x462.png",
+   "localPath": null,
+   "skipped": true,
+   "reason": "WordPress-generated derivative; the original upload is archived instead",
+   "derivedFrom": "https://www.nextvisionfilms.com/wp-content/uploads/2025/02/museuuu.png"
+  },
+  {
+   "url": "https://www.nextvisionfilms.com/wp-content/uploads/2025/02/nath-1024x574.png",
+   "localPath": null,
+   "skipped": true,
+   "reason": "WordPress-generated derivative; the original upload is archived instead",
+   "derivedFrom": "https://www.nextvisionfilms.com/wp-content/uploads/2025/02/nath.png"
+  },
+  {
+   "url": "https://www.nextvisionfilms.com/wp-content/uploads/2025/02/nazary-1024x460.png",
+   "localPath": null,
+   "skipped": true,
+   "reason": "WordPress-generated derivative; the original upload is archived instead",
+   "derivedFrom": "https://www.nextvisionfilms.com/wp-content/uploads/2025/02/nazary.png"
+  },
+  {
+   "url": "https://www.nextvisionfilms.com/wp-content/uploads/2025/02/servicos3NextVision-300x200.jpg",
+   "localPath": null,
+   "skipped": true,
+   "reason": "WordPress-generated derivative; the original upload is archived instead",
+   "derivedFrom": "https://www.nextvisionfilms.com/wp-content/uploads/2025/02/servicos3NextVision.jpg"
+  },
+  {
+   "url": "https://www.nextvisionfilms.com/wp-content/uploads/2025/02/Vintage_Colorful_Retro_Vibes_Typographic-e1744196498986-300x94.png",
+   "localPath": null,
+   "skipped": true,
+   "reason": "WordPress-generated derivative; the original upload is archived instead",
+   "derivedFrom": "https://www.nextvisionfilms.com/wp-content/uploads/2025/02/Vintage_Colorful_Retro_Vibes_Typographic-e1744196498986.png"
+  },
+  {
+   "url": "https://www.nextvisionfilms.com/wp-content/uploads/2025/04/Antiqvvm-imagem-1024x467.png",
+   "localPath": null,
+   "skipped": true,
+   "reason": "WordPress-generated derivative; the original upload is archived instead",
+   "derivedFrom": "https://www.nextvisionfilms.com/wp-content/uploads/2025/04/Antiqvvm-imagem.png"
+  },
+  {
+   "url": "https://www.nextvisionfilms.com/wp-content/uploads/2025/04/banner-contactos-2-e1744213581116-1024x402.jpg",
+   "localPath": null,
+   "skipped": true,
+   "reason": "WordPress-generated derivative; the original upload is archived instead",
+   "derivedFrom": "https://www.nextvisionfilms.com/wp-content/uploads/2025/04/banner-contactos-2-e1744213581116.jpg"
+  },
+  {
+   "url": "https://www.nextvisionfilms.com/wp-content/uploads/2025/04/banner-contactos-2-e1744213581116-1536x603.jpg",
+   "localPath": null,
+   "skipped": true,
+   "reason": "WordPress-generated derivative; the original upload is archived instead",
+   "derivedFrom": "https://www.nextvisionfilms.com/wp-content/uploads/2025/04/banner-contactos-2-e1744213581116.jpg"
+  },
+  {
+   "url": "https://www.nextvisionfilms.com/wp-content/uploads/2025/04/banner-contactos-2-e1744213581116-300x118.jpg",
+   "localPath": null,
+   "skipped": true,
+   "reason": "WordPress-generated derivative; the original upload is archived instead",
+   "derivedFrom": "https://www.nextvisionfilms.com/wp-content/uploads/2025/04/banner-contactos-2-e1744213581116.jpg"
+  },
+  {
+   "url": "https://www.nextvisionfilms.com/wp-content/uploads/2025/04/banner-contactos-2-e1744213581116-768x302.jpg",
+   "localPath": null,
+   "skipped": true,
+   "reason": "WordPress-generated derivative; the original upload is archived instead",
+   "derivedFrom": "https://www.nextvisionfilms.com/wp-content/uploads/2025/04/banner-contactos-2-e1744213581116.jpg"
+  },
+  {
+   "url": "https://www.nextvisionfilms.com/wp-content/uploads/2025/04/Filmin_1.1.1-1024x576.jpg",
+   "localPath": null,
+   "skipped": true,
+   "reason": "WordPress-generated derivative; the original upload is archived instead",
+   "derivedFrom": "https://www.nextvisionfilms.com/wp-content/uploads/2025/04/Filmin_1.1.1.jpg"
+  },
+  {
+   "url": "https://www.nextvisionfilms.com/wp-content/uploads/2025/05/ana-e-filipeee-1024x537.png",
+   "localPath": null,
+   "skipped": true,
+   "reason": "WordPress-generated derivative; the original upload is archived instead",
+   "derivedFrom": "https://www.nextvisionfilms.com/wp-content/uploads/2025/05/ana-e-filipeee.png"
+  },
+  {
+   "url": "https://www.nextvisionfilms.com/wp-content/uploads/2025/05/ana-e-nuno-1-1024x477.png",
+   "localPath": null,
+   "skipped": true,
+   "reason": "WordPress-generated derivative; the original upload is archived instead",
+   "derivedFrom": "https://www.nextvisionfilms.com/wp-content/uploads/2025/05/ana-e-nuno-1.png"
+  },
+  {
+   "url": "https://www.nextvisionfilms.com/wp-content/uploads/2025/05/carolina-e-pedro-1-1024x481.png",
+   "localPath": null,
+   "skipped": true,
+   "reason": "WordPress-generated derivative; the original upload is archived instead",
+   "derivedFrom": "https://www.nextvisionfilms.com/wp-content/uploads/2025/05/carolina-e-pedro-1.png"
+  },
+  {
+   "url": "https://www.nextvisionfilms.com/wp-content/uploads/2025/05/Daniela-e-duarte-1024x504.png",
+   "localPath": null,
+   "skipped": true,
+   "reason": "WordPress-generated derivative; the original upload is archived instead",
+   "derivedFrom": "https://www.nextvisionfilms.com/wp-content/uploads/2025/05/Daniela-e-duarte.png"
+  },
+  {
+   "url": "https://www.nextvisionfilms.com/wp-content/uploads/2025/05/Epitafio-1024x531.png",
+   "localPath": null,
+   "skipped": true,
+   "reason": "WordPress-generated derivative; the original upload is archived instead",
+   "derivedFrom": "https://www.nextvisionfilms.com/wp-content/uploads/2025/05/Epitafio.png"
+  },
+  {
+   "url": "https://www.nextvisionfilms.com/wp-content/uploads/2025/05/lost-lines-1024x436.png",
+   "localPath": null,
+   "skipped": true,
+   "reason": "WordPress-generated derivative; the original upload is archived instead",
+   "derivedFrom": "https://www.nextvisionfilms.com/wp-content/uploads/2025/05/lost-lines.png"
+  },
+  {
+   "url": "https://www.nextvisionfilms.com/wp-content/uploads/2025/05/Marta-e-charles-1024x483.png",
+   "localPath": null,
+   "skipped": true,
+   "reason": "WordPress-generated derivative; the original upload is archived instead",
+   "derivedFrom": "https://www.nextvisionfilms.com/wp-content/uploads/2025/05/Marta-e-charles.png"
+  },
+  {
+   "url": "https://www.nextvisionfilms.com/wp-content/uploads/2025/05/Susana-e-rafael-1024x455.png",
+   "localPath": null,
+   "skipped": true,
+   "reason": "WordPress-generated derivative; the original upload is archived instead",
+   "derivedFrom": "https://www.nextvisionfilms.com/wp-content/uploads/2025/05/Susana-e-rafael.png"
+  },
+  {
+   "url": "https://www.nextvisionfilms.com/wp-content/uploads/2025/05/WhatsApp-Image-2025-05-26-at-10.16.54-691x1024.jpeg",
+   "localPath": null,
+   "skipped": true,
+   "reason": "WordPress-generated derivative; the original upload is archived instead",
+   "derivedFrom": "https://www.nextvisionfilms.com/wp-content/uploads/2025/05/WhatsApp-Image-2025-05-26-at-10.16.54.jpeg"
+  },
+  {
+   "url": "https://www.nextvisionfilms.com/wp-content/uploads/2025/08/prince-mark-1024x493.png",
+   "localPath": null,
+   "skipped": true,
+   "reason": "WordPress-generated derivative; the original upload is archived instead",
+   "derivedFrom": "https://www.nextvisionfilms.com/wp-content/uploads/2025/08/prince-mark.png"
+  },
+  {
+   "url": "https://www.nextvisionfilms.com/wp-content/uploads/2025/08/WhatsApp-Image-2025-08-07-at-18.16.31_99256236-300x240.jpg",
+   "localPath": null,
+   "skipped": true,
+   "reason": "WordPress-generated derivative; the original upload is archived instead",
+   "derivedFrom": "https://www.nextvisionfilms.com/wp-content/uploads/2025/08/WhatsApp-Image-2025-08-07-at-18.16.31_99256236.jpg"
+  },
+  {
+   "url": "https://www.nextvisionfilms.com/wp-content/uploads/2025/08/WhatsApp-Image-2025-08-07-at-18.16.31_99256236-768x614.jpg",
+   "localPath": null,
+   "skipped": true,
+   "reason": "WordPress-generated derivative; the original upload is archived instead",
+   "derivedFrom": "https://www.nextvisionfilms.com/wp-content/uploads/2025/08/WhatsApp-Image-2025-08-07-at-18.16.31_99256236.jpg"
+  }
+ ]
+}

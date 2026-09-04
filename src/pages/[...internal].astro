@@ -1,0 +1,39 @@
+---
+/**
+ * Internal-only routes, emitted at paths Astro's file router cannot express.
+ *
+ * Astro excludes any file or directory in src/pages/ whose name begins with an
+ * underscore, so `src/pages/__concepts/` builds nothing at all. To serve the Review A
+ * prototypes at the requested `/__concepts/…` URLs, the paths are declared explicitly
+ * here instead.
+ *
+ * This is a rest route, but it is NOT a catch-all: in static output Astro emits exactly
+ * the paths returned by getStaticPaths and nothing else. Unknown paths still 404.
+ *
+ * Everything emitted here is noindex, excluded from the sitemap (astro.config.mjs),
+ * disallowed in robots.txt, and linked from no production page. These routes must never
+ * become part of the information architecture.
+ */
+import type { GetStaticPaths } from 'astro';
+import ConceptIndex from '../components/concepts/ConceptIndex.astro';
+import Projection from '../components/concepts/Projection.astro';
+import ContactSheet from '../components/concepts/ContactSheet.astro';
+import Slate from '../components/concepts/Slate.astro';
+import NvfDirection from '../components/concepts/NvfDirection.astro';
+
+export const getStaticPaths = (() => [
+  { params: { internal: '__concepts' }, props: { view: 'index' } },
+  { params: { internal: '__concepts/projection' }, props: { view: 'projection' } },
+  { params: { internal: '__concepts/contact-sheet' }, props: { view: 'contact-sheet' } },
+  { params: { internal: '__concepts/slate' }, props: { view: 'slate' } },
+  { params: { internal: '__concepts/nvf-direction' }, props: { view: 'nvf-direction' } },
+]) satisfies GetStaticPaths;
+
+const { view } = Astro.props as { view: 'index' | 'projection' | 'contact-sheet' | 'slate' | 'nvf-direction' };
+---
+
+{view === 'index' && <ConceptIndex />}
+{view === 'projection' && <Projection />}
+{view === 'contact-sheet' && <ContactSheet />}
+{view === 'slate' && <Slate />}
+{view === 'nvf-direction' && <NvfDirection />}

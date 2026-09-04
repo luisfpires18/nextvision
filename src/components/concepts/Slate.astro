@@ -1,0 +1,137 @@
+---
+/**
+ * Direction C — SLATE. Review A prototype. INTERNAL, noindex.
+ *
+ * All copy and media are real and preserved. Nothing invented.
+ */
+import ConceptLayout from '../../layouts/ConceptLayout.astro';
+import { projects, copy, categories, heroFilm, bySlug } from '../../lib/concept-data.ts';
+import '../../styles/concepts/slate.css';
+
+const bands = ['leonor', 'nvf-vs-antiqvvm', 'helder-praia', 'nazaryi']
+  .map((s) => bySlug(s)!)
+  .filter(Boolean);
+
+const FIELD: Record<string, string> = {
+  accent: 'sl-field--accent', rust: 'sl-field--rust', gold: 'sl-field--gold',
+  teal: 'sl-field--teal', ink: 'sl-field--ink',
+};
+const counts = categories.map((c) => ({
+  ...c, n: projects.filter((p) => p.category === c.name).length,
+}));
+---
+
+<ConceptLayout concept="slate" title="Slate" lerp={0.14}>
+  <header class="c-header">
+    <a class="c-header__brand" href="/__concepts/">NVF</a>
+    <nav class="c-header__nav" data-menu aria-label="Principal">
+      <a href="#work">{copy.nav.portfolio}</a>
+      <a href="#about">{copy.nav.about}</a>
+      <a href="#contact">{copy.nav.contact}</a>
+    </nav>
+    <span class="sl-tc" data-timecode aria-hidden="true">00:00:00:00</span>
+    <button class="c-menu-toggle" data-menu-toggle aria-expanded="false">Menu</button>
+  </header>
+
+  <main class="c-main">
+    <!-- 1 · HERO — ink field, cropped type, framed footage -->
+    <section class="sl-field sl-field--ink sl-hero" aria-labelledby="hero-title">
+      <div class="c-wide" style="display:grid;gap:var(--space-6);align-content:center">
+        <h1 class="sl-huge" id="hero-title">
+          <span class="c-lines">
+            <span><span>{copy.heroLine1}</span></span>
+            <span><span style="--line-delay:70ms">{copy.heroLine2}</span></span>
+          </span>
+        </h1>
+
+        <div class="sl-hero__media">
+          <video src={heroFilm.src} poster={heroFilm.poster} autoplay muted loop playsinline aria-hidden="true"></video>
+        </div>
+
+        <div class="sl-hero__bar">
+          <p class="c-meta">Produtora audiovisual · Portugal</p>
+          <div class="c-stripe" style="--stripe-h:12px;inline-size:min(18rem,45vw)" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2 · CATEGORY INDEX — colour IS the taxonomy -->
+    <section class="sl-field sl-field--cream" aria-labelledby="cats-title">
+      <div class="c-wide">
+        <h2 class="c-meta" id="cats-title" style="margin-block-end:var(--space-5)">Áreas de trabalho</h2>
+        <div class="sl-cats">
+          {counts.map((c) => (
+            <a class={`sl-cat ${FIELD[c.token]}`} href="#work">
+              <span class="sl-cat__name">{c.name}</span>
+              <span class="c-meta">{String(c.n).padStart(2, '0')} projetos</span>
+            </a>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <!-- 3 · WORK — each project a band, coloured by category -->
+    <section id="work" aria-labelledby="work-title">
+      <h2 class="c-display c-display--m" id="work-title" style="position:absolute;inline-size:1px;block-size:1px;overflow:hidden;clip-path:inset(50%)">
+        {copy.workLine1} {copy.workLine2}
+      </h2>
+      {bands.map((p, i) => (
+        <article class={`sl-field ${FIELD[p.categoryToken]} sl-band ${i % 2 ? 'sl-band--flip' : ''} cat-${p.categoryToken}`} style="padding-block:0;padding-inline:0">
+          <div class="sl-band__body">
+            <p class="sl-band__index">{String(i + 1).padStart(2, '0')} / {String(bands.length).padStart(2, '0')} · {p.category}</p>
+            <h3 class="sl-band__title"><a class="c-link" href="#work" style="color:inherit">{p.title}</a></h3>
+            {p.tagline && <p class="c-body" style="max-inline-size:34rem">{p.tagline.split('. ')[0]}.</p>}
+            <p class="c-meta">{p.date}</p>
+          </div>
+          <div class="sl-band__media">
+            <div class="c-frame" data-preview={p.preview ? '' : undefined} style="position:absolute;inset:0">
+              <img src={p.poster} alt={`Fotograma de ${p.title}`} width="1200" height="675" loading="lazy" decoding="async" />
+              {p.preview && <video data-src={p.preview} poster={p.poster} muted loop playsinline preload="none" aria-hidden="true"></video>}
+            </div>
+          </div>
+        </article>
+      ))}
+    </section>
+
+    <!-- 4 · TEXT MOMENT — a gold field, ink type -->
+    <section class="sl-field sl-field--gold" id="about" aria-labelledby="about-title">
+      <div class="c-content">
+        <p class="c-meta" style="margin-block-end:var(--space-5)">Sobre</p>
+        <h2 class="sl-huge" id="about-title" style="font-size:clamp(2rem,0.8rem + 6vw,6rem)" data-reveal>
+          <span class="c-lines"><span><span>{copy.aboutLead}</span></span></span>
+        </h2>
+        <p class="c-lead" style="margin-block-start:var(--space-6)" data-reveal>{copy.aboutBody}</p>
+      </div>
+    </section>
+
+    <!-- 5 · CLOSE — the cut back to ink -->
+    <section class="sl-field sl-field--ink" id="contact">
+      <div class="c-wide">
+        <p class="c-meta">{copy.footerTitle}</p>
+        <a class="sl-footer__email" href={`mailto:${copy.footerEmail}`}>{copy.footerEmail}</a>
+        <div class="c-stripe" style="--stripe-h:14px;margin-block-start:var(--space-7)" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+        <p class="c-meta" style="margin-block-start:var(--space-5)">{copy.copyright}</p>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // Running timecode. Real elapsed time at 24 fps — technical, not decorative.
+    // Paused entirely under reduced motion, and never touches layout.
+    const el = document.querySelector<HTMLElement>('[data-timecode]');
+    if (el && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      const t0 = performance.now();
+      const pad = (n: number) => String(n).padStart(2, '0');
+      let raf = 0;
+      const tick = () => {
+        const ms = performance.now() - t0;
+        const total = ms / 1000;
+        const f = Math.floor((total % 1) * 24);
+        el.textContent = `${pad(Math.floor(total / 3600))}:${pad(Math.floor(total / 60) % 60)}:${pad(Math.floor(total) % 60)}:${pad(f)}`;
+        raf = requestAnimationFrame(tick);
+      };
+      raf = requestAnimationFrame(tick);
+      document.addEventListener('astro:before-swap', () => cancelAnimationFrame(raf));
+    }
+  </script>
+</ConceptLayout>

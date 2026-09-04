@@ -1,0 +1,55 @@
+---
+/**
+ * /termos-e-condicoes/ — PHASE 10.
+ *
+ * The body is `src/content/legal/termos-e-condicoes.md`, generated from the Phase 0.5
+ * archive by `npm run legal:build` and proved word-for-word identical to
+ * `docs/content/termos-e-condicoes.txt` by `npm run validate:legal` on every build.
+ *
+ * The one intervention, and it changes no words: the live page is a single unbroken block
+ * whose eight lettered sections exist only as `<strong>` runs inside paragraphs — four of
+ * them sharing a paragraph with their own body text. Each is a real `<h2>` here, with an
+ * anchor, so the document can be navigated and linked into. CLAUDE.md §2.1 names exactly
+ * this as a structural fix.
+ *
+ * No `Navegação` index: this page does not publish one, and adding a visible index would
+ * mean writing a label the source does not have. The headings carry ids; the document
+ * carries no words we chose.
+ *
+ * Metadata is the live page's own. It publishes no meta description and no og:image, and
+ * that is preserved rather than "fixed" — writing one is copy, and copy proposals are
+ * Phase 11b.
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import LegalDocument from '../legal/LegalDocument.astro';
+import { breadcrumbSchema } from '../../lib/seo.ts';
+import type { Locale } from '../../config/i18n.ts';
+import { pagePath } from '../../i18n/routes.ts';
+import { t } from '../../i18n/index.ts';
+import { pageTitle, pageDescription } from '../../lib/page-meta.ts';
+
+interface Props { locale: Locale }
+const { locale } = Astro.props;
+
+const schema = [
+  breadcrumbSchema([
+    { name: 'Next Vision Films', path: pagePath('home', locale) },
+    { name: t('nav.terms', locale), path: pagePath('terms', locale) },
+  ]),
+];
+---
+
+{/* No meta description, and that is a decision rather than an omission: every sentence
+    in this document is a binding clause, so selecting one would present a term of
+    contract as a summary of the page. The reason is declared in PAGE_META and
+    `npm run validate:seo` accepts the page only because it is (src/lib/page-meta.ts). */}
+<BaseLayout
+  title={pageTitle('terms', locale)}
+  description={pageDescription('terms', locale) ?? undefined}
+  locale={locale}
+  ground="cream"
+  ogType="article"
+  schema={schema}
+>
+  <LegalDocument id="termos-e-condicoes" locale={locale} />
+</BaseLayout>

@@ -1,0 +1,40 @@
+/* Spacing and measure tokens. Replaces the live site's 63-224px section drift. */
+:root {
+  --space-1: 0.25rem; --space-2: 0.5rem;  --space-3: 0.75rem; --space-4: 1rem;
+  --space-5: 1.5rem;  --space-6: 2rem;    --space-7: 3rem;    --space-8: 4rem;
+  --space-9: 6rem;    --space-10: 8rem;   --space-11: 10rem;
+
+  --space-section: clamp(4rem, 2rem + 8vw, 10rem);
+
+  --w-text: 68ch;
+  --w-content: 1140px;
+  --w-wide: 1440px;
+
+  --radius-s: 2px; --radius-m: 6px; --radius-l: 12px;
+}
+
+/* Added for Review A concepts: layer order in one place, so no component invents a
+   z-index. Values are deliberately sparse to leave room between them. */
+:root {
+  --z-base: 0;
+  --z-media: 10;
+  --z-overlay: 20;
+  --z-header: 40;
+  --z-menu: 50;
+  /* The header's own controls, which must stay ABOVE the menu they open. Without this the
+     full-screen overlay paints over the close button and a touch reader has no way out of
+     the menu except by navigating. */
+  --z-menu-controls: 55;
+  --z-loader: 90;
+  --z-debug: 100;
+}
+
+/* ── Site layout (Review B) ───────────────────────────────────────────────── */
+:root {
+  --gutter: clamp(1rem, 0.5rem + 3vw, 4rem);
+  --header-h: 3.25rem;
+  --frame-gap: clamp(0.75rem, 0.4rem + 1.4vw, 1.5rem);
+  --row-gap: clamp(2rem, 1.2rem + 3vw, 4.5rem);
+  --section-pad: clamp(3.5rem, 2rem + 6vw, 8rem);
+}
+@media (min-width: 48rem) { :root { --header-h: 4rem; } }

@@ -1,0 +1,424 @@
+/**
+ * Static pages — PHASE 10.
+ *
+ * `/sobre/`, `/servicos/`, `/contactos/` and `/obrigado/`. No new visual language: this is
+ * the approved Contact Sheet system doing the one thing the homepage and the portfolio
+ * never asked it to do — carry running prose.
+ *
+ * The three rules that produce these four layouts:
+ *
+ *   READING IS CREAM.        The ground goes dark only where there is media at scale
+ *                            (the /contactos/ banner) or at the close. A page of text on
+ *                            the dark ground is a poster, not a document.
+ *   ONE MEASURE PER ROLE.    Prose is capped in `ch`, never in px, so the line length is
+ *                            a property of the type and survives any later type change.
+ *   THE FRAME IS THE FRAME.  Photographs on these pages are the same object as a project
+ *                            still — a window with a known ratio, reserved before it
+ *                            decodes — so nothing shifts and nothing is a new component.
+ *
+ * Every value is a token (CLAUDE.md §4). No raw hex, size, family, duration or easing.
+ */
+
+/* ══════════════════════════════════════════════════════════════ page head ══
+   The one thing every static page shares. A page title is allowed the feature step —
+   it is the largest thing on a page that has no film on it, and it is still capped
+   below the size the brief calls an agency manifesto. */
+
+.display--l {
+  font-size: var(--t-feature);
+  max-inline-size: 18ch;
+}
+
+.pg-head { display: grid; gap: var(--space-6); }
+@media (min-width: 60rem) {
+  /* Prose beside the title. The statement is narrow and the reading column is wide,
+     which is the proportion an editorial opening actually wants — the title is a label
+     for the page, not a competitor to the paragraph explaining it. */
+  .pg-head--beside {
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    gap: var(--space-9);
+    align-items: start;
+  }
+  /* A photograph beside the title. Bottom-aligned, so the title and the image share a
+     baseline the way a frame and its caption do everywhere else on this site. */
+  .pg-head--plate {
+    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+    gap: var(--space-9);
+    align-items: end;
+  }
+}
+
+/* The reading column. 62ch, which at Barlow 400 / 17px lands just under 600px — the
+   measure the legal pages use too, so prose reads the same width wherever it appears. */
+.pg-prose { display: grid; gap: var(--space-5); max-inline-size: 62ch; }
+.pg-prose p { margin: 0; }
+
+/**
+ * The company's own colour reference, as a rule.
+ *
+ * `colors.png` is published twice on the live /sobre/ — a 100x22 strip of four equal
+ * swatches, and the source of this site's entire accent palette (ARCHITECTURE.md §5.2).
+ * Here it does structural work as well as identity work: it is the division between the
+ * story and the people, so it is a rule that happens to be the brand rather than an
+ * ornament that happens to divide. Decorative to assistive technology, because the four
+ * colours carry no information the page does not also state in words.
+ */
+.pg-swatches {
+  display: block;
+  block-size: 3px;
+  border: 0;
+  margin: 0;
+  background: linear-gradient(90deg,
+    var(--brand-gold) 0 25%, var(--brand-rust) 25% 50%,
+    var(--brand-oxblood) 50% 75%, var(--brand-teal) 75% 100%);
+}
+
+/* ══════════════════════════════════════════════════════════════════ about ══ */
+
+/* The rule IS the seam between the story and the people, so it sits in the space the
+   section break already pays for rather than adding a second gap above its own. */
+.ab-rule { margin-block: 0 var(--space-8); }
+
+/**
+ * The team.
+ *
+ * Two people, two photographs of genuinely different shapes — 1.25 landscape and 0.74
+ * portrait — and NEITHER is cropped to match the other. Aspect ratios are read, never
+ * typed (decision A75).
+ *
+ * The columns are what absorb the difference, and they do it by the same relation the
+ * homepage and the portfolio use: equal height ⟺ ratioₙ/ratioₘ = colₙ/colₘ (decision
+ * A37). So the track list IS the two ratios — `--cols` is written by the page from the
+ * manifest, never typed here — and the two frames resolve to the same height at every
+ * width, with their captions on one baseline. A `1fr 1fr` grid would leave the landscape
+ * frame 125px short of the portrait and put a hole under its caption, which is exactly
+ * the failure the relation exists to prevent.
+ *
+ * The fallback is `1fr 1fr`, for the case where a portrait has no recorded dimensions.
+ */
+.ab-team { display: grid; gap: var(--space-8); }
+@media (min-width: 48rem) {
+  .ab-team {
+    grid-template-columns: var(--cols, repeat(2, minmax(0, 1fr)));
+    gap: var(--space-7);
+    align-items: start;
+  }
+}
+.ab-person { display: grid; gap: var(--space-4); align-content: start; min-inline-size: 0; }
+.ab-person__frame {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  background: var(--ground-dark);
+  inline-size: 100%;
+  aspect-ratio: var(--ar);
+}
+.ab-person__frame img {
+  position: absolute;
+  inset: 0;
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: cover;
+  display: block;
+}
+.ab-person__name {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--t-service);
+  line-height: 1.1;
+  margin: 0;
+}
+.ab-links { display: flex; flex-wrap: wrap; gap: var(--space-4); margin: 0; padding: 0; list-style: none; }
+.ab-links a {
+  font-family: var(--font-mono);
+  font-size: var(--t-metaline);
+  letter-spacing: var(--tracking-eyebrow);
+  text-transform: uppercase;
+  color: var(--dim);
+  /* 44px target without a button: the padding is the target. */
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 2.75rem;
+  padding-inline-end: var(--space-2);
+  transition: color var(--dur-fast) var(--ease-ui);
+}
+.ab-links a:hover, .ab-links a:focus-visible { color: var(--fg); }
+
+/* The closing statement. Four published lines, set as one block at lead scale. */
+.ab-close { display: grid; gap: var(--space-6); }
+@media (min-width: 60rem) {
+  .ab-close { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: var(--space-9); align-items: start; }
+}
+.ab-close__body { display: grid; gap: var(--space-4); max-inline-size: 56ch; }
+.ab-close__body p { margin: 0; }
+.ab-actions { display: flex; flex-wrap: wrap; gap: var(--space-4); margin-block-start: var(--space-6); }
+
+/* ═══════════════════════════════════════════════════════════════ services ══ */
+
+/**
+ * The published lead, at its own scale.
+ *
+ * 34 words. At the full display step this becomes the manifesto the brief rules out, so
+ * it takes the small display step and a wider measure than a heading would — long enough
+ * to read as a sentence, short enough to read as a statement.
+ */
+.sv-lead {
+  font-size: var(--t-display-s);
+  line-height: 1.2;
+  max-inline-size: 38ch;
+}
+
+/**
+ * The three marked phrases.
+ *
+ * `/servicos/` sets `transformar`, `ideias` and `visão autêntica` on a yellow ground.
+ * That is the live page's own emphasis, and it is the one place gold behaves exactly as
+ * the token rules require: a SURFACE with ink on it, never text. 7.56:1 (ARCHITECTURE
+ * §5.2). `box-decoration-break` keeps the ground continuous across a line wrap instead of
+ * leaving a notch at the break.
+ */
+.sv-mark {
+  background: var(--brand-gold);
+  color: var(--brand-ink);
+  padding-inline: 0.12em;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+
+/**
+ * The lead image. 624px is the entire original, so it is given a column and never the
+ * page: an image cannot be made bigger than it is (decision A76), and a 624px file
+ * stretched across 1440 would be the one detail that undoes the argument.
+ */
+.sv-plate {
+  position: relative;
+  overflow: hidden;
+  background: var(--ground-dark);
+  inline-size: 100%;
+  max-inline-size: 39rem;
+  aspect-ratio: var(--ar);
+}
+.sv-plate img { position: absolute; inset: 0; inline-size: 100%; block-size: 100%; object-fit: cover; display: block; }
+
+/* The four services, at page scale rather than homepage scale: the whole description,
+   on the same ruled index the homepage uses so the two pages are recognisably the same
+   list seen from two distances. */
+.sv-list { display: grid; margin-block-start: var(--space-8); }
+.sv-item {
+  display: grid;
+  gap: var(--space-3);
+  padding-block: var(--space-6);
+  border-block-start: 1px solid var(--rule);
+}
+.sv-item:last-child { border-block-end: 1px solid var(--rule); }
+@media (min-width: 48rem) {
+  .sv-item { grid-template-columns: minmax(0, 4fr) minmax(0, 8fr); gap: var(--space-6); align-items: baseline; }
+}
+.sv-item__title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--t-service);
+  line-height: 1.1;
+  margin: 0;
+}
+.sv-item__body { max-inline-size: 58ch; }
+
+/* ════════════════════════════════════════════════════════════════ contact ══ */
+
+/**
+ * The banner.
+ *
+ * The one photograph on these four pages wide enough to be a plate — 1640x644, and it is
+ * the page's own published banner and og:image. It carries `data-header-zone` for the
+ * same reason every project still does: the header's ink is resolved against what is
+ * physically behind its text row, and this is the only thing on the page that can be
+ * there.
+ */
+.ct-plate {
+  position: relative;
+  overflow: hidden;
+  background: var(--ground-dark);
+  inline-size: 100%;
+  aspect-ratio: var(--ar);
+  /* The source is 1640 wide. Past that the plate stops growing rather than being
+     upscaled, and the room holds it — the same rule the project screen follows. */
+  max-inline-size: 102.5rem;
+  margin-inline: auto;
+}
+.ct-plate img { position: absolute; inset: 0; inline-size: 100%; block-size: 100%; object-fit: cover; display: block; }
+
+.ct-hero { padding-block: var(--section-pad); padding-inline: var(--gutter); }
+.ct-hero__inner { max-inline-size: var(--w-wide); margin-inline: auto; display: grid; gap: var(--space-6); }
+.ct-caption { display: grid; gap: var(--space-4); }
+@media (min-width: 60rem) {
+  .ct-caption { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: var(--space-9); align-items: start; }
+}
+
+.ct-details { display: grid; gap: var(--space-7); }
+@media (min-width: 60rem) {
+  .ct-details { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: var(--space-9); align-items: start; }
+}
+.ct-list { display: grid; gap: var(--space-4); align-content: start; margin: 0; padding: 0; list-style: none; }
+.ct-phone {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--t-service);
+  line-height: 1.1;
+  /* A phone number on the contact page is the most likely thing a thumb aims at, so it
+     carries the 44px target rather than the 38px its own line box would give it. */
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 2.75rem;
+  padding-block: var(--space-2);
+  transition: color var(--dur-fast) var(--ease-ui);
+}
+/* The accent has to follow the ground or it disappears: oxblood is 6.64:1 on cream and
+   1.98:1 on the dark ground; gold is 10.16:1 on dark and 1.60:1 on cream. Neither works
+   everywhere, so each ground names its own — the same rule the focus ring follows. */
+.ground-cream .ct-phone:hover, .ground-cream .ct-phone:focus-visible { color: var(--brand-oxblood); }
+.ground-dark .ct-phone:hover, .ground-dark .ct-phone:focus-visible { color: var(--brand-gold); }
+.ct-socials { display: flex; flex-wrap: wrap; gap: var(--space-5); margin: 0; padding: 0; list-style: none; }
+.ct-socials a {
+  font-family: var(--font-mono);
+  font-size: var(--t-metaline);
+  letter-spacing: var(--tracking-eyebrow);
+  text-transform: uppercase;
+  color: var(--dim);
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 2.75rem;
+  transition: color var(--dur-fast) var(--ease-ui);
+}
+.ct-socials a:hover, .ct-socials a:focus-visible { color: var(--fg); }
+
+/**
+ * The email slot, reserved and empty.
+ *
+ * The live /contactos/ displays `nextvisionfilmsagency@gmail.com` inside a `mailto:` that
+ * targets `hello@nextvisionfilms.com`, and /termos-e-condicoes/ names a third address
+ * (decision D2). None of them is printed until the owners say which is canonical. The
+ * markup for it exists in ContactDetails.astro behind `emailStatus === 'confirmed'`, so
+ * answering D2 is one word in src/content/settings/site.yml.
+ */
+
+.ct-form-section { display: grid; gap: var(--space-7); }
+@media (min-width: 60rem) {
+  .ct-form-section { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: var(--space-9); align-items: start; }
+}
+.ct-intro { display: grid; gap: var(--space-4); max-inline-size: 42ch; }
+.ct-intro__title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--t-project);
+  line-height: 1.15;
+  margin: 0;
+}
+
+/* ═══════════════════════════════════════════════════════════════════ form ══
+   Hairlines and type, not boxes. The field is a ruled line the way every other list on
+   this site is a ruled line, so the form belongs to the same document as the prose
+   above it. */
+
+.form { display: grid; gap: var(--space-5); max-inline-size: 44rem; }
+.form__field { display: grid; gap: var(--space-2); }
+.form__label {
+  font-family: var(--font-mono);
+  font-size: var(--t-metaline);
+  letter-spacing: var(--tracking-eyebrow);
+  text-transform: uppercase;
+  color: var(--dim);
+}
+.form__control {
+  font-family: var(--font-body);
+  font-size: var(--t-body);
+  line-height: var(--lh-body);
+  color: inherit;
+  background: transparent;
+  border: 0;
+  border-block-end: 1px solid var(--rule);
+  border-radius: 0;
+  padding: var(--space-3) 0;
+  min-block-size: 2.75rem;
+  inline-size: 100%;
+  transition: border-color var(--dur-fast) var(--ease-ui);
+  /* iOS zooms a focused input below 16px; --t-body is 17px, so it does not. */
+}
+.form__control:hover { border-color: color-mix(in srgb, var(--fg) 40%, transparent); }
+.form__control:focus-visible { border-color: var(--fg); }
+.form__control::placeholder { color: color-mix(in srgb, var(--fg) 45%, transparent); }
+textarea.form__control { resize: vertical; min-block-size: 7rem; }
+
+.form__consent { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--space-3); align-items: start; }
+.form__consent input {
+  /* 24px: the WCAG 2.2 target-size minimum. The label is a target too — it is bound with
+     `for` and runs two lines wide — so the real hit area is far larger, but the control
+     itself still has to clear the floor on its own. */
+  inline-size: 1.5rem;
+  block-size: 1.5rem;
+  margin: 0;
+  /* The checkbox is the one control that cannot be a hairline: it has to be hittable.
+     accent-color keeps the native control, which is what screen readers and Windows
+     high-contrast mode already understand. */
+  accent-color: var(--brand-oxblood);
+  /* Aligns the box with the cap height of the first line rather than its box top. */
+  margin-block-start: 0.2rem;
+}
+.form__consent label { font-size: var(--t-body-s); line-height: var(--lh-body); }
+.form__consent a { text-decoration: underline; text-underline-offset: 0.2em; }
+
+/* The honeypot. Present, named like a real field, and never shown or announced. */
+.form__trap { position: absolute; left: -9999px; inline-size: 1px; block-size: 1px; overflow: hidden; }
+
+.form__actions { display: flex; flex-wrap: wrap; gap: var(--space-4); align-items: center; }
+.form__submit {
+  font-family: var(--font-mono);
+  font-size: var(--t-metaline);
+  letter-spacing: var(--tracking-eyebrow);
+  text-transform: uppercase;
+  appearance: none;
+  cursor: pointer;
+  background: transparent;
+  color: inherit;
+  border: 1px solid color-mix(in srgb, currentColor 40%, transparent);
+  padding: var(--space-3) var(--space-5);
+  min-block-size: 2.75rem;
+  transition: background-color var(--dur-fast) var(--ease-ui), color var(--dur-fast) var(--ease-ui), border-color var(--dur-fast) var(--ease-ui);
+}
+.form__submit:hover:not(:disabled),
+.form__submit:focus-visible:not(:disabled) { background: currentColor; border-color: currentColor; }
+.form__submit:hover:not(:disabled) > span,
+.form__submit:focus-visible:not(:disabled) > span { color: var(--ground-cream); }
+/* Disabled now means one thing only: a submission is in flight. The endpoint exists
+   (src/pages/api/contact.ts), so the control is enabled at rest — it is disabled for the
+   duration of the request, which is the browser's own way of saying "already sent". */
+.form__submit:disabled { cursor: not-allowed; opacity: 0.45; }
+
+/* ── PHASE 13 · the three parts the backend added ─────────────────────────────
+   The Turnstile widget is rendered by Cloudflare inside an iframe we do not style. What
+   is styled is the space it occupies, so the form does not jump when it mounts: 65px is
+   the widget's own fixed height and it is reserved before the script has run. */
+.form__verify { min-block-size: 65px; }
+.form__verify:empty { opacity: 0; }
+
+/* The <noscript> line and the live region share one voice: small, dim, one line, and
+   never a coloured alert box. A form that shouts at a mistyped address is a form that
+   thinks the mistake was interesting. */
+.form__note,
+.form__status {
+  font-size: var(--t-body-s);
+  line-height: var(--lh-body);
+  color: var(--dim);
+  margin: 0;
+}
+/* Empty by default and takes no space until it has something to say — a permanently
+   reserved strip of nothing is worse than the one-line reflow it prevents. */
+.form__status:empty { display: none; }
+.form__status[data-state='error'] { color: var(--accent); }
+
+/* ═════════════════════════════════════════════════════════════════ obrigado ══
+   A state, not a destination. One heading, the published message, one way onward, and
+   enough height that the footer does not ride up under it. */
+
+.tk { min-block-size: 56svh; display: grid; align-content: center; }
+.tk__body { display: grid; gap: var(--space-4); max-inline-size: 50ch; margin-block-start: var(--space-5); }
+.tk__body p { margin: 0; }

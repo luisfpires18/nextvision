@@ -1,0 +1,14 @@
+---
+/**
+ * /offline/
+ *
+ * A ROUTE. The page is ErrorPage.astro, which serves both states in both locales.
+ *
+ * The service worker serves this document when a navigation cannot reach the network
+ * (public/sw.js). It is a real route as well as a fallback, so it can be opened,
+ * inspected and linked while offline behaviour is being tested.
+ */
+import ErrorPage from '../components/pages/ErrorPage.astro';
+---
+
+<ErrorPage locale="pt" state="offline" />

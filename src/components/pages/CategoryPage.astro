@@ -1,0 +1,53 @@
+---
+/**
+ * The five preserved category archives.
+ *
+ * These are indexed URLs that today have no `<h1>`, no canonical and appear in no sitemap
+ * (audit §9.18, ROUTE_MIGRATION §2). They are kept — and fixed — rather than redirected:
+ * each renders its own work, with its own heading, and they are what makes the filter
+ * control a set of real links instead of JavaScript-only state.
+ *
+ * They stay out of the sitemap. `/portfolio/` is the page we want ranked; these exist so
+ * that inbound links and old bookmarks keep landing on something meaningful.
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PortfolioIndex from '../portfolio/PortfolioIndex.astro';
+import ContactClose from '../site/ContactClose.astro';
+import { portfolioProjects } from '../../lib/curated.ts';
+import { PORTFOLIO } from '../../lib/portfolio.ts';
+import { say } from '../../lib/homepage.ts';
+import { categoryDescription } from '../../lib/page-meta.ts';
+import type { Locale } from '../../config/i18n.ts';
+import '../../styles/portfolio.css';
+
+interface Props {
+  locale: Locale;
+  slug: string;
+  /** The category's own published name, already resolved for this locale. */
+  name: string;
+}
+const { locale, slug, name } = Astro.props;
+
+const all = await portfolioProjects(locale);
+const projects = all.filter((p) => p.categorySlug === slug);
+---
+
+{/* Noindex, and the description is for a human who arrived on an old link rather than
+    for a search result that will never exist. `/portfolio/` is the page we want ranked;
+    each of these is a subset of it (astro.config.mjs keeps them out of the sitemap). */}
+<BaseLayout
+  title={`${name} - ${say(PORTFOLIO.title, locale)}`}
+  description={categoryDescription(name, projects.length, locale)}
+  locale={locale}
+  ground="cream"
+  noindex={true}
+>
+  <PortfolioIndex
+    projects={projects}
+    total={all.length}
+    active={slug}
+    heading={name}
+    locale={locale}
+  />
+  <ContactClose locale={locale} />
+</BaseLayout>

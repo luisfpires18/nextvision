@@ -1,0 +1,88 @@
+---
+/**
+ * One frame on the contact sheet, wherever it appears.
+ *
+ * The whole card is ONE link to the project's own route — frame, title and metadata
+ * inside a single `<a>`. That gives one tab stop per project, an accessible name that
+ * already reads "title, category, date", and the behaviour Review C settled: a tap goes
+ * to the project, never to a preview that then needs a second tap.
+ *
+ * The hover loop is an enhancement on top of a link, not a mode in front of it. It runs
+ * on fine pointers only, attaches its source on intent, and never exists on touch —
+ * where the still plus the caption already carry everything.
+ *
+ * The frame carries `data-frame`, not a view-transition name. Review E moved the naming
+ * to the moment of intent: rendering a name into all twenty cards meant a navigation
+ * captured twenty snapshot layers to move one photograph. The runtime names the single
+ * frame that is about to become the film, on both documents, and clears it afterwards
+ * (src/lib/motion/transitions.ts). Without View Transitions this is the ordinary link it
+ * always was.
+ */
+import { t } from '../../i18n/index.ts';
+import { DEFAULT_LOCALE, type Locale } from '../../config/i18n.ts';
+import type { CuratedProject } from '../../lib/curated.ts';
+
+interface Props {
+  project: CuratedProject;
+  /** Desktop aspect ratio; the row picks it so frames in a row share a height. */
+  ratio: number;
+  mobileRatio: number;
+  tabletRatio?: number;
+  /** `sizes` for the responsive still — how wide this frame actually renders. */
+  sizes?: string;
+  /** Only frames above the fold should be eager. */
+  priority?: boolean;
+  locale?: Locale;
+}
+
+const {
+  project: p, ratio, mobileRatio, tabletRatio, sizes = '100vw',
+  priority = false, locale = DEFAULT_LOCALE,
+} = Astro.props;
+---
+
+<article class={`item cat-${p.categoryToken}`} data-category={p.categorySlug} data-project={p.slug}>
+  <a
+    class="card"
+    href={p.href}
+    style={`--ar:${ratio}; --ar-m:${mobileRatio}; --ar-t:${tabletRatio ?? ratio}`}
+  >
+    <span class="frame" data-header-zone data-preview={p.previewSrc ? '' : undefined} data-frame={p.slug}>
+      {p.posterSrc && (
+        <picture>
+          {p.posterAvifSrcset && <source type="image/avif" srcset={p.posterAvifSrcset} sizes={sizes} />}
+          <img
+            src={p.posterSrc}
+            srcset={p.posterSrcset}
+            sizes={sizes}
+            alt=""
+            width={p.posterWidth}
+            height={p.posterHeight}
+            loading={priority ? 'eager' : 'lazy'}
+            decoding={priority ? 'sync' : 'async'}
+            fetchpriority={priority ? 'high' : 'auto'}
+          />
+        </picture>
+      )}
+      {p.previewSrc && (
+        <video
+          data-src={p.previewSrc}
+          poster={p.posterSrc ?? undefined}
+          muted loop playsinline preload="none" aria-hidden="true"
+        ></video>
+      )}
+    </span>
+
+    <h3 class="item__title">{p.title}</h3>
+    <p class="metaline item__meta">
+      <span class="item__dot" aria-hidden="true"></span>
+      <span>{p.categoryName}</span>
+      <span>{p.date}</span>
+      {/* One published project's video reference is broken on the live site (D6). The
+          card says so plainly rather than offering a film that is not there. */}
+      {p.filmUnavailable
+        ? <span class="item__flag">{t('project.noFilm', locale)}</span>
+        : <span class="item__cue" aria-hidden="true">{t('project.viewProject', locale)}</span>}
+    </p>
+  </a>
+</article>

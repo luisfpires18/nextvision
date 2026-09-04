@@ -1,0 +1,56 @@
+---
+/**
+ * /politica-de-privacidade/ — PHASE 10.
+ *
+ * The body is `src/content/legal/politica-de-privacidade.md`, generated from the Phase 0.5
+ * archive by `npm run legal:build` and proved word-for-word identical to
+ * `docs/content/politica-de-privacidade.txt` by `npm run validate:legal` on every build.
+ *
+ * ── The migration fix ────────────────────────────────────────────────────────
+ * The live page's own `Navegação` index — ten links, the reader's only way into a
+ * 15 000-character document — points at `https://www.digiup.me/politica-de-privacidade/`.
+ * Ten links that send a reader off this site to another company's policy (audit §9.4,
+ * decision D4). They now resolve in-page, with the SAME labels and the SAME fragment
+ * names the source already used, so what changed is the origin and nothing else.
+ * `npm run validate:legal` fails the build if any of the ten stops resolving, or if a
+ * digiup.me navigation link ever comes back.
+ *
+ * D4 asked whether to repoint them. This repoints the NAVIGATION MECHANICS only. Every
+ * word of the policy — including the paragraph naming Digiruptiva as the data controller
+ * and `hello@digiup.me` as its contact — is untouched, because that is a statement of who
+ * processes the data and not a broken link.
+ *
+ * The other structural fix: the ten section headings are `<h4>` on the live page, under an
+ * `<h1>`, with no h2 or h3 between them. They are `<h2>` here (CLAUDE.md §2.1).
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import LegalDocument from '../legal/LegalDocument.astro';
+import { breadcrumbSchema } from '../../lib/seo.ts';
+import type { Locale } from '../../config/i18n.ts';
+import { pagePath } from '../../i18n/routes.ts';
+import { t } from '../../i18n/index.ts';
+import { pageTitle, pageDescription } from '../../lib/page-meta.ts';
+
+interface Props { locale: Locale }
+const { locale } = Astro.props;
+
+const schema = [
+  breadcrumbSchema([
+    { name: 'Next Vision Films', path: pagePath('home', locale) },
+    { name: t('nav.privacy', locale), path: pagePath('privacy', locale) },
+  ]),
+];
+---
+
+{/* The live <title> is lower case: "política de privacidade - We are NVF -
+    Produtora Audiovisual". Preserved exactly (CLAUDE.md §2). */}
+<BaseLayout
+  title={pageTitle('privacy', locale)}
+  description={pageDescription('privacy', locale) ?? undefined}
+  locale={locale}
+  ground="cream"
+  ogType="article"
+  schema={schema}
+>
+  <LegalDocument id="politica-de-privacidade" locale={locale} />
+</BaseLayout>

@@ -1,0 +1,61 @@
+---
+# PILOT ENTRY — proves the schema end to end. The other 19 projects are migrated in
+# Implementation Phase 2, from docs/source-archive/pages.json.
+#
+# Every value below is taken verbatim from the live site or from the preservation
+# archive. Nothing is invented (CLAUDE.md §2, §8).
+#   title          <h1> on https://www.nextvisionfilms.com/portfolio/epitafio/
+#   date           Elementor post-info: "23 Maio '25"
+#   categories     legacy WordPress term (names not final — decision R5)
+#   film.id        from the page's Elementor video widget settings
+#   poster         WordPress upload, archived with checksum
+#   masterRequired src/data/media-source-map.json — no local source above the hero floor
+
+title:
+  pt: "Epitáfio"
+
+sourceLocale: pt
+date: 2025-05-23
+year: 2025
+
+categories:
+  - ficcao
+tags: []
+collections: []
+
+featured: false
+# Curated onto the Review B homepage (docs/HOMEPAGE_REVIEW.md §4). Archived still only —
+# no Smash source exists for this project, so it shows a frame, not a loop.
+homepageOrder: 6
+portfolioOrder: 3
+draft: false
+
+film:
+  provider: youtube
+  id: RIvUTLvdwX8
+
+poster:
+  key: projects/epitafio/poster
+  altStatus: todo # alt text is authored copy — Phase 11b, owner-reviewed
+
+# No local source clears the 1080p / 8 Mbps hero floor, and Smash/ has no file for this
+# project at all. Falls back to heroStill + the YouTube façade until masters arrive (M1).
+sourceOfTruth: wordpress
+masterRequired: true
+
+# Cinematic blocks are added once Review D settles the project-page concept.
+blocks: []
+
+related: []
+previousSlugs: []
+
+seo:
+  noindex: false
+---
+
+{/*
+  Body intentionally empty.
+
+  The live project page carries no prose beyond the title — epitafio has no tagline
+  (see docs/WEBSITE_AUDIT.md §4.1). Writing one here would invent content.
+*/}
