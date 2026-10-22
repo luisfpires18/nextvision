@@ -1558,3 +1558,25 @@ yet; that is A2.
 **Measured on the way:** a stopped `wrangler dev` task left its node and workerd processes
 running and holding `dist/` (rule 25 again). Stop `wrangler dev` by its process tree, not
 by the shell that launched it.
+
+## 22. The admin moves to the live site (decision A8, 2026-10-22)
+
+The owners sign in at **`nextvisionfilms.com/admin`**, not on dev. Only the address and
+the carrying Worker change. Saves still commit to `dev`, which stays the preview, and
+Publish still merges `dev → master`.
+
+- **Code.** `nvf:admin` now injects the route only under `astro dev` or
+  `CLOUDFLARE_ENV=prod`. `validate:routes` requires it in a prod build and forbids it in
+  any other, including dev. The Access vars moved to `env.prod` in `wrangler.jsonc`. The
+  admin's preview pane shows `PREVIEW_URL` (`https://dev.nextvisionfilms.com`, in
+  `src/config/site.ts`), where a saved but unpublished change appears, with a second link
+  to the published page.
+- **Verified.** A dev build has no admin, and a prod build has it. The prod build under
+  workerd answers `403` with no token, a forged token or a deep path; `/` is `200` and
+  `/api/contact/` still `405` to a GET. `npm run verify` is green.
+- **Outside the repo, done by Luís:** point the Access app at
+  `nextvisionfilms.com/admin` and `www.nextvisionfilms.com/admin`, and store the GitHub
+  App secrets on `next-vision-films-production` instead of `dev`.
+- **To reach production** the change needs a `dev → master` merge, and `master` is 14+
+  commits behind `dev`, including all of design v2. Merging ships design v2 to the live
+  site as well. That is an owner decision, not a side effect.

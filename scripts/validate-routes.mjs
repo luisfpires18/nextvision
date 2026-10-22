@@ -539,10 +539,10 @@ if (staticOk === STATIC_PAGES.length) ok.push(`routes: ${staticOk}/${STATIC_PAGE
 }
 
 /* ------------------------------------------------------------------ admin
-   The owners' admin exists on the DEV Worker only (docs/ADMIN_DASHBOARD_PLAN.md §3). It
-   is injected at build time, so the check is on the ARTEFACT, not on the intention: a
-   build for any target but dev must contain no admin route at all, and a dev build must
-   contain it. Read from the server bundle's route manifest, which is what the Worker
+   The owners' admin exists on the PROD Worker only (docs/ADMIN_DASHBOARD_PLAN.md §3,
+   decision A8). It is injected at build time, so the check is on the ARTEFACT, not on the
+   intention: a build for any target but prod must contain no admin route at all, and a
+   prod build must contain it. Read from the server bundle's route manifest, which is what the Worker
    actually routes by. */
 {
   const SERVER = path.join(ROOT, 'dist', 'server');
@@ -559,9 +559,9 @@ if (staticOk === STATIC_PAGES.length) ok.push(`routes: ${staticOk}/${STATIC_PAGE
   const target = process.env['CLOUDFLARE_ENV'] ?? '(unset)';
 
   if (!files.length) errors.push('admin: no server bundle found in dist/server to check');
-  else if (target === 'dev' && !routed) errors.push('admin: a dev build must carry /admin/, and this one does not');
-  else if (target !== 'dev' && routed) {
-    errors.push(`admin: /admin/ is in a build for CLOUDFLARE_ENV=${target} — the admin may exist on the dev Worker only`);
+  else if (target === 'prod' && !routed) errors.push('admin: a prod build must carry /admin/, and this one does not');
+  else if (target !== 'prod' && routed) {
+    errors.push(`admin: /admin/ is in a build for CLOUDFLARE_ENV=${target} — the admin may exist on the prod Worker only`);
   } else ok.push(`admin: ${routed ? 'present' : 'absent'} in a build for CLOUDFLARE_ENV=${target}, as it must be`);
 }
 

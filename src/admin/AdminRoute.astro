@@ -2,7 +2,7 @@
 /**
  * /admin/ — the owners' content browser. Phase A1: READ-ONLY.
  *
- * Injected only into the dev Worker's build (astro.config.mjs, `nvf:admin`), behind
+ * Injected only into the prod Worker's build (astro.config.mjs, `nvf:admin`), behind
  * Cloudflare Access, and verified again here on every request (src/lib/admin/guard.ts).
  *
  * The layout is the edit bay of docs/ADMIN_DASHBOARD_PLAN.md §5: the five stripes of the
@@ -23,6 +23,14 @@ import '../styles/admin.css';
 import Field from './Field.astro';
 import { adminIdentity, LOGOUT_PATH } from '../lib/admin/guard.ts';
 import { AREAS, findArea, type AdminItem } from '../lib/admin/content.ts';
+import { IS_DEV } from '../lib/forms/env.ts';
+import { PREVIEW_URL } from '../config/site.ts';
+
+/**
+ * The viewer shows the DEV site: that is where a saved, unpublished change appears
+ * (docs/ADMIN_DASHBOARD_PLAN.md §4). In `astro dev` the local server is the preview.
+ */
+const preview = (path: string) => (IS_DEV ? path : `${PREVIEW_URL}${path}`);
 
 const HEADERS = {
   'Cache-Control': 'no-store',
@@ -141,8 +149,13 @@ const href = (...parts: string[]) => `/admin/${parts.map(encodeURIComponent).joi
               </div>
               {item.viewPath ? (
                 <aside class="admin-viewer" aria-label="Página no site">
-                  <p><a href={item.viewPath} target="_blank" rel="noopener">Abrir {item.viewPath} numa janela nova</a></p>
-                  <iframe src={item.viewPath} title={`Pré-visualização de ${item.viewPath}`} loading="lazy"></iframe>
+                  <p>
+                    Pré-visualização (o que foi guardado):{' '}
+                    <a href={preview(item.viewPath)} target="_blank" rel="noopener">abrir</a>
+                    {' · '}No site publicado:{' '}
+                    <a href={item.viewPath} target="_blank" rel="noopener">abrir</a>
+                  </p>
+                  <iframe src={preview(item.viewPath)} title={`Pré-visualização de ${item.viewPath}`} loading="lazy"></iframe>
                 </aside>
               ) : null}
             </div>

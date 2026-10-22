@@ -1,7 +1,7 @@
 /**
  * Cloudflare Access — verifying who is asking, on every admin request.
  *
- * Access sits in front of `/admin` on the dev Worker and only lets an allowlisted email
+ * Access sits in front of `/admin` on the prod Worker and only lets an allowlisted email
  * through (docs/ADMIN_DASHBOARD_PLAN.md §3.1). This is the second lock: the Worker
  * checks the signed token Access attaches, so a misconfigured or deleted Access policy
  * gives an admin that refuses everyone, never one that is open.

@@ -123,7 +123,7 @@ self.addEventListener('fetch', (event) => {
    */
   if (url.origin !== self.location.origin) return;
   if (url.pathname.startsWith('/api/')) return;
-  // The admin (dev Worker only): a cached copy would show stale content, and keep a
+  // The admin (prod Worker only): a cached copy would show stale content, and keep a
   // signed-in page on the device after the session ended.
   if (url.pathname.startsWith('/admin')) return;
   if (isVideo(url)) return;

@@ -19,7 +19,12 @@ first (§2.2), and the media pipeline must learn to run in CI instead of on Luí
 
 ## 1. Recommendation in one paragraph
 
-A small **custom admin at `/admin/`, served only by the `dev` Worker**, behind
+> **Amended 2026-10-22 (decision A8):** the admin lives on the **prod** Worker, at
+> `nextvisionfilms.com/admin`, not on dev. Saves still commit to `dev`, which is still the
+> preview, and Publish still merges `dev → master`. Where this document says the admin is
+> on the dev Worker, read prod. §3.1 records the first setup as it happened.
+
+A small **custom admin at `/admin/`, served only by the `prod` Worker**, behind
 **Cloudflare Access** (email one-time code — no passwords stored by us, no user table).
 Every save is a **commit to `dev` through a GitHub App**, so CI builds it, runs all eleven
 validators, and deploys it to the dev URL as a **live preview**. A **Publish** button opens
@@ -96,13 +101,13 @@ before and after. It is worth doing **even if the admin is never built** — it 
 
 - An allowlist of owner emails. They type their email, receive a 6-digit code, they are in.
   No password to forget, leak or reset; no account system for us to build or secure.
-- Access sits **in front of** `/admin/*` and `/api/admin/*` on the dev Worker. The Worker
+- Access sits **in front of** `/admin/*` and `/api/admin/*` on the prod Worker. The Worker
   also verifies the `Cf-Access-Jwt-Assertion` JWT on every admin API call (defence in depth:
   a misconfigured Access policy must not equal an open admin).
 - Session length: 24 h (Access setting).
 - Adding a person = adding an email in the Cloudflare dashboard. **DECISION A3:** which
   emails, and do they want Google sign-in as well as the code.
-- The prod Worker has **no admin route at all** — it is not built there (`IS_DEV`-style
+- The dev Worker has **no admin route at all** — it is not built there (`IS_DEV`-style
   build flag), so the live domain exposes nothing.
 
 Rejected: our own username/password table (a database, hashing, reset flow, brute-force
@@ -148,7 +153,7 @@ public, and no custom domain was needed.
 2. Repository permissions: **Contents: read & write**, **Pull requests: read & write**,
    **Actions: read** (for the build status). Nothing else, and no account permissions.
 3. Install it on `nextvision` only.
-4. Store the App ID, installation ID and private key as dev Worker **secrets**. They never
+4. Store the App ID, installation ID and private key as **prod** Worker **secrets** (A8). They never
    go in the repository or in `wrangler.jsonc`.
 
 Why an App and not a personal access token: commits carry a bot author instead of Luís's
@@ -160,7 +165,7 @@ silently and break saving.
 ## 4. How a save becomes the live site
 
 ```
- owner (browser)                dev Worker                GitHub                    Cloudflare
+ owner (browser)               prod Worker                GitHub                    Cloudflare
  ───────────────                ──────────                ──────                    ──────────
  edit form ── save ──────────▶ /api/admin/save ──commit──▶ dev branch ──CI verify──▶ dev Worker
                                  (Access JWT,                (GitHub App,              = PREVIEW
@@ -339,6 +344,7 @@ Decided by Luís, 2026-10-22.
 | A7 | Where edits are committed | **`luisfpires18/nextvision`**, through a GitHub App owned by Luís's account and installed on that repository only (§3.1) |
 | A4 | Who publishes to the live site | **Owners.** Publish merges `dev → master` after a confirm screen listing the changes; validators still block anything broken |
 | A5 | Max upload size per video | **2 GB** |
+| A8 | Where the admin lives | **On the live site, `nextvisionfilms.com/admin` (prod Worker only).** Moved from dev the same day it was built. Saves still go to `dev` (preview), Publish still merges to `master`. The prod build carries the admin route; dev carries none (Luís, 2026-10-22) |
 | A6 | Media hostname | **Deferred to Step 15.** Not needed for A0–A3; until then CI pulls new media into the build mirror |
 
 Still open: D2 (which contact email is canonical). Access is set up and guards `/admin`

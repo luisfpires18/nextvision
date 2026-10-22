@@ -109,21 +109,23 @@ export default defineConfig({
     mdx(),
 
     /**
-     * The owners' admin, on the DEV Worker only (docs/ADMIN_DASHBOARD_PLAN.md §3).
+     * The owners' admin, on the PROD Worker only (docs/ADMIN_DASHBOARD_PLAN.md §3).
      *
-     * The route is injected, not a file in src/pages, so a production build does not
-     * contain it at all: there is no code path to guard on the live domain because there
-     * is no code. It exists in `astro dev` and in a build made with CLOUDFLARE_ENV=dev, and
-     * nowhere else. An unset CLOUDFLARE_ENV is NOT dev, so a forgotten variable leaves the
-     * admin out rather than in. `validate:routes` checks the built artefact either way.
+     * It lives at nextvisionfilms.com/admin (decision A8, 2026-10-22). The dev Worker is the
+     * preview the admin's saves land on, and it carries no admin of its own.
+     *
+     * The route is injected, not a file in src/pages, so any other build does not contain
+     * it at all. It exists in `astro dev` and in a build made with CLOUDFLARE_ENV=prod,
+     * and nowhere else. An unset CLOUDFLARE_ENV is not prod, so a forgotten variable leaves
+     * the admin out rather than in. `validate:routes` checks the built artefact either way.
      */
     {
       name: 'nvf:admin',
       hooks: {
         'astro:config:setup': ({ command, injectRoute, logger }) => {
-          if (command !== 'dev' && process.env['CLOUDFLARE_ENV'] !== 'dev') return;
+          if (command !== 'dev' && process.env['CLOUDFLARE_ENV'] !== 'prod') return;
           injectRoute({ pattern: '/admin/[...path]', entrypoint: './src/admin/AdminRoute.astro', prerender: false });
-          logger.info('/admin/ injected (dev Worker only)');
+          logger.info('/admin/ injected (prod Worker only)');
         },
       },
     },

@@ -1,7 +1,7 @@
 /**
  * Who is this admin request from — or nobody.
  *
- * On the dev Worker: the Access token, verified against the configured team and AUD
+ * On the prod Worker: the Access token, verified against the configured team and AUD
  * (access.ts). Unset configuration is a refusal, so a Worker without the two variables
  * serves an admin that lets no one in.
  *

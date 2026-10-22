@@ -73,7 +73,7 @@
   --rule-heavy: 0.25rem;
 }
 
-/* The owners' admin (dev Worker only, docs/ADMIN_DASHBOARD_PLAN.md §5). Layout boxes for
+/* The owners' admin (prod Worker only, docs/ADMIN_DASHBOARD_PLAN.md §5). Layout boxes for
    the edit bay; it reuses every colour, type and space token above and adds none. */
 :root {
   --admin-nav-w: 11rem;

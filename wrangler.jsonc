@@ -78,18 +78,19 @@
   // and are NOT repeated below: repeating them is how the two runtimes drift apart.
   "env": {
     "dev": {
-      "name": "dev",
-      // The ONE deliberate difference (docs/ADMIN_DASHBOARD_PLAN.md §3.1, decision A3): the
-      // owners' admin exists only on dev, behind Cloudflare Access. These identify the Access
-      // team and application the Worker verifies tokens against. Neither is a secret. Unset,
-      // the admin refuses every request; prod has no admin route at all.
+      "name": "dev"
+    },
+    "prod": {
+      "name": "next-vision-films-production",
+      // The ONE deliberate difference (docs/ADMIN_DASHBOARD_PLAN.md §3.1, decision A8): the
+      // owners' admin exists only on prod, at nextvisionfilms.com/admin, behind Cloudflare
+      // Access. These identify the Access team and application the Worker verifies tokens
+      // against. Neither is a secret. Unset, the admin refuses every request; dev has no
+      // admin route at all.
       "vars": {
         "ACCESS_TEAM_DOMAIN": "royal-hall-6f88.cloudflareaccess.com",
         "ACCESS_AUD": "f1b7ab18b88a7e1085ce1e271598a9d1b31d750c195b39552a3b44d8a6abe722"
       }
-    },
-    "prod": {
-      "name": "next-vision-films-production"
     }
   }
 
