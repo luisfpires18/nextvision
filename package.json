@@ -35,7 +35,7 @@
     "validate:seo": "node scripts/validate-seo.mjs",
     "validate:analytics": "node scripts/validate-analytics.mjs",
     "test:forms": "node scripts/test-forms.mjs",
-    "verify": "npm run validate:data && npm run test:access && npm run validate:legal && npm run icons:check && npm run check && npm run redirects:build && npm run build && npm run validate:routes && npm run validate:seo && npm run validate:analytics && npm run validate:pwa && npm run validate:media",
+    "verify": "npm run validate:data && npm run test:access && npm run test:admin && npm run validate:legal && npm run icons:check && npm run check && npm run redirects:build && npm run build && npm run validate:routes && npm run validate:seo && npm run validate:analytics && npm run validate:pwa && npm run validate:media",
     "icons:build": "node scripts/build-icons.mjs",
     "icons:check": "node scripts/build-icons.mjs --check",
     "validate:pwa": "node scripts/validate-pwa.mjs",
@@ -44,7 +44,9 @@
     "deploy:dev": "node scripts/deploy.mjs dev",
     "deploy:prod": "node scripts/deploy.mjs prod",
     "deploy:dry": "npm run build && wrangler deploy --dry-run",
-    "test:access": "node --experimental-strip-types --no-warnings=ExperimentalWarning scripts/test-access.mjs"
+    "test:access": "node --experimental-strip-types --no-warnings=ExperimentalWarning scripts/test-access.mjs",
+    "test:admin": "node --experimental-strip-types --no-warnings=ExperimentalWarning scripts/test-admin.mjs",
+    "mock:github": "node scripts/mock-github.mjs"
   },
   "dependencies": {
     "astro": "7.2.10",

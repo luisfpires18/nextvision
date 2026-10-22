@@ -193,6 +193,7 @@ try {
   const strings = provenancedStrings();
   const SOURCES = [...new Set(['src/lib/page-meta.ts', ...strings.map((x) => x.file)])];
   let checked = 0;
+  let owned = 0;
   const perFile = new Map();
 
   for (const file of SOURCES) perFile.set(file, 0);
@@ -200,6 +201,10 @@ try {
       // The copyright line is the one string with a substitution in it, and it is checked
       // separately below against the exact published wording.
       if (raw.includes('{year}')) continue;
+      // Decision A2: an owner's edit in the admin is the owners' own copy, recorded as
+      // `owner:YYYY-MM-DD`. There is no archive to check it against, and it still counts
+      // as SEEN for the blind-file check below, so a file of owner copy is not "empty".
+      if (/^owner:\d{4}-\d{2}-\d{2}$/.test(from)) { owned += 1; perFile.set(file, perFile.get(file) + 1); continue; }
       const needle = squash(raw);
 
       let found;
@@ -225,7 +230,7 @@ try {
      nothing, and a validator that passes because it found nothing is worse than none. */
   const blind = [...perFile].filter(([, n]) => n === 0).map(([f]) => f);
   if (blind.length) errors.push(`copy: found no provenanced strings in ${blind.join(', ')} — has the v() helper been renamed or the copy moved?`);
-  else ok.push(`copy: ${checked} published strings across ${SOURCES.length} files verified against the archive, word for word`);
+  else ok.push(`copy: ${checked} published strings across ${SOURCES.length} files verified against the archive, word for word${owned ? `; ${owned} owner-edited (A2)` : ''}`);
 
   if (read(`${PAGE_CONTENT_DIR}/home.json`).copy.copyright.text !== 'copyright {year} \u00a9 todos os direitos reservados') {
     errors.push('copy: the copyright template no longer matches the published wording');

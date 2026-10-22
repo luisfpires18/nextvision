@@ -69,6 +69,8 @@ const MANIFEST = manifest as unknown as Manifest;
 
 export const hasMedia = (key: string): boolean => MANIFEST.items[key] !== undefined;
 export const getMedia = (key: string): MediaItem | null => MANIFEST.items[key] ?? null;
+/** Every asset, for the admin's media picker. */
+export const allMedia = (): MediaItem[] => Object.values(MANIFEST.items);
 
 /**
  * The ONLY place a delivery host is joined to an object key.
