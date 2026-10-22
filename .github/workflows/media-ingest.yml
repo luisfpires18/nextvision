@@ -59,11 +59,16 @@ jobs:
           node-version: '22'
           cache: npm
 
+      # apt has no download timeout by default. Measured on the first run: the Ubuntu
+      # mirror stalled on package 27 of 87 for over 20 minutes. A stalled download now
+      # gives up after 30 s and retries (5 times), and the step itself is capped.
       - name: Install
+        timeout-minutes: 10
         run: |
           npm ci
-          sudo apt-get update -q
-          sudo apt-get install -y -q --no-install-recommends ffmpeg
+          APT="-o Acquire::http::Timeout=30 -o Acquire::https::Timeout=30 -o Acquire::Retries=5"
+          sudo apt-get $APT update -q
+          sudo apt-get $APT install -y -q --no-install-recommends ffmpeg
           ffmpeg -hide_banner -encoders 2>/dev/null | grep -E 'libx264|libvpx-vp9|libaom-av1|libwebp' | awk '{print $2}'
 
       # The whole mirror: media-build's cache, and media:sync's set difference, both need it.
