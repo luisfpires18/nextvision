@@ -222,7 +222,7 @@ one left off.
 Phase 9 ✅ · Phase 10 ✅ · Phase 11 ✅ · Phase 12 ✅ · Phase 13 ✅ ·
 Phase 14 ✅ · Phase 15 ✅ · Step 12 staging deploy ✅ · Step 13 QA ✅ ·
 Step 14 GitHub + CI/CD + handover ✅ COMPLETE (2026-09-04) ·
-Design v2 (Tatiana) ✅ on staging (2026-10-22).**
+Design v2 (Tatiana) ✅ on dev (2026-10-22).**
 
 **Design v2 replaced the visual layer, and nothing else.** The menu is the rail (five logo
 stripes on the right; a bottom bar on a phone), each page wears its section's colour through
@@ -234,8 +234,8 @@ applying; BaseLayout now carries it across. Record: `docs/DESIGN_V2_ROLLOUT.md`.
 
 **The project is on GitHub, with two branches and two Workers.** `luisfpires18/nextvision`,
 private, public history reset to ONE root commit — `Initial Commit` — with `master` and
-`dev` starting at the same SHA. `dev` deploys to **staging** (`next-vision-films`), `master`
-to **production** (`next-vision-films-production`), one verify-gated workflow each, and they
+`dev` starting at the same SHA. The `dev` branch deploys the **`dev`** Worker, `master` the
+**`prod`** Worker, one verify-gated workflow each (`dev.yml`, `prod.yml`), and they
 are two separate files precisely so that no condition decides which Worker gets overwritten.
 No custom domain and no DNS: that is Step 15. Record: `docs/HANDOVER.md`.
 
@@ -252,13 +252,15 @@ the COMPANY account (`c87adf05…8e39`), both serve from Workers Static Assets:
 
 | Branch | Worker | URL |
 |---|---|---|
-| `dev` (default) | `next-vision-films` | `https://next-vision-films.next-vision-films.workers.dev` |
-| `master` | `next-vision-films-production` | `https://next-vision-films-production.next-vision-films.workers.dev` |
+| `dev` (default) | `dev` | `https://dev.next-vision-films.workers.dev` |
+| `master` | `prod` | `https://prod.next-vision-films.workers.dev` |
+
+Renamed 2026-10-22 from `staging` / `production` (`next-vision-films`, `next-vision-films-production`). The `prod` Worker is created by the next `dev -> master` promotion, and the old production Worker is deleted after it.
 
 The staging deploy needed **no custom domain, no DNS, no secret and no owner input** —
 every unset variable already had a defined, safe meaning, which is what made a
-zero-credential deploy possible at all. **Deployment is now CI**: push `dev` for staging,
-merge `dev -> master` for production. `npm run deploy:staging` / `deploy:production` remain
+zero-credential deploy possible at all. **Deployment is now CI**: push `dev` for the `dev` Worker,
+merge `dev -> master` for `prod`. `npm run deploy:dev` / `deploy:prod` remain
 as emergency tooling and both run the full `verify` first, so nothing reaches the edge that
 has not passed all eleven validators. `npm run preview:cloudflare` runs the BUILT Worker
 under workerd, which is the only local surface where the asset handler, `_headers`,

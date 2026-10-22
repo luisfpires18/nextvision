@@ -1,21 +1,21 @@
-# dev  ->  STAGING Worker  (next-vision-films)
+# dev branch  ->  `dev` Worker  (https://dev.next-vision-films.workers.dev)
 #
-# The production twin is .github/workflows/production.yml. The two files are deliberately
+# The prod twin is .github/workflows/prod.yml. The two files are deliberately
 # separate rather than one workflow with a branch condition: a single file with an `if`
-# deciding which Worker gets overwritten is one typo away from putting dev on production.
+# deciding which Worker gets overwritten is one typo away from putting dev on prod.
 #
 # Verify gates the deploy. `npm run verify` runs all eleven validators and the build; the
 # deploy step only runs on success, because a step that fails ends the job.
-name: dev -> staging
+name: dev
 
 on:
   push:
     branches: [dev]
   workflow_dispatch:
 
-# One staging deploy at a time. A superseded run is cancelled rather than racing.
+# One dev deploy at a time. A superseded run is cancelled rather than racing.
 concurrency:
-  group: staging
+  group: dev
   cancel-in-progress: true
 
 permissions:
@@ -23,7 +23,7 @@ permissions:
 
 jobs:
   verify-and-deploy:
-    name: verify + deploy to staging
+    name: verify + deploy
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
@@ -85,10 +85,10 @@ jobs:
         if: env.CLOUDFLARE_API_TOKEN != ''
         run: npm run verify
         env:
-          CLOUDFLARE_ENV: staging
+          CLOUDFLARE_ENV: dev
 
       # --built reuses the dist/ the previous step produced. scripts/deploy.mjs reads the
       # generated config back and refuses to deploy if it resolved to the other Worker.
-      - name: Deploy to staging
+      - name: Deploy
         if: env.CLOUDFLARE_API_TOKEN != ''
-        run: node scripts/deploy.mjs staging --built
+        run: node scripts/deploy.mjs dev --built

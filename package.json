@@ -40,9 +40,9 @@
     "icons:check": "node scripts/build-icons.mjs --check",
     "validate:pwa": "node scripts/validate-pwa.mjs",
     "preview:cloudflare": "npm run build && wrangler dev",
-    "deploy": "node scripts/deploy.mjs staging",
-    "deploy:staging": "node scripts/deploy.mjs staging",
-    "deploy:production": "node scripts/deploy.mjs production",
+    "deploy": "node scripts/deploy.mjs dev",
+    "deploy:dev": "node scripts/deploy.mjs dev",
+    "deploy:prod": "node scripts/deploy.mjs prod",
     "deploy:dry": "npm run build && wrangler deploy --dry-run"
   },
   "dependencies": {

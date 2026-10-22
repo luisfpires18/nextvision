@@ -10,7 +10,7 @@
   // time — do not hand-set them here, or the Cloudflare Vite plugin will try to
   // resolve a file that does not exist yet.
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "next-vision-films",
+  "name": "dev",
 
   // PINNED TO THE INSTALLED workerd, not to "today".
   //
@@ -31,7 +31,7 @@
   // to save nothing measurable is how a deploy breaks on a route nobody built yet.
   "compatibility_flags": ["nodejs_compat"],
 
-  // Worker logs, on. This is the only visibility a staging deployment has: there is no
+  // Worker logs, on. This is the only visibility a dev deployment has: there is no
   // error tracker, and `npm run validate:*` cannot see a runtime 500.
   "observability": { "enabled": true },
 
@@ -43,18 +43,22 @@
   // docs/STAGING_DEPLOY.md §8. Step 13's QA describes a specific artefact at a specific
   // URL; repurposing that URL would silently invalidate the record rather than update it.
   //
-  //   staging     next-vision-films
-  //               https://next-vision-films.next-vision-films.workers.dev
-  //               The Worker that already exists. Deployed by CI on every push to `dev`.
+  //   dev   Worker `dev`
+  //         https://dev.next-vision-films.workers.dev
+  //         Deployed by CI on every push to the `dev` branch.
   //
-  //   production  next-vision-films-production
-  //               https://next-vision-films-production.next-vision-films.workers.dev
-  //               Deployed by CI only on a push to `master`. Step 15 attaches
-  //               nextvisionfilms.com HERE — not to staging, and not today.
+  //   prod  Worker `prod`
+  //         https://prod.next-vision-films.workers.dev
+  //         Deployed by CI only on a push to `master`. Step 15 attaches
+  //         nextvisionfilms.com HERE — not to dev, and not today.
   //
-  // The top-level `name` is the staging name ON PURPOSE: a bare `wrangler deploy`, with
-  // no --env, is then a mistake that lands on staging. Reaching production requires
-  // typing `--env production`. The dangerous direction is the one that needs the flag.
+  // RENAMED 2026-10-22 from `staging` / `production` (Workers `next-vision-films` and
+  // `next-vision-films-production`), at the user's request, for shorter links and one
+  // vocabulary — the branch, the environment and the Worker now share a name.
+  //
+  // The top-level `name` is the dev name ON PURPOSE: a bare `wrangler deploy`, with no
+  // --env, is then a mistake that lands on dev. Reaching prod requires typing `--env
+  // prod`. The dangerous direction is the one that needs the flag.
   //
   // Nothing else differs between the two. Every deferred capability — the media
   // hostname, the analytics token, the Turnstile keys, the contact recipient — is unset
@@ -65,11 +69,11 @@
   // `compatibility_date`, `compatibility_flags` and `observability` are inheritable keys
   // and are NOT repeated below: repeating them is how the two runtimes drift apart.
   "env": {
-    "staging": {
-      "name": "next-vision-films"
+    "dev": {
+      "name": "dev"
     },
-    "production": {
-      "name": "next-vision-films-production"
+    "prod": {
+      "name": "prod"
     }
   }
 

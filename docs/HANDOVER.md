@@ -9,8 +9,8 @@ that way) or `CLAUDE.md` (the rules). It says what to do, and what will refuse y
 
 Two long-lived branches. Nothing else is permanent.
 
-- **`dev`** — the **default branch**, and where all work starts. Every push deploys to **staging**.
-- **`master`** — what is released. Every push deploys to **production**.
+- **`dev`** — the **default branch**, and where all work starts. Every push deploys the **`dev`** Worker.
+- **`master`** — what is released. Every push deploys the **`prod`** Worker.
 
 `dev` is GitHub's default, so a fresh `git clone` lands on it and a new branch created in
 the web UI forks from it. Nothing needs to be selected.
@@ -21,7 +21,7 @@ git pull
 # …work…
 npm run verify                 # the same gate CI runs. Run it before you commit.
 git commit -m "feat: …"
-git push origin dev            # -> CI verify -> staging Worker
+git push origin dev            # -> CI verify -> dev Worker
 ```
 
 **Direct commits on `dev` are the normal workflow.** Feature branches are optional and
@@ -30,7 +30,7 @@ worth it only when a change is long enough to want isolating:
 ```bash
 git switch dev && git pull
 git switch -c feature/whatever
-# …work, then merge back into dev, which deploys staging…
+# …work, then merge back into dev, which deploys the dev Worker…
 ```
 
 Promoting to production is a decision, not an automation. Either a PR from `dev` to
@@ -40,7 +40,7 @@ rebase are disabled on the repository), or locally:
 ```bash
 git switch master && git pull
 git merge --no-ff dev          # a NORMAL MERGE COMMIT, always
-git push origin master         # -> CI verify -> production Worker
+git push origin master         # -> CI verify -> prod Worker
 git switch dev
 ```
 
@@ -55,8 +55,10 @@ No development happens on `master`. It only ever receives merges from `dev`.
 
 | Branch | Workflow | Worker | URL |
 |---|---|---|---|
-| `dev` | `.github/workflows/staging.yml` | `next-vision-films` | `https://next-vision-films.next-vision-films.workers.dev` |
-| `master` | `.github/workflows/production.yml` | `next-vision-films-production` | `https://next-vision-films-production.next-vision-films.workers.dev` |
+| `dev` | `.github/workflows/dev.yml` | `dev` | `https://dev.next-vision-films.workers.dev` |
+| `master` | `.github/workflows/prod.yml` | `prod` | `https://prod.next-vision-films.workers.dev` |
+
+Renamed 2026-10-22 from `staging` / `production` (`next-vision-films`, `next-vision-films-production`). The `prod` Worker is created by the next `dev -> master` promotion, and the old production Worker is deleted after it.
 
 Both Workers are on the company Cloudflare account, both serve from Workers Static
 Assets, and neither has a custom domain — that is Step 15.
@@ -73,8 +75,8 @@ built configuration back and refuses to deploy if the resolved Worker name is no
 the target declares. Always deploy through it:
 
 ```bash
-npm run deploy:staging       # verify -> build -> next-vision-films
-npm run deploy:production    # verify -> build -> next-vision-films-production
+npm run deploy:dev           # verify -> build -> Worker `dev`
+npm run deploy:prod          # verify -> build -> Worker `prod`
 ```
 
 Manual deploys are emergency tooling. The normal path is `git push`.
