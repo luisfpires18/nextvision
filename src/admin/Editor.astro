@@ -28,6 +28,8 @@ const { screen, fields, docs, uploads } = Astro.props;
 const named = (f: Field, lang?: string) => `${SCREEN_LABELS[screen]} — ${f.label}${lang ? ` (${lang})` : ''}`;
 
 const when = (iso: string) => new Date(iso).toLocaleString('pt-PT', { dateStyle: 'short', timeStyle: 'short', timeZone: 'Europe/Lisbon' });
+/** Long file names (phone exports run to 130 characters) shortened in the middle. */
+const shortName = (n: string) => (n.length > 32 ? `${n.slice(0, 14)}…${n.slice(-12)}` : n);
 /** A field's requests worth showing: still processing, or failed in the last week. */
 const requestsFor = (f: Field) => uploads.filter((u) => u.target.file === f.file && u.target.path === f.key
   && (u.status === 'pending' || (u.status === 'failed' && Date.now() - Date.parse(u.at) < 7 * 86_400_000))).slice(0, 3);
@@ -124,9 +126,14 @@ const source = (from: string) => from.startsWith('owner:')
 
         {requestsFor(f).map((u) => (
           <p class="ed-request" data-request={u.id} data-status={u.status}>
-            {u.status === 'pending'
-              ? `A processar «${u.name}» (pedido ${when(u.at)}). Vai para o site sozinho quando terminar.`
-              : `Não foi possível usar «${u.name}»: ${u.error ?? 'erro desconhecido.'}`}
+            <span>
+              {u.status === 'pending'
+                ? `A processar «${shortName(u.name)}» (pedido ${when(u.at)}). Vai para o site sozinho quando terminar.`
+                : `Não foi possível usar «${shortName(u.name)}»: ${u.error ?? 'erro desconhecido.'}`}
+            </span>
+            {u.status === 'failed' ? (
+              <button type="button" class="ed-dismiss" data-dismiss={u.id} aria-label="Fechar esta mensagem">×</button>
+            ) : null}
           </p>
         ))}
 

@@ -415,3 +415,17 @@ async function followUpload(id: string, say: (t: string, tone?: 'ok' | 'error') 
   }
   say('O processamento está a demorar mais do que o normal. Volte a esta página mais tarde.');
 }
+
+/* ── failed-upload notes: closed with ×, remembered in this browser ───────── */
+
+const DISMISSED_KEY = 'nvf-admin-dismissed';
+const dismissed = (): string[] => { try { return JSON.parse(localStorage.getItem(DISMISSED_KEY) ?? '[]') as string[]; } catch { return []; } };
+for (const note of document.querySelectorAll<HTMLElement>('[data-request]')) {
+  if (dismissed().includes(note.dataset['request']!)) note.remove();
+}
+document.addEventListener('click', (e) => {
+  const b = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-dismiss]');
+  if (!b) return;
+  try { localStorage.setItem(DISMISSED_KEY, JSON.stringify([...dismissed(), b.dataset['dismiss']!].slice(-50))); } catch { /* closes for this visit only */ }
+  b.closest('[data-request]')?.remove();
+});

@@ -199,6 +199,9 @@
 /* ── new media (A4) ──────────────────────────────────────────────────────── */
 .ed-request { overflow-wrap: anywhere; clear: both; margin-block-start: var(--space-3); padding: var(--space-2) var(--space-3); font-size: var(--t-meta); background: var(--a-raise); border-inline-start: var(--rule-heavy) solid var(--brand-yellow); }
 .ed-request[data-status='failed'] { border-inline-start-color: var(--brand-red); }
+.ed-request { display: flex; gap: var(--space-3); align-items: flex-start; }
+.ed-request > span { flex: 1; min-inline-size: 0; }
+.ed-dismiss { flex: none; padding: 0 var(--space-2); border: 0; background: none; color: var(--a-text); font: inherit; font-size: var(--t-lead); line-height: 1; cursor: pointer; }
 .ed-upload { clear: both; margin-block-start: var(--space-3); }
 .ed-upload summary { cursor: pointer; color: var(--a-text); text-decoration: underline; }
 .ed-upload[open] { padding: var(--space-4); background: var(--a-raise); }
