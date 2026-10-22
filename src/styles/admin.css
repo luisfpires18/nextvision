@@ -142,6 +142,63 @@
 .f-media figcaption { display: grid; font-size: var(--t-meta); color: var(--a-dim); }
 .f-media code { font-family: var(--font-body); color: var(--a-text); overflow-wrap: anywhere; }
 
+/* ── the editor (A2) ─────────────────────────────────────────────────────── */
+.admin-readonly { margin-block-end: var(--space-4); color: var(--a-dim); }
+.admin-editor { display: grid; gap: var(--admin-hairline); }
+.ed-field {
+  margin: 0;
+  padding: var(--space-4);
+  border: 0;
+  border-inline-start: var(--rule-heavy) solid transparent;
+  background: var(--a-panel);
+}
+/* A changed field wears the section's stripe until it is saved. */
+.ed-field[data-dirty] { border-inline-start-color: var(--sec); }
+.ed-field legend { float: left; inline-size: 100%; margin-block-end: var(--space-2); font-weight: 600; }
+.ed-note, .ed-source { clear: both; font-size: var(--t-meta); color: var(--a-dim); }
+.ed-note { margin-block-end: var(--space-2); }
+.ed-source { margin-block-start: var(--space-2); }
+.ed-pair { clear: both; display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); }
+.ed-pair label, .ed-media__pick { display: grid; gap: var(--space-1); }
+.admin-editor :where(textarea, select) {
+  inline-size: 100%;
+  box-sizing: border-box;
+  padding: var(--space-2) var(--space-3);
+  border: var(--admin-hairline) solid var(--a-dim);
+  border-radius: var(--radius-s);
+  background: var(--a-ground);
+  color: var(--a-text);
+  font: inherit;
+  line-height: var(--lh-body);
+}
+.admin-editor textarea { resize: vertical; }
+.ed-media__row { clear: both; display: flex; gap: var(--space-4); align-items: center; }
+.ed-media__row img { inline-size: var(--admin-thumb); block-size: auto; aspect-ratio: var(--thumb-ratio); object-fit: cover; flex: none; background: var(--a-raise); }
+.ed-media__pick { flex: 1; min-inline-size: 0; }
+.ed-actions {
+  position: sticky;
+  inset-block-end: var(--admin-status-h);
+  display: flex;
+  gap: var(--space-4);
+  align-items: center;
+  padding: var(--space-4);
+  background: var(--a-raise);
+}
+.ed-save {
+  padding: var(--space-3) var(--space-5);
+  border: 0;
+  border-radius: var(--radius-s);
+  background: var(--brand-yellow);
+  color: var(--brand-ink);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+.ed-save:disabled { background: var(--a-panel); color: var(--a-dim); cursor: default; }
+.ed-message { color: var(--a-dim); }
+.ed-message[data-tone='ok'] { color: var(--a-text); }
+.ed-message[data-tone='error'] { color: var(--a-text); padding-inline-start: var(--space-3); border-inline-start: var(--rule-heavy) solid var(--brand-red); }
+
 /* ── status bar ──────────────────────────────────────────────────────────── */
 .admin-status {
   grid-column: 2;
@@ -173,6 +230,9 @@
   .admin { grid-template-columns: 1fr; grid-template-rows: auto 1fr auto; }
   .admin-nav { grid-row: auto; display: flex; align-items: center; overflow-x: auto; padding: 0; }
   .admin-home { padding: var(--space-3) var(--space-4); }
+  .ed-pair { grid-template-columns: 1fr; }
+  .ed-media__row { flex-direction: column; align-items: stretch; }
+  .ed-actions { flex-direction: column; align-items: stretch; }
   .admin-nav ul { display: flex; }
   .admin-nav li a { border-inline-start: 0; border-block-end: var(--rule-heavy) solid var(--sec); white-space: nowrap; padding: var(--space-3); }
   .admin-overview, .admin-item { padding: var(--space-5) var(--space-4); }

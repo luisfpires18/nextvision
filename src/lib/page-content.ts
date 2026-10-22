@@ -17,7 +17,7 @@
  */
 
 import { z } from 'astro/zod';
-import { hasMedia } from './media.ts';
+import { getMedia, hasMedia } from './media.ts';
 import home from '../content/page-content/home.json' with { type: 'json' };
 import about from '../content/page-content/about.json' with { type: 'json' };
 import services from '../content/page-content/services.json' with { type: 'json' };
@@ -26,24 +26,41 @@ import thanks from '../content/page-content/thanks.json' with { type: 'json' };
 import portfolio from '../content/page-content/portfolio.json' with { type: 'json' };
 import bts from '../content/page-content/bts.json' with { type: 'json' };
 
-/** A published string: the Portuguese, the page it was published on, its translation. */
+/**
+ * Where a string came from: the live page it was archived from (`/sobre/`), or an owner's
+ * edit in the admin (`owner:2026-10-22`, decision A2). Archived strings are checked word
+ * for word against the archive by validate:data; owner strings are the owners' own copy.
+ */
+export const OWNER_SOURCE = /^owner:\d{4}-\d{2}-\d{2}$/;
+
+/** A published string: the Portuguese, where it came from, its translation. */
 const provenanced = z.object({
   text: z.string().min(1),
-  from: z.string().startsWith('/'),
+  from: z.string().refine((f) => f.startsWith('/') || OWNER_SOURCE.test(f), {
+    message: 'from must be an archived page path or owner:YYYY-MM-DD',
+  }),
   en: z.string().min(1).optional(),
 });
 
 /** A key into the media manifest. Checked against it, so a typo fails the build. */
 const mediaKey = z.string().refine(hasMedia, { message: 'not in src/data/media-manifest.json' });
 
+/** A still. A video key here would render as a broken picture. */
+const imageKey = mediaKey.refine((k) => getMedia(k)?.kind === 'image', { message: 'must be an image, not a video' });
+
+/** A film that can open a page: a video, AND the poster the page paints before it plays. */
+const videoKey = mediaKey.refine((k) => getMedia(k)?.kind === 'video' && hasMedia(`${k}/poster`), {
+  message: 'must be a video with a poster',
+});
+
 /** A fixed set of named strings. Named, so a renamed or missing key fails the build. */
 function strings<const K extends string>(...keys: K[]) {
   return z.object(Object.fromEntries(keys.map((k) => [k, provenanced])) as Record<K, typeof provenanced>);
 }
 
-const schemas = {
+export const PAGE_SCHEMAS = {
   home: z.object({
-    heroVideo: mediaKey,
+    heroVideo: videoKey,
     copy: strings(
       'heroLineA', 'heroLineB', 'workLineA', 'workLineB', 'workBody', 'workBodyB', 'ctaPortfolio',
       'servicesTitle', 'servicesLead', 'servicesLeadFull',
@@ -56,14 +73,14 @@ const schemas = {
     wordpressExcerpt: z.string(),
   }),
   services: z.object({
-    leadImage: mediaKey,
-    collage: z.array(mediaKey).length(3),
+    leadImage: imageKey,
+    collage: z.array(imageKey).length(3),
     lead: z.array(z.object({ text: z.string().min(1), en: z.string().min(1), mark: z.boolean().optional() })).min(1),
     copy: strings('closeLineA', 'closeLineB', 'closeBody'),
     wordpressExcerpt: z.string(),
   }),
   contact: z.object({
-    banner: mediaKey,
+    banner: imageKey,
     copy: strings('formHeading', 'directHeading', 'directBody'),
     form: z.object({
       labels: strings('nome', 'email', 'telefone', 'mensagem'),
@@ -75,7 +92,7 @@ const schemas = {
   }),
   thanks: z.object({ copy: strings('title', 'lineA', 'lineB'), wordpressExcerpt: z.string() }),
   portfolio: z.object({ copy: strings('title', 'lead', 'all', 'more') }),
-  bts: z.object({ frames: z.array(mediaKey).min(1) }),
+  bts: z.object({ frames: z.array(imageKey).min(1) }),
 };
 
 function load<S extends z.ZodType>(page: string, schema: S, data: unknown): z.infer<S> {
@@ -87,12 +104,14 @@ ${z.prettifyError(parsed.error)}`);
   return parsed.data;
 }
 
+export type PageFile = keyof typeof PAGE_SCHEMAS;
+
 export const PAGE_CONTENT = {
-  home: load('home', schemas.home, home),
-  about: load('about', schemas.about, about),
-  services: load('services', schemas.services, services),
-  contact: load('contact', schemas.contact, contact),
-  thanks: load('thanks', schemas.thanks, thanks),
-  portfolio: load('portfolio', schemas.portfolio, portfolio),
-  bts: load('bts', schemas.bts, bts),
+  home: load('home', PAGE_SCHEMAS.home, home),
+  about: load('about', PAGE_SCHEMAS.about, about),
+  services: load('services', PAGE_SCHEMAS.services, services),
+  contact: load('contact', PAGE_SCHEMAS.contact, contact),
+  thanks: load('thanks', PAGE_SCHEMAS.thanks, thanks),
+  portfolio: load('portfolio', PAGE_SCHEMAS.portfolio, portfolio),
+  bts: load('bts', PAGE_SCHEMAS.bts, bts),
 };

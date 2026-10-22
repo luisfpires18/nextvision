@@ -1,0 +1,122 @@
+---
+/**
+ * One page's editable fields as a form (phase A2, slice 1).
+ *
+ * Text: Portuguese and English side by side, always both, with where the words came from.
+ * Media: a list of the footage already on the site, of the right kind only (a still where
+ * a still goes, a film with a poster where the opening film goes), with the picture shown.
+ * Locked fields are shown with the reason, and have no input at all, so the form cannot
+ * post them.
+ *
+ * The form sends only what changed. admin-client.ts does the sending and the build polling.
+ */
+import { allMedia, getMedia, renditions } from '../lib/media.ts';
+import { fieldName, getAt, type Field, type Published } from '../lib/admin/edit.ts';
+import type { PageFileName } from '../lib/admin/fields.ts';
+
+interface Props {
+  screen: PageFileName;
+  fields: Field[];
+  docs: Partial<Record<PageFileName, unknown>>;
+  shas: Record<string, string>;
+}
+const { screen, fields, docs, shas } = Astro.props;
+
+const thumb = (key: string): string => {
+  const item = getMedia(key);
+  const still = item?.kind === 'video' ? `${key}/poster` : key;
+  return renditions(still, 'webp')[0]?.src ?? '';
+};
+
+/** The candidates for each kind, grouped by where they come from (`projects/leonor`). */
+const options = (kind: 'image' | 'video') => {
+  // A video's own poster (`…/hero/poster`) belongs to that video, not to the image list.
+  // A project's poster (`projects/x/poster`) is a still like any other and stays in.
+  const isVideoPoster = (key: string) => key.endsWith('/poster') && getMedia(key.slice(0, -'/poster'.length))?.kind === 'video';
+  const items = allMedia().filter((m) => (kind === 'image'
+    ? m.kind === 'image' && !isVideoPoster(m.key)
+    : m.kind === 'video' && getMedia(`${m.key}/poster`) !== null));
+  const groups = new Map<string, string[]>();
+  for (const m of items) {
+    const parts = m.key.split('/');
+    const group = parts.slice(0, 2).join('/');
+    groups.set(group, [...(groups.get(group) ?? []), m.key]);
+  }
+  return [...groups].sort(([a], [b]) => a.localeCompare(b));
+};
+const MEDIA = { image: options('image'), video: options('video') };
+
+const source = (from: string) => from.startsWith('owner:')
+  ? `Alterado no admin em ${new Date(from.slice(6)).toLocaleDateString('pt-PT', { dateStyle: 'long' })}`
+  : `Texto original do site, publicado em ${from === '/' ? 'a página inicial' : from}`;
+---
+
+<form class="admin-editor" data-editor data-screen={screen} data-shas={JSON.stringify(shas)} novalidate>
+  {fields.map((f) => {
+    const value = getAt(docs[f.file], f.key);
+    if (f.kind === 'text') {
+      const p = value as Published;
+      return (
+        <fieldset class="ed-field" data-field>
+          <legend>{f.label}</legend>
+          {f.note ? <p class="ed-note">{f.note}</p> : null}
+          {f.locked ? (
+            <>
+              <div class="f-pair">
+                <p lang="pt-PT"><span class="f-lang">PT</span>{p.text}</p>
+                <p lang="en"><span class="f-lang">EN</span>{p.en}</p>
+              </div>
+              <p class="admin-locked">{f.locked}</p>
+            </>
+          ) : (
+            <>
+              <div class="ed-pair">
+                <label>
+                  <span class="f-lang">Português</span>
+                  <textarea name={fieldName(f, 'pt')} data-original={p.text} rows={Math.min(8, Math.ceil(p.text.length / 60) + 1)} lang="pt-PT" required>{p.text}</textarea>
+                </label>
+                <label>
+                  <span class="f-lang">Inglês</span>
+                  <textarea name={fieldName(f, 'en')} data-original={p.en ?? ''} rows={Math.min(8, Math.ceil((p.en ?? '').length / 60) + 1)} lang="en" required>{p.en ?? ''}</textarea>
+                </label>
+              </div>
+              <p class="ed-source">{source(p.from)}</p>
+            </>
+          )}
+        </fieldset>
+      );
+    }
+    const key = String(value ?? '');
+    const kind = f.kind === 'video' ? 'video' : 'image';
+    const id = `pick-${f.file}-${f.key.replace(/\W/g, '-')}`;
+    return (
+      <fieldset class="ed-field ed-media" data-field>
+        <legend>{f.label}</legend>
+        {f.note ? <p class="ed-note">{f.note}</p> : null}
+        <div class="ed-media__row">
+          <img src={thumb(key)} alt="" data-preview-for={id} width="160" height="90" />
+          <label class="ed-media__pick">
+            <span class="f-lang">{kind === 'video' ? 'Vídeo' : 'Imagem'}</span>
+            <select id={id} name={fieldName(f)} data-original={key}>
+              {/* The current value is ALWAYS an option: a missing one would make the browser
+                  pick the first entry, and Save would silently replace the picture. */}
+              {key && !MEDIA[kind].some(([, keys]) => keys.includes(key)) ? (
+                <option value={key} data-thumb={thumb(key)} selected>{key} (atual)</option>
+              ) : null}
+              {MEDIA[kind].map(([group, keys]) => (
+                <optgroup label={group}>
+                  {keys.map((k) => <option value={k} data-thumb={thumb(k)} selected={k === key}>{k.split('/').slice(1).join(' / ')}</option>)}
+                </optgroup>
+              ))}
+            </select>
+          </label>
+        </div>
+      </fieldset>
+    );
+  })}
+
+  <div class="ed-actions">
+    <button type="submit" class="ed-save" data-save disabled>Guardar alterações</button>
+    <p class="ed-message" role="status" aria-live="polite" data-message>Sem alterações por guardar.</p>
+  </div>
+</form>

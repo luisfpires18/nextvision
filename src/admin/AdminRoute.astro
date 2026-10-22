@@ -21,6 +21,11 @@ import '../styles/tokens.space.css';
 import '../styles/fonts.css';
 import '../styles/admin.css';
 import Field from './Field.astro';
+import Editor from './Editor.astro';
+import { githubConfig } from '../lib/admin/repo.ts';
+import { readFile } from '../lib/admin/github.ts';
+import { SCREENS, pageFilePath, type PageFileName } from '../lib/admin/fields.ts';
+import { expandFields, type Field as EditField } from '../lib/admin/edit.ts';
 import { adminIdentity, LOGOUT_PATH } from '../lib/admin/guard.ts';
 import { AREAS, findArea, type AdminItem } from '../lib/admin/content.ts';
 import { IS_DEV } from '../lib/forms/env.ts';
@@ -66,6 +71,33 @@ if (current && groupId) {
   item = current.groups.find((g) => g.group.id === groupId)?.items.find((i) => i.id === itemId) ?? null;
   if (!item) {
     return new Response('Não encontrado.', { status: 404, headers: { ...HEADERS, 'Content-Type': 'text/plain; charset=utf-8' } });
+  }
+}
+
+/**
+ * A page screen is editable (slice 1). It is edited from the files as they are on `dev`
+ * NOW, read from GitHub — not from this build, which is the published site and may be
+ * behind a save that has not been published yet.
+ */
+const screen = item && groupId?.startsWith('pagina-') && item.id in SCREENS ? (item.id as PageFileName) : null;
+let editor: { fields: EditField[]; docs: Partial<Record<PageFileName, unknown>>; shas: Record<string, string> } | null = null;
+let editorNotice: string | null = null;
+if (screen) {
+  const cfg = githubConfig();
+  if (!cfg) editorNotice = 'Guardar ainda não está configurado neste servidor. Pode consultar, mas não alterar.';
+  else {
+    try {
+      const docs: Partial<Record<PageFileName, unknown>> = {};
+      const shas: Record<string, string> = {};
+      for (const file of new Set(SCREENS[screen].map((d) => d.file))) {
+        const { text, sha } = await readFile(cfg, pageFilePath(file));
+        docs[file] = JSON.parse(text);
+        shas[file] = sha;
+      }
+      editor = { fields: expandFields(SCREENS[screen], docs), docs, shas };
+    } catch {
+      editorNotice = 'Não foi possível ler a versão atual a partir do GitHub. Pode consultar; tente editar daqui a pouco.';
+    }
   }
 }
 
@@ -139,7 +171,15 @@ const href = (...parts: string[]) => `/admin/${parts.map(encodeURIComponent).joi
             </header>
             <div class="admin-item__body">
               <div class="admin-fields">
-                <Field value={item.data} />
+                {screen && editor ? (
+                  <Editor screen={screen} fields={editor.fields} docs={editor.docs} shas={editor.shas} />
+                ) : (
+                  <>
+                    {editorNotice ? <p class="admin-locked">{editorNotice}</p> : null}
+                    {!screen ? <p class="admin-readonly">Por agora só se consulta. A edição desta secção chega numa fase seguinte.</p> : null}
+                    <Field value={item.data} />
+                  </>
+                )}
                 {item.body?.trim() ? (
                   <details class="admin-body">
                     <summary>Texto do ficheiro</summary>
@@ -169,8 +209,11 @@ const href = (...parts: string[]) => `/admin/${parts.map(encodeURIComponent).joi
     )}
 
     <footer class="admin-status">
-      <span><strong>Só leitura.</strong> A edição chega na próxima fase.</span>
+      <span data-build>Pré-visualização: a verificar…</span>
       <span>{who.email} · <a href={LOGOUT_PATH}>Sair</a></span>
     </footer>
+    <script>
+      import './admin-client.ts';
+    </script>
   </body>
 </html>

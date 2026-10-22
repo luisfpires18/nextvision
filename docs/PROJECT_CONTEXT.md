@@ -1580,3 +1580,62 @@ Publish still merges `dev → master`.
 - **To reach production** the change needs a `dev → master` merge, and `master` is 14+
   commits behind `dev`, including all of design v2. Merging ships design v2 to the live
   site as well. That is an owner decision, not a side effect.
+- **Done the same day:** PR #2 merged (design v2 live), Access moved to the two live
+  hostnames, and the GitHub App secrets were stored on the prod Worker. A test login as
+  the App got a token with exactly contents:write, pull_requests:write, actions:read and
+  metadata:read, and could reach only `luisfpires18/nextvision`.
+
+## 23. Admin phase A2, slice 1: the owners can edit the page screens (2026-10-22)
+
+The seven page screens (Página inicial, Sobre, Serviços, Contactos, Obrigado, Portfólio,
+BTS) are now forms. Texts are edited in Portuguese and English side by side. Media is
+picked from the footage already on the site: a still where a still goes, and a video
+with a poster for the opening film. **Save** commits to `dev`. The admin then follows
+that commit's build, says when the preview is ready, and reloads the preview pane.
+Branch `feat/admin-a2-core`.
+
+- **Edited where it appears, not where it is stored** (`src/lib/admin/fields.ts`). The
+  About page's title lives in `home.json`, so one screen can write two files. Strings
+  the current design does not render (home `workLineA/B`, `workBodyB`, `ctaPortfolio`,
+  `servicesLead`, `aboutBodyB`; portfolio `more`) and the WordPress excerpts are not
+  offered. Three fields are shown **locked**, with the reason in the owners' words: the
+  services lead (it must spell the three highlighted phrases), the copyright line, and
+  the contact consent sentence.
+- **One commit or none** (`commitFiles`, Git trees/commits/refs API). Before writing,
+  every file is checked against the blob SHA the form was opened on, and the branch moves
+  fast-forward only. So a save that raced another one is refused with "Esta página foi
+  alterada entretanto…", and the other change survives. After a save, the response
+  carries the new blob SHAs (git's own `blob <n>\0` SHA-1, computed in the Worker), so a
+  second save without reloading is not a false conflict.
+- **Rules, server-side** (`src/lib/admin/edit.ts`): only offered fields; a locked or
+  unknown field is refused, never ignored; both languages are required; a changed
+  Portuguese text gets `from: owner:YYYY-MM-DD` (decision A2), while an English-only edit
+  keeps the archived source. Then the build's own zod schema runs, which now also
+  rejects a video where a still goes, or a video without its poster.
+- **`validate:data`** accepts `owner:` strings as the owners' copy and counts them;
+  archived strings are still checked word for word.
+- **Endpoints** live under `/admin` so Access covers them: `POST /admin/api/guardar/`
+  and `GET /admin/api/estado/`, both prod-only like the page.
+- **Tested.** `npm run test:admin` (in `verify`) has 20 checks: the edit rules; the App
+  JWT really signed with a generated key and refused with another; token reuse; one-commit
+  saves; stale-file and racing-push refusals; a build followed from queued to completed.
+  Mutation-tested on the locked-field rule. It caught a real bug before any browser did:
+  a top-level field such as `heroVideo` could not be saved.
+- **Clicked through** under `astro dev` against `npm run mock:github`: changed the
+  opening film and a line, saved, preview ready; saved again without reloading; conflict
+  refused with the owner's text kept; the About screen saving two files as one commit; an
+  empty English field refused by name. Every field on all seven screens matches the stored
+  value on load, so no page starts "changed".
+- **Two defects found that way:** the media list hid project posters, which are real
+  stills (and an absent current value would have made the browser silently select
+  another picture); and the conflict message was overwritten by the change counter.
+- **Measured under workerd:** a POST refused with its body unread made wrangler's local
+  proxy drop the next connection ("Error inside ProxyWorker: Network connection lost").
+  The Worker itself answered correctly. The save endpoint now reads the body before any
+  refusal, as `/api/contact/` does.
+
+**Local run:** put `GITHUB_API_URL=http://127.0.0.1:8790` in `.dev.vars`, run
+`npm run mock:github`, then `npm run dev`. It honours the override only under `astro dev`.
+
+**Not yet verified:** a real save against GitHub. It needs this branch on the live
+Worker, which means a merge into `dev` and then a `dev → master` merge.
