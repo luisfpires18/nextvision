@@ -14,10 +14,11 @@
       },
       "by": "nextvisionfilmsagency@gmail.com",
       "at": "2026-10-22T19:04:21.995Z",
-      "status": "pending",
+      "status": "failed",
       "start": 0,
       "duration": 8,
-      "posterAt": 1
+      "posterAt": 1,
+      "error": "O ficheiro tem 640 px de largura; este lugar precisa de pelo menos 1280 px para não perder qualidade. Use uma versão maior."
     }
   ]
 }
