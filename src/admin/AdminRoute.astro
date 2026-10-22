@@ -23,30 +23,22 @@ import '../styles/admin.css';
 import Field from './Field.astro';
 import Editor from './Editor.astro';
 import { githubConfig } from '../lib/admin/repo.ts';
-import { readFile, branchHead, compare, latestRun } from '../lib/admin/github.ts';
-import { assess, type Assessment } from '../lib/admin/publish.ts';
-import { SAVE_BRANCH, LIVE_BRANCH, BUILD_WORKFLOW } from '../lib/admin/repo.ts';
-import Publish from './Publish.astro';
+import { readFile } from '../lib/admin/github.ts';
 import { UPLOADS_PATH, type UploadsDoc, type UploadEntry } from '../lib/admin/uploads.ts';
 import { SCREENS, pageFilePath, type PageFileName } from '../lib/admin/fields.ts';
 import { expandFields, type Field as EditField } from '../lib/admin/edit.ts';
 import { adminIdentity, LOGOUT_PATH } from '../lib/admin/guard.ts';
 import { AREAS, findArea, type AdminItem } from '../lib/admin/content.ts';
-import { IS_DEV } from '../lib/forms/env.ts';
-import { PREVIEW_URL } from '../config/site.ts';
-
-/**
- * The viewer shows the DEV site: that is where a saved, unpublished change appears
- * (docs/ADMIN_DASHBOARD_PLAN.md §4). In `astro dev` the local server is the preview.
- */
-const preview = (path: string) => (IS_DEV ? path : `${PREVIEW_URL}${path}`);
-
 const HEADERS = {
   'Cache-Control': 'no-store',
   'X-Robots-Tag': 'noindex, nofollow',
   'X-Frame-Options': 'DENY',
   'Referrer-Policy': 'same-origin',
 };
+
+// A body sent to a page is never used, but refusing with it unread breaks wrangler's local
+// proxy on the next request (measured, step A2). Drain it first.
+if (Astro.request.method !== 'GET' && Astro.request.method !== 'HEAD') await Astro.request.arrayBuffer().catch(() => undefined);
 
 const who = await adminIdentity(Astro.request);
 if (!who) {
@@ -59,8 +51,7 @@ for (const [k, v] of Object.entries(HEADERS)) Astro.response.headers.set(k, v);
 
 const [areaId, groupId, itemId, extra] = (Astro.params['path'] ?? '').split('/').filter(Boolean);
 const area = areaId ? findArea(areaId) : null;
-const publishing = areaId === 'publicar' && !groupId;
-if (extra || (areaId && !area && !publishing) || (groupId && !itemId)) {
+if (extra || (areaId && !area) || (groupId && !itemId)) {
   return new Response('Não encontrado.', { status: 404, headers: { ...HEADERS, 'Content-Type': 'text/plain; charset=utf-8' } });
 }
 
@@ -79,49 +70,27 @@ if (current && groupId) {
   }
 }
 
-/** The publish screen (A3): what `dev` has that the live site does not, read from GitHub now. */
-let publish: { waiting: Assessment | null; head: string | null; preview: 'ready' | 'building' | 'failed' | 'none'; notice: string | null } | null = null;
-if (publishing) {
-  const cfg = githubConfig();
-  if (!cfg) publish = { waiting: null, head: null, preview: 'none', notice: 'Publicar ainda não está configurado neste servidor.' };
-  else {
-    try {
-      const head = await branchHead(cfg, SAVE_BRANCH);
-      const waiting = assess(await compare(cfg, LIVE_BRANCH, SAVE_BRANCH));
-      const run = await latestRun(cfg, BUILD_WORKFLOW);
-      const preview = !run || run.headSha !== head ? 'building'
-        : run.status !== 'completed' ? 'building' : run.conclusion === 'success' ? 'ready' : 'failed';
-      publish = { waiting, head, preview, notice: null };
-    } catch {
-      publish = { waiting: null, head: null, preview: 'none', notice: 'Não foi possível ler o estado a partir do GitHub. Tente daqui a pouco.' };
-    }
-  }
-}
-
 /**
- * A page screen is editable (slice 1). It is edited from the files as they are on `dev`
- * NOW, read from GitHub — not from this build, which is the published site and may be
- * behind a save that has not been published yet.
+ * A page screen is editable. It is edited from the files as they are on `master` NOW,
+ * read from GitHub — not from this build, which may be a few minutes behind a publish.
+ * Edits are kept as drafts in the browser until Publicar (A10, admin-client.ts).
  */
 const screen = item && groupId?.startsWith('pagina-') && item.id in SCREENS ? (item.id as PageFileName) : null;
-let editor: { fields: EditField[]; docs: Partial<Record<PageFileName, unknown>>; shas: Record<string, string>; uploads: UploadEntry[] } | null = null;
+let editor: { fields: EditField[]; docs: Partial<Record<PageFileName, unknown>>; uploads: UploadEntry[] } | null = null;
 let editorNotice: string | null = null;
 if (screen) {
   const cfg = githubConfig();
-  if (!cfg) editorNotice = 'Guardar ainda não está configurado neste servidor. Pode consultar, mas não alterar.';
+  if (!cfg) editorNotice = 'Publicar ainda não está configurado neste servidor. Pode consultar, mas não alterar.';
   else {
     try {
       const docs: Partial<Record<PageFileName, unknown>> = {};
-      const shas: Record<string, string> = {};
       for (const file of new Set(SCREENS[screen].map((d) => d.file))) {
-        const { text, sha } = await readFile(cfg, pageFilePath(file));
-        docs[file] = JSON.parse(text);
-        shas[file] = sha;
+        docs[file] = JSON.parse((await readFile(cfg, pageFilePath(file))).text);
       }
       // This screen's upload requests (A4). A missing list is just none yet.
       const all = await readFile(cfg, UPLOADS_PATH).then((f) => (JSON.parse(f.text) as UploadsDoc).uploads).catch(() => []);
       const uploads = all.filter((u) => u.target.screen === screen).reverse();
-      editor = { fields: expandFields(SCREENS[screen], docs), docs, shas, uploads };
+      editor = { fields: expandFields(SCREENS[screen], docs), docs, uploads };
     } catch {
       editorNotice = 'Não foi possível ler a versão atual a partir do GitHub. Pode consultar; tente editar daqui a pouco.';
     }
@@ -137,11 +106,11 @@ const href = (...parts: string[]) => `/admin/${parts.map(encodeURIComponent).joi
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="robots" content="noindex, nofollow" />
-    <title>{publishing ? 'Publicar · ' : item ? `${item.label} · ` : area ? `${area.label} · ` : ''}Admin · Next Vision Films</title>
+    <title>{item ? `${item.label} · ` : area ? `${area.label} · ` : ''}Admin · Next Vision Films</title>
   </head>
   <body class="admin">
     <nav class="admin-nav" aria-label="Secções">
-      <a class="admin-home" href={href()} aria-current={!area && !publishing ? 'page' : undefined}>NVF</a>
+      <a class="admin-home" href={href()} aria-current={!area ? 'page' : undefined}>NVF</a>
       <ul>
         {AREAS.map((a) => (
           <li data-section={a.section ?? undefined}>
@@ -149,17 +118,28 @@ const href = (...parts: string[]) => `/admin/${parts.map(encodeURIComponent).joi
           </li>
         ))}
       </ul>
-      <a class="admin-publish-link" href={href('publicar')} aria-current={publishing ? 'page' : undefined}>
-        Publicar <span data-pending></span>
-      </a>
+      <button type="button" class="admin-publish-link" data-publish-open>
+        Publicar <span data-draft-count></span>
+      </button>
     </nav>
 
-    {publishing && publish ? (
-      <Publish waiting={publish.waiting} head={publish.head} preview={publish.preview} notice={publish.notice} />
-    ) : !current ? (
+    {/* One Publicar for every draft on every page (A10). Filled by admin-client.ts. */}
+    <dialog class="pub-dialog" data-publish-dialog aria-labelledby="pub-h">
+      <h2 id="pub-h">Publicar no site</h2>
+      <div data-publish-list></div>
+      <p class="ed-note" data-publish-note>Estas alterações só existem neste computador até publicar. Publicar põe-nas em nextvisionfilms.com, normalmente em 2 a 3 minutos.</p>
+      <div class="pub-actions">
+        <button type="button" class="ed-save" data-publish-go>Publicar</button>
+        <button type="button" class="pub-cancel" data-publish-close>Fechar</button>
+        <button type="button" class="pub-cancel" data-publish-discard>Descartar todos os rascunhos</button>
+      </div>
+      <p class="ed-message" role="status" aria-live="polite" data-publish-message></p>
+    </dialog>
+
+    {!current ? (
       <main class="admin-overview">
         <h1>Conteúdo do site</h1>
-        <p class="admin-lede">Tudo o que pode ser alterado aqui, organizado pelas secções do site. As páginas já se editam; o resto, por agora, só se consulta. O que guardar aparece primeiro na pré-visualização e só chega ao site quando carregar em «Publicar».</p>
+        <p class="admin-lede">Tudo o que pode ser alterado aqui, organizado pelas secções do site. As páginas já se editam; o resto, por agora, só se consulta. As alterações ficam como rascunho neste computador e chegam ao site quando carregar em «Publicar».</p>
         <ul class="admin-areas">
           {loaded.map((l) => (
             <li data-section={l.area.section ?? undefined}>
@@ -204,7 +184,7 @@ const href = (...parts: string[]) => `/admin/${parts.map(encodeURIComponent).joi
             <div class="admin-item__body">
               <div class="admin-fields">
                 {screen && editor ? (
-                  <Editor screen={screen} fields={editor.fields} docs={editor.docs} shas={editor.shas} uploads={editor.uploads} />
+                  <Editor screen={screen} fields={editor.fields} docs={editor.docs} uploads={editor.uploads} />
                 ) : (
                   <>
                     {editorNotice ? <p class="admin-locked">{editorNotice}</p> : null}
@@ -221,13 +201,8 @@ const href = (...parts: string[]) => `/admin/${parts.map(encodeURIComponent).joi
               </div>
               {item.viewPath ? (
                 <aside class="admin-viewer" aria-label="Página no site">
-                  <p>
-                    Pré-visualização (o que foi guardado):{' '}
-                    <a href={preview(item.viewPath)} target="_blank" rel="noopener">abrir</a>
-                    {' · '}No site publicado:{' '}
-                    <a href={item.viewPath} target="_blank" rel="noopener">abrir</a>
-                  </p>
-                  <iframe src={preview(item.viewPath)} title={`Pré-visualização de ${item.viewPath}`} loading="lazy"></iframe>
+                  <p>No site: <a href={item.viewPath} target="_blank" rel="noopener">abrir {item.viewPath} numa janela nova</a></p>
+                  <iframe src={item.viewPath} title={`A página ${item.viewPath} no site`} loading="lazy"></iframe>
                 </aside>
               ) : null}
             </div>
@@ -241,7 +216,7 @@ const href = (...parts: string[]) => `/admin/${parts.map(encodeURIComponent).joi
     )}
 
     <footer class="admin-status">
-      <span data-build>Pré-visualização: a verificar…</span>
+      <span data-build>Site: a verificar…</span>
       <span>{who.email} · <a href={LOGOUT_PATH}>Sair</a></span>
     </footer>
     <script>

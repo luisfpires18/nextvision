@@ -11,6 +11,10 @@ name: prod
 on:
   push:
     branches: [master]
+    # An upload REQUEST or a refused upload touches only this list (A10). Nothing on the
+    # site changes, so nothing deploys; media-ingest.yml does the work and its successful
+    # commit (new media + the field) is what deploys.
+    paths-ignore: ['src/data/media-uploads.json']
   workflow_dispatch:
 
 # One prod deploy at a time. A superseded run is cancelled rather than racing.

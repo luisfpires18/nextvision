@@ -122,5 +122,18 @@ export function applyEdits(
   return { docs: next, changed };
 }
 
+/**
+ * The live value a draft name points at: `file:path#pt` / `#en` for text, `file:path` for
+ * media. Publish compares it with the value the draft started from (per-field freshness).
+ */
+export function liveValue(docs: Partial<Record<PageFileName, unknown>>, name: string): unknown {
+  const [file, rest = ''] = name.split(':') as [PageFileName, string];
+  const [path = '', lang] = rest.split('#');
+  const v = getAt(docs[file], path);
+  if (lang === 'pt') return (v as Published | undefined)?.text;
+  if (lang === 'en') return (v as Published | undefined)?.en ?? '';
+  return v;
+}
+
 /** The exact on-disk format of a page-content file: two-space JSON and a final newline. */
 export const serialise = (doc: unknown): string => `${JSON.stringify(doc, null, 2)}\n`;

@@ -1,87 +1,108 @@
 /**
- * POST /admin/api/publicar/ — release what the owners saved on `dev` to the live site.
+ * POST /admin/api/publicar/ — publish every draft, from every page, in one go (A10).
  *
- * Publishing is the `dev → master` merge, done for them. It goes ahead only when ALL of
- * these hold, checked here on the server in this order, never trusted from the page:
+ * The page keeps drafts in the browser while the owner edits; this receives all of them
+ * at once and writes them as ONE commit to `master`. That push is the production deploy
+ * (prod.yml), so one Publicar = one commit = one deploy.
  *
- *   1. `dev` is still exactly the commit the owner reviewed (the page sends it). A save
- *      made since — in another window, by another person — means they have not seen it.
- *   2. Everything waiting is owner content (publish.ts): saves by the admin's App, and
- *      page-content files only. Technical work waiting on `dev` is a refusal with the
- *      reason, because Publish would otherwise release it too (decision A3).
- *   3. The preview of exactly that commit built successfully. A failed or unfinished
- *      preview is not something to release.
- *   4. GitHub merges the release pull request only at that same commit.
- *
- * Then `prod.yml` builds and deploys the live site; the page follows that build.
+ * In order, refusing before anything is written:
+ *   1. identity, origin, JSON (http.ts);
+ *   2. configured: the GitHub App secrets exist — 503, never a pretend publish;
+ *   3. freshness, PER FIELD: each draft carries the value the field had when the owner
+ *      started editing it. If someone else published a different value for that same
+ *      field since, it is a refusal naming the field, never an overwrite (409). Other
+ *      fields of the same page changing meanwhile do not matter, so drafts can wait days;
+ *   4. the rules (edit.ts): only fields the admin offers, never locked ones, both
+ *      languages, `owner:` provenance when the Portuguese changes (422);
+ *   5. the build's own schema for every file written (422);
+ *   6. one commit or none (github.ts `commitFiles`, fast-forward only).
+ * Nothing the owner typed is logged.
  */
 import type { APIRoute } from 'astro';
 import { z } from 'astro/zod';
-import { adminIdentity } from '../../lib/admin/guard.ts';
-import { githubConfig, BUILD_WORKFLOW, LIVE_BRANCH, SAVE_BRANCH } from '../../lib/admin/repo.ts';
-import { branchHead, compare, latestRun, mergePullRequest, openPullRequest, GitHubError } from '../../lib/admin/github.ts';
-import { assess } from '../../lib/admin/publish.ts';
+import { answer, guardJson } from '../../lib/admin/http.ts';
+import { githubConfig } from '../../lib/admin/repo.ts';
+import { readFile, commitFiles, GitHubError } from '../../lib/admin/github.ts';
+import { SCREENS, SCREEN_LABELS, pageFilePath, type PageFileName } from '../../lib/admin/fields.ts';
+import { applyEdits, expandFields, liveValue, serialise, EditError, type Field } from '../../lib/admin/edit.ts';
+import { PAGE_SCHEMAS } from '../../lib/page-content.ts';
 
 export const prerender = false;
 
-const answer = (status: number, body: Record<string, unknown>) =>
-  new Response(JSON.stringify(body), {
-    status,
-    headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store', 'X-Robots-Tag': 'noindex, nofollow' },
-  });
+/** Each draft: the field's value when editing began (`from`) and the new one (`to`). */
+const Body = z.object({
+  edits: z.record(z.string(), z.object({ from: z.string(), to: z.string() })),
+});
 
 export const POST: APIRoute = async ({ request }) => {
-  // Read before any refusal: see the note in save.ts on wrangler's local proxy.
-  const raw = await request.text().catch(() => '');
-  if (raw.length > 4096) return answer(413, { error: 'Pedido inválido.' });
-
-  const who = await adminIdentity(request);
-  if (!who) return answer(403, { error: 'Sem acesso.' });
-  if (request.headers.get('origin') !== new URL(request.url).origin) return answer(403, { error: 'Pedido recusado.' });
-  if (!request.headers.get('content-type')?.startsWith('application/json')) return answer(415, { error: 'Pedido recusado.' });
-
-  let reviewed: string;
-  try { reviewed = z.object({ sha: z.string().regex(/^[0-9a-f]{40}$/) }).parse(JSON.parse(raw)).sha; }
-  catch { return answer(400, { error: 'Pedido inválido.' }); }
+  const g = await guardJson(request, 256 * 1024);
+  if (!g.ok) return g.response;
+  const parsed = Body.safeParse(g.value);
+  if (!parsed.success) return answer(400, { error: 'Pedido inválido.' });
+  const drafts = parsed.data.edits;
+  if (!Object.keys(drafts).length) return answer(200, { nothing: true });
+  const edits = Object.fromEntries(Object.entries(drafts).map(([n, d]) => [n, d.to]));
 
   const cfg = githubConfig();
   if (!cfg) return answer(503, { error: 'Publicar ainda não está configurado neste servidor. Nada foi publicado.' });
 
+  // The files the drafts touch: the `file` part of every `file:path#lang` name.
+  const files = [...new Set(Object.keys(edits).map((n) => n.split(':')[0] as PageFileName))];
+  if (files.some((f) => !(f in PAGE_SCHEMAS))) return answer(400, { error: 'Pedido inválido.' });
+
   try {
-    const head = await branchHead(cfg, SAVE_BRANCH);
-    if (head !== reviewed) {
-      return answer(409, { error: 'Foram guardadas alterações novas desde que abriu esta página. Recarregue para as ver antes de publicar; nada foi publicado.' });
+    const docs: Partial<Record<PageFileName, unknown>> = {};
+    const current: Record<string, string> = {};
+    for (const file of files) {
+      const { text, sha } = await readFile(cfg, pageFilePath(file));
+      docs[file] = JSON.parse(text);
+      current[pageFilePath(file)] = sha;
     }
 
-    const waiting = assess(await compare(cfg, LIVE_BRANCH, SAVE_BRANCH));
-    if (waiting.blocked.length) {
-      return answer(409, { error: `Não é possível publicar agora: ${waiting.blocked.join(' ')} Fale com o programador; nada foi publicado.` });
-    }
-    if (!waiting.items.length) return answer(200, { nothing: true });
-
-    const run = await latestRun(cfg, BUILD_WORKFLOW);
-    if (!run || run.headSha !== head || run.status !== 'completed') {
-      return answer(409, { error: 'A pré-visualização destas alterações ainda não está pronta. Espere que fique pronta, confira-a, e publique depois.' });
-    }
-    if (run.conclusion !== 'success') {
-      return answer(409, { error: 'A pré-visualização destas alterações falhou, por isso não podem ser publicadas. Fale com o programador.' });
+    // Every field any screen offers, once each; the owner-facing name carries its page.
+    const fields = new Map<string, Field>();
+    for (const [screen, defs] of Object.entries(SCREENS) as [PageFileName, (typeof SCREENS)[PageFileName]][]) {
+      for (const f of expandFields(defs.filter((d) => files.includes(d.file)), docs)) {
+        const id = `${f.file}:${f.key}`;
+        if (!fields.has(id)) fields.set(id, { ...f, label: `${SCREEN_LABELS[screen]} — ${f.label}` });
+      }
     }
 
-    const list = waiting.items.map((i) => `- ${i.page}: ${i.fields}${i.by ? ` (${i.by})` : ''}`).join('\n');
-    const title = `Publicar: ${[...new Set(waiting.items.map((i) => i.page))].join(', ')}`;
-    const pr = await openPullRequest(cfg, LIVE_BRANCH, SAVE_BRANCH, title,
-      `Publicado no admin por ${who.email}.\n\n${list}\n\nSó conteúdo das páginas; verificado antes de juntar.`);
-    const merged = await mergePullRequest(cfg, pr.number, head, `${title} (#${pr.number})`);
+    const stale = [...new Set(Object.entries(drafts)
+      .filter(([name, d]) => liveValue(docs, name) !== d.from)
+      .map(([name]) => fields.get(name.split('#')[0] ?? '')?.label ?? name))];
+    if (stale.length) {
+      return answer(409, {
+        error: `Estes campos foram alterados por outra publicação entretanto: ${stale.join(', ')}. Abra a página, veja o valor atual e volte a editar. Nada foi publicado.`,
+        stale,
+      });
+    }
 
-    return answer(200, { merged: merged.sha, pr: pr.url, items: waiting.items.length });
+    const today = new Date().toISOString().slice(0, 10);
+    const { docs: next, changed } = applyEdits([...fields.values()], docs, edits, today);
+    if (!changed.length) return answer(200, { nothing: true });
+
+    const touched = [...new Set(changed.map((c) => c.file))];
+    for (const file of touched) {
+      const ok = PAGE_SCHEMAS[file].safeParse(next[file]);
+      if (!ok.success) return answer(422, { error: `Estas alterações deixariam uma página inválida: ${z.prettifyError(ok.error)}` });
+    }
+
+    const pages = [...new Set(changed.map((c) => c.label.split(' — ')[0]))];
+    const message = `content: ${pages.join(', ')}\n\n${changed.map((c) => `- ${c.label}`).join('\n')}\n\nPublicado no admin por ${g.who.email}.`;
+    const { commit } = await commitFiles(
+      cfg,
+      touched.map((file) => ({ path: pageFilePath(file), text: serialise(next[file]) })),
+      Object.fromEntries(touched.map((file) => [pageFilePath(file), current[pageFilePath(file)]!])),
+      message,
+    );
+    return answer(200, { commit, changed: changed.map((c) => c.label) });
   } catch (error) {
+    if (error instanceof EditError) return answer(422, { error: error.message });
     if (error instanceof GitHubError && error.status === 409) {
-      return answer(409, { error: 'Foi guardada uma alteração no momento de publicar. Recarregue e volte a tentar; nada foi publicado.' });
-    }
-    if (error instanceof GitHubError && error.status === 405) {
-      return answer(409, { error: 'O GitHub não consegue juntar estas alterações automaticamente. Fale com o programador; nada foi publicado.' });
+      return answer(409, { error: 'Outra publicação aconteceu ao mesmo tempo. Volte a carregar em Publicar; os seus rascunhos ficam guardados.' });
     }
     const status = error instanceof GitHubError ? error.status : 0;
-    return answer(502, { error: `O GitHub não respondeu como esperado${status ? ` (${status})` : ''}. Nada foi publicado.` });
+    return answer(502, { error: `O GitHub não respondeu como esperado${status ? ` (${status})` : ''}. Nada foi publicado; os rascunhos ficam guardados.` });
   }
 };

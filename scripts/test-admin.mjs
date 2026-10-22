@@ -16,13 +16,10 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { generateKeyPairSync } from 'node:crypto';
 import { SCREENS, pageFilePath } from '../src/lib/admin/fields.ts';
-import { applyEdits, expandFields, fieldName, serialise, EditError } from '../src/lib/admin/edit.ts';
-import { readFile, commitFiles, latestRun, gitBlobSha, resetGitHubToken, GitHubError, branchHead, compare, openPullRequest, mergePullRequest } from '../src/lib/admin/github.ts';
-import { assess, ADMIN_BOT as BOT_IN_SRC } from '../src/lib/admin/publish.ts';
+import { applyEdits, expandFields, fieldName, liveValue, serialise, EditError } from '../src/lib/admin/edit.ts';
+import { readFile, commitFiles, latestRun, gitBlobSha, resetGitHubToken, GitHubError } from '../src/lib/admin/github.ts';
 import { planUpload, appendUpload, safeName, kindOf, uploadKey, isUploadKey, UPLOADS_PATH } from '../src/lib/admin/uploads.ts';
-import { createMockGitHub, gitBlobSha as nodeBlobSha, ADMIN_BOT } from './lib/mock-github.mjs';
-
-assert.equal(BOT_IN_SRC, ADMIN_BOT, 'the fake GitHub names the App exactly as the publish rule expects');
+import { createMockGitHub, gitBlobSha as nodeBlobSha } from './lib/mock-github.mjs';
 
 let failed = 0;
 let passed = 0;
@@ -85,6 +82,25 @@ const TODAY = '2026-10-22';
   });
 }
 
+await check('per-field freshness reads the live value each draft name points at', () => {
+  const docs = { home: read('home'), bts: read('bts') };
+  assert.equal(liveValue(docs, 'home:copy.heroLineA#pt'), docs.home.copy.heroLineA.text);
+  assert.equal(liveValue(docs, 'home:copy.heroLineA#en'), docs.home.copy.heroLineA.en);
+  assert.equal(liveValue(docs, 'home:heroVideo'), docs.home.heroVideo);
+  assert.equal(liveValue(docs, 'bts:frames.2'), docs.bts.frames[2]);
+  assert.equal(liveValue(docs, 'home:nope#pt'), undefined, 'an unknown field is never "fresh"');
+});
+await check('drafts from several pages and files apply in one go', () => {
+  const docs = { home: read('home'), about: read('about'), bts: read('bts') };
+  const fields = [...expandFields(SCREENS.home, docs), ...expandFields(SCREENS.about, docs), ...expandFields(SCREENS.bts, docs)];
+  const { docs: next, changed } = applyEdits(fields, docs, {
+    'home:copy.heroLineA#en': 'We capture feeling',
+    'about:copy.storyB#en': 'x',
+    'bts:frames.0': docs.bts.frames[1],
+  }, TODAY);
+  assert.deepEqual([...new Set(changed.map((c) => c.file))].sort(), ['about', 'bts', 'home']);
+  assert.equal(next.bts.frames[0], docs.bts.frames[1]);
+});
 await check('lists expand to one field per item', () => {
   const about = expandFields(SCREENS.about, docsFor('about'));
   assert.equal(about.filter((f) => f.key.startsWith('copy.closing.')).length, read('about').copy.closing.length);
@@ -196,83 +212,6 @@ await check('the build of a save is followed from queued to completed', async ()
   assert.equal(done.headSha, commit);
 });
 
-/* ── publishing (A3) ────────────────────────────────────────────────────── */
-
-const ownerCommit = (sha, subject, by = 'owner@example.com') =>
-  ({ sha, author: ADMIN_BOT, message: `${subject}\n\nGuardado no admin por ${by}.`, date: '2026-10-22T16:00:00Z' });
-
-await check('owner saves only: publishable, described in the owners\' words, newest first', () => {
-  const a = assess({
-    commits: [ownerCommit('a', 'content(thanks): Título'), ownerCommit('b', 'content(home): Vídeo da página inicial')],
-    files: ['src/content/page-content/thanks.json', 'src/content/page-content/home.json'],
-  });
-  assert.deepEqual(a.blocked, []);
-  assert.deepEqual(a.items.map((i) => [i.page, i.fields, i.by]), [
-    ['Página inicial', 'Vídeo da página inicial', 'owner@example.com'],
-    ['Página Obrigado', 'Título', 'owner@example.com'],
-  ]);
-});
-await check('a developer commit waiting blocks publishing', () => {
-  const a = assess({
-    commits: [ownerCommit('a', 'content(thanks): Título'), { sha: 'c', author: 'luisfpires18', message: 'feat: x', date: '' }],
-    files: ['src/content/page-content/thanks.json', 'src/admin/Editor.astro'],
-  });
-  assert.equal(a.blocked.length, 1);
-  assert.match(a.blocked[0], /alteração técnica/);
-  assert.equal(a.items.length, 1, 'the owner save is still listed');
-});
-await check('a commit GitHub cannot attribute to anyone blocks publishing', () => {
-  assert.equal(assess({ commits: [{ sha: 'c', author: null, message: 'x', date: '' }], files: ['src/content/page-content/home.json'] }).blocked.length, 1);
-});
-await check('an owner commit touching anything but page content blocks publishing', () => {
-  const a = assess({ commits: [ownerCommit('a', 'content(home): x')], files: ['src/content/page-content/home.json', '.github/workflows/prod.yml'] });
-  assert.equal(a.blocked.length, 1);
-});
-await check('nothing waiting is nothing to publish, and not blocked', () => {
-  assert.deepEqual(assess({ commits: [], files: [] }), { items: [], blocked: [] });
-});
-
-await check('publish flow: compare, open PR, merge at the reviewed commit, live build follows', async () => {
-  const { gh, cfg, opts, tick } = setup();
-  const home = await readFile(cfg, pageFilePath('home'), opts);
-  await commitFiles(cfg, [{ path: pageFilePath('home'), text: home.text.replace('Captamos', 'Gravamos') }], { [pageFilePath('home')]: home.sha }, 'content(home): Frase de abertura, 1.ª linha\n\nGuardado no admin por o@x.', opts);
-  const head = await branchHead(cfg, 'dev', opts);
-  const waiting = await compare(cfg, 'master', 'dev', opts);
-  assert.equal(waiting.aheadBy, 1);
-  assert.deepEqual(waiting.files, [pageFilePath('home')]);
-  assert.deepEqual(assess(waiting).blocked, []);
-
-  const pr = await openPullRequest(cfg, 'master', 'dev', 'Publicar: Página inicial', 'x', opts);
-  const again = await openPullRequest(cfg, 'master', 'dev', 'Publicar: Página inicial', 'x', opts);
-  assert.equal(again.number, pr.number, 'an open release PR is reused, not duplicated');
-  const merged = await mergePullRequest(cfg, pr.number, head, 'Publicar: Página inicial', opts);
-  assert.match(gh.file(pageFilePath('home'), 'master'), /Gravamos/);
-  assert.equal(gh.head('master'), merged.sha);
-
-  const live = await latestRun(cfg, 'prod.yml', opts, 'master');
-  assert.equal(live.headSha, merged.sha);
-  tick(2000);
-  assert.equal((await latestRun(cfg, 'prod.yml', opts, 'master')).conclusion, 'success');
-  assert.deepEqual((await compare(cfg, 'master', 'dev', opts)).commits, [], 'nothing left waiting');
-});
-await check('a save after review makes the merge refuse (409), and nothing reaches master', async () => {
-  const { gh, cfg, opts } = setup();
-  const home = await readFile(cfg, pageFilePath('home'), opts);
-  await commitFiles(cfg, [{ path: pageFilePath('home'), text: `${home.text} ` }], { [pageFilePath('home')]: home.sha }, 'content(home): a', opts);
-  const reviewed = await branchHead(cfg, 'dev', opts);
-  const pr = await openPullRequest(cfg, 'master', 'dev', 't', 'x', opts);
-  gh.pushElsewhere(pageFilePath('home'), 'newer', { author: ADMIN_BOT });
-  const before = gh.head('master');
-  await assert.rejects(mergePullRequest(cfg, pr.number, reviewed, 't', opts), (e) => e instanceof GitHubError && e.status === 409);
-  assert.equal(gh.head('master'), before);
-});
-await check('a developer commit on dev shows up as blocking in a real comparison', async () => {
-  const { gh, cfg, opts } = setup();
-  gh.pushElsewhere('src/admin/Editor.astro', 'code');
-  const a = assess(await compare(cfg, 'master', 'dev', opts));
-  assert.equal(a.blocked.length, 1);
-});
-
 /* ── new media from the owners (A4) ─────────────────────────────────────── */
 
 {
@@ -329,17 +268,18 @@ await check('a developer commit on dev shows up as blocking in a real comparison
     const doc = appendUpload({ uploads: [] }, e);
     assert.throws(() => appendUpload(doc, e), /já foi feito/);
   });
-  await check('the empty uploads file on disk is the shape the code expects', () => {
-    assert.deepEqual(JSON.parse(fs.readFileSync(UPLOADS_PATH, 'utf8')), { uploads: [] });
-  });
-  await check('processed media and its request are publishable owner content', () => {
-    const a = assess({
-      commits: [ownerCommit('a', 'content(home): Vídeo da página inicial (novo ficheiro)')],
-      files: ['src/data/media-uploads.json', 'src/data/media-manifest.json', 'src/content/page-content/home.json'],
-    });
-    assert.deepEqual(a.blocked, []);
+  // The SHAPE, not the contents: once the owners upload, the list is not empty (this check
+  // asserted `[]` until the first real upload, and failed every dev build after it).
+  await check('the uploads file on disk is the shape the code expects', () => {
+    const doc = JSON.parse(fs.readFileSync(UPLOADS_PATH, 'utf8'));
+    assert.ok(Array.isArray(doc.uploads));
+    for (const u of doc.uploads) {
+      assert.ok(isUploadKey(u.source), `source ${u.source}`);
+      assert.ok(['pending', 'ready', 'failed'].includes(u.status), u.id);
+      assert.ok(u.key.startsWith(`owner/${u.id}/`), u.id);
+    }
   });
 }
 
-console.log(failed ? `\n${failed} failed, ${passed} passed` : `\nall ${passed} checks passed — saves are one commit or none, only what the screen offers, and only owner content is ever published`);
+console.log(failed ? `\n${failed} failed, ${passed} passed` : `\nall ${passed} checks passed — saves are one commit or none, only what the screen offers, and drafts from every page publish as one commit`);
 process.exit(failed ? 1 : 0);

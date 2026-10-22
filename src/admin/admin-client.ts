@@ -1,7 +1,8 @@
 /**
- * The admin's browser side: send what changed, then follow the preview build until it is
- * ready, and say so in plain words. Nothing here decides what may be saved — the server
- * does (src/admin/api/save.ts); this only reports what the server and GitHub answer.
+ * The admin's browser side (A10): drafts, one Publicar for all of them, and following the
+ * production deploy until the change is live. Nothing here decides what may be published —
+ * the server does (src/admin/api/publish.ts); this only keeps drafts and reports what the
+ * server and GitHub answer.
  */
 
 interface BuildState { configured: boolean; state?: 'building' | 'ready' | 'failed' | 'none' | 'unknown'; commit?: string; url?: string; at?: string }
@@ -22,18 +23,18 @@ const ago = (iso?: string) => {
   return min < 1 ? 'agora mesmo' : min < 60 ? `há ${min} min` : `há ${Math.round(min / 60)} h`;
 };
 
-/* ── the status bar: the preview's state, on every admin page ───────────── */
+/* ── the status bar: the live site's last deploy, on every admin page ────── */
 
 const bar = document.querySelector<HTMLElement>('[data-build]');
 
 function showBuild(s: BuildState | null) {
   if (!bar) return;
-  if (!s) { bar.textContent = 'Estado da pré-visualização indisponível.'; return; }
-  if (!s.configured) { bar.textContent = 'Guardar ainda não está configurado.'; return; }
-  bar.textContent = s.state === 'building' ? 'Pré-visualização a ser preparada… '
-    : s.state === 'ready' ? `Pré-visualização atualizada ${ago(s.at)}.`
-    : s.state === 'failed' ? 'A última pré-visualização falhou. '
-    : 'Pré-visualização: sem informação.';
+  if (!s) { bar.textContent = 'Estado do site indisponível.'; return; }
+  if (!s.configured) { bar.textContent = 'Publicar ainda não está configurado.'; return; }
+  bar.textContent = s.state === 'building' ? 'A publicar no site… '
+    : s.state === 'ready' ? `Site atualizado ${ago(s.at)}.`
+    : s.state === 'failed' ? 'A última publicação falhou; o site continua como estava. '
+    : 'Site: sem informação.';
   if (s.url && (s.state === 'building' || s.state === 'failed')) {
     const a = document.createElement('a');
     a.href = s.url;
@@ -46,194 +47,210 @@ function showBuild(s: BuildState | null) {
 
 void buildState().then(showBuild);
 
-/* ── how much is saved but not yet live, on the "Publicar" link ─────────── */
-
-const badge = document.querySelector<HTMLElement>('[data-pending]');
-async function refreshPending() {
-  if (!badge) return;
-  try {
-    const res = await fetch('/admin/api/estado/?pendentes=1', { cache: 'no-store' });
-    const s = (await res.json()) as { pending?: number; blocked?: boolean };
-    badge.textContent = s.pending ? `(${s.pending})` : '';
-    badge.title = s.pending ? `${s.pending} por publicar${s.blocked ? ' (bloqueado: alterações técnicas por rever)' : ''}` : '';
-  } catch { badge.textContent = ''; }
+/**
+ * Follow the production deploy of `commit` until it is live, failed, or taking too long.
+ * A newer deploy (prod.yml cancels older ones) contains this commit too, so any deploy
+ * started after `since` counts.
+ */
+async function followLive(commit: string, since: number, say: (t: string, tone?: 'ok' | 'error') => void) {
+  const until = Date.now() + POLL_FOR_MS;
+  while (Date.now() < until) {
+    await new Promise((r) => setTimeout(r, POLL_MS));
+    const s = await buildState();
+    showBuild(s);
+    const covers = s?.commit === commit || (s?.at !== undefined && Date.parse(s.at) >= since - 5000);
+    if (!s?.configured || !covers) continue;
+    if (s.state === 'ready') {
+      say('Publicado. O site já mostra as alterações.', 'ok');
+      const frame = document.querySelector<HTMLIFrameElement>('.admin-viewer iframe');
+      if (frame) frame.src = frame.src;
+      return;
+    }
+    if (s.state === 'failed') {
+      say('A publicação falhou e o site continua como estava. Fale com o programador.', 'error');
+      return;
+    }
+  }
+  say('A publicação está a demorar mais do que o normal. Volte a verificar daqui a pouco.');
 }
-void refreshPending();
 
-/* ── publishing ─────────────────────────────────────────────────────────── */
+/* ── drafts: every change, on every page, kept in this browser until Publicar ── */
 
-const pub = document.querySelector<HTMLElement>('[data-publish]');
-if (pub) {
-  const start = pub.querySelector<HTMLButtonElement>('[data-publish-start]')!;
-  const confirm = pub.querySelector<HTMLElement>('[data-publish-confirm]')!;
-  const go = pub.querySelector<HTMLButtonElement>('[data-publish-go]')!;
-  const cancel = pub.querySelector<HTMLButtonElement>('[data-publish-cancel]')!;
-  const out = pub.querySelector<HTMLElement>('[data-publish-message]')!;
+interface Draft { from: string; to: string; label: string }
+const DRAFTS_KEY = 'nvf-admin-drafts';
+
+/** Browser storage can be missing or refused (private mode); drafts then live in memory only. */
+let memory: Record<string, Draft> = {};
+const loadDrafts = (): Record<string, Draft> => {
+  try { return JSON.parse(localStorage.getItem(DRAFTS_KEY) ?? '{}') as Record<string, Draft>; } catch { return memory; }
+};
+const storeDrafts = (d: Record<string, Draft>) => {
+  memory = d;
+  try { localStorage.setItem(DRAFTS_KEY, JSON.stringify(d)); } catch { /* memory only */ }
+};
+
+const countBadge = document.querySelector<HTMLElement>('[data-draft-count]');
+function showCount() {
+  const n = Object.keys(loadDrafts()).length;
+  if (countBadge) countBadge.textContent = n ? `(${n})` : '';
+}
+
+const form = document.querySelector<HTMLFormElement>('[data-editor]');
+const controls = form ? [...form.querySelectorAll<HTMLTextAreaElement | HTMLSelectElement>('[data-original]')] : [];
+const formSay = (text: string, tone?: 'ok' | 'error') => {
+  const m = form?.querySelector<HTMLElement>('[data-message]');
+  if (!m) return;
+  m.textContent = text;
+  if (tone) m.dataset['tone'] = tone; else delete m.dataset['tone'];
+};
+
+function syncThumb(select: HTMLSelectElement) {
+  const img = form?.querySelector<HTMLImageElement>(`[data-preview-for="${select.id}"]`);
+  const thumb = select.selectedOptions[0]?.dataset['thumb'];
+  if (img && thumb) img.src = thumb;
+}
+
+function markDirty() {
+  if (!form) return;
+  for (const fs of form.querySelectorAll<HTMLElement>('[data-field]')) {
+    const changed = [...fs.querySelectorAll<HTMLTextAreaElement | HTMLSelectElement>('[data-original]')]
+      .some((c) => c.value !== c.dataset['original']);
+    if (changed) fs.dataset['dirty'] = ''; else delete fs.dataset['dirty'];
+  }
+}
+
+if (form) {
+  // Put this page's drafts back. A draft whose field was changed by someone else's publish
+  // since it was started is dropped and named, rather than silently overwriting theirs.
+  const drafts = loadDrafts();
+  const dropped: string[] = [];
+  for (const c of controls) {
+    const d = drafts[c.name];
+    if (!d) continue;
+    if (d.from === c.dataset['original']) {
+      c.value = d.to;
+      if (c instanceof HTMLSelectElement) syncThumb(c);
+    } else {
+      if (d.to !== c.dataset['original']) dropped.push(d.label);
+      delete drafts[c.name];
+    }
+  }
+  storeDrafts(drafts);
+  markDirty();
+  if (dropped.length) {
+    formSay(`Alguém publicou outro valor entretanto, por isso estes rascunhos foram descartados: ${dropped.join(', ')}.`, 'error');
+  }
+
+  const onChange = (e: Event) => {
+    const c = e.target;
+    if (!(c instanceof HTMLTextAreaElement || c instanceof HTMLSelectElement) || c.dataset['original'] === undefined) return;
+    if (c instanceof HTMLSelectElement) syncThumb(c);
+    const all = loadDrafts();
+    if (c.value === c.dataset['original']) delete all[c.name];
+    else all[c.name] = { from: c.dataset['original']!, to: c.value, label: c.dataset['label'] ?? c.name };
+    storeDrafts(all);
+    markDirty();
+    showCount();
+  };
+  form.addEventListener('input', onChange);
+  form.addEventListener('change', onChange);
+}
+showCount();
+
+/* ── one Publicar, for every draft ───────────────────────────────────────── */
+
+const dialog = document.querySelector<HTMLDialogElement>('[data-publish-dialog]');
+if (dialog) {
+  const list = dialog.querySelector<HTMLElement>('[data-publish-list]')!;
+  const go = dialog.querySelector<HTMLButtonElement>('[data-publish-go]')!;
+  const close = dialog.querySelector<HTMLButtonElement>('[data-publish-close]')!;
+  const discard = dialog.querySelector<HTMLButtonElement>('[data-publish-discard]')!;
+  const out = dialog.querySelector<HTMLElement>('[data-publish-message]')!;
   const say = (text: string, tone?: 'ok' | 'error') => {
     out.textContent = text;
     if (tone) out.dataset['tone'] = tone; else delete out.dataset['tone'];
   };
+  const short = (v: string) => (v.length > 90 ? `${v.slice(0, 90)}…` : v) || '(vazio)';
 
-  start.addEventListener('click', () => { start.hidden = true; confirm.hidden = false; go.focus(); });
-  cancel.addEventListener('click', () => { confirm.hidden = true; start.hidden = false; start.focus(); });
+  /** The drafts, grouped by the page they belong to, as "field: before → after". */
+  function render() {
+    const drafts = Object.values(loadDrafts());
+    list.replaceChildren();
+    if (!drafts.length) {
+      const p = document.createElement('p');
+      p.textContent = 'Não há alterações por publicar.';
+      list.append(p);
+    }
+    const byPage = new Map<string, Draft[]>();
+    for (const d of drafts) {
+      const page = d.label.split(' — ')[0] ?? '';
+      byPage.set(page, [...(byPage.get(page) ?? []), d]);
+    }
+    for (const [page, items] of byPage) {
+      const h = document.createElement('h3');
+      h.textContent = page;
+      const ul = document.createElement('ul');
+      ul.className = 'pub-list';
+      for (const d of items) {
+        const li = document.createElement('li');
+        const name = document.createElement('span');
+        name.className = 'pub-page';
+        name.textContent = d.label.split(' — ').slice(1).join(' — ');
+        const change = document.createElement('span');
+        change.className = 'pub-fields';
+        change.textContent = `${short(d.from)} → ${short(d.to)}`;
+        li.append(name, change);
+        ul.append(li);
+      }
+      list.append(h, ul);
+    }
+    go.disabled = !drafts.length;
+    discard.hidden = !drafts.length;
+  }
+
+  document.querySelector('[data-publish-open]')?.addEventListener('click', () => {
+    render();
+    say('');
+    dialog.showModal();
+  });
+  close.addEventListener('click', () => dialog.close());
+  discard.addEventListener('click', () => {
+    if (!window.confirm('Descartar todas as alterações por publicar? Não é possível desfazer.')) return;
+    storeDrafts({});
+    location.reload();
+  });
 
   go.addEventListener('click', async () => {
+    const drafts = loadDrafts();
+    if (!Object.keys(drafts).length) return;
     go.disabled = true;
-    cancel.disabled = true;
     say('A publicar…');
     let res: Response | null = null;
-    let body: { error?: string; nothing?: boolean; merged?: string } = {};
+    let body: { error?: string; nothing?: boolean; commit?: string } = {};
     try {
       res = await fetch('/admin/api/publicar/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-        body: JSON.stringify({ sha: pub.dataset['reviewed'] }),
+        body: JSON.stringify({ edits: Object.fromEntries(Object.entries(drafts).map(([n, d]) => [n, { from: d.from, to: d.to }])) }),
       });
       body = await res.json();
     } catch { /* network */ }
 
     if (!res || !res.ok) {
       go.disabled = false;
-      cancel.disabled = false;
-      say(body.error ?? 'Não foi possível publicar (sem ligação?). Nada foi publicado.', 'error');
+      say(body.error ?? 'Não foi possível publicar (sem ligação?). Nada foi publicado; os rascunhos ficam guardados.', 'error');
       return;
     }
-    confirm.hidden = true;
-    if (body.nothing) { say('Já não havia nada por publicar.'); return; }
-    say('Enviado para o site. A atualizar nextvisionfilms.com (cerca de 3 minutos)…', 'ok');
-    void refreshPending();
-    if (body.merged) void followLive(body.merged);
-  });
-
-  async function followLive(commit: string) {
-    const until = Date.now() + POLL_FOR_MS;
-    while (Date.now() < until) {
-      await new Promise((r) => setTimeout(r, POLL_MS));
-      let s: BuildState | null = null;
-      try { s = (await (await fetch('/admin/api/estado/?alvo=site', { cache: 'no-store' })).json()) as BuildState; } catch { /* keep polling */ }
-      if (!s?.configured || s.commit !== commit) continue;
-      if (s.state === 'ready') { say('Publicado. O site já mostra as alterações.', 'ok'); return; }
-      if (s.state === 'failed') {
-        say('As alterações foram enviadas, mas a atualização do site falhou e o site continua como estava. Fale com o programador.', 'error');
-        return;
-      }
-    }
-    say('A atualização do site está a demorar mais do que o normal. As alterações já foram enviadas.');
-  }
-}
-
-/* ── the editor ─────────────────────────────────────────────────────────── */
-
-const form = document.querySelector<HTMLFormElement>('[data-editor]');
-if (form) {
-  const save = form.querySelector<HTMLButtonElement>('[data-save]')!;
-  const message = form.querySelector<HTMLElement>('[data-message]')!;
-  const controls = [...form.querySelectorAll<HTMLTextAreaElement | HTMLSelectElement>('[data-original]')];
-  let busy = false;
-
-  const isDirty = (c: HTMLTextAreaElement | HTMLSelectElement) => c.value !== c.dataset['original'];
-  const dirty = () => controls.filter(isDirty);
-  const say = (text: string, tone?: 'ok' | 'error') => {
-    message.textContent = text;
-    if (tone) message.dataset['tone'] = tone; else delete message.dataset['tone'];
-  };
-
-  const refresh = () => {
-    const n = dirty().length;
-    save.disabled = busy || n === 0;
-    for (const fs of form.querySelectorAll<HTMLElement>('[data-field]')) {
-      const changed = [...fs.querySelectorAll<HTMLTextAreaElement | HTMLSelectElement>('[data-original]')].some(isDirty);
-      if (changed) fs.dataset['dirty'] = ''; else delete fs.dataset['dirty'];
-    }
-    if (!busy) say(n ? `${n} ${n === 1 ? 'alteração' : 'alterações'} por guardar.` : 'Sem alterações por guardar.');
-  };
-
-  form.addEventListener('input', refresh);
-  form.addEventListener('change', (e) => {
-    const select = e.target;
-    if (select instanceof HTMLSelectElement) {
-      const img = form.querySelector<HTMLImageElement>(`[data-preview-for="${select.id}"]`);
-      const thumb = select.selectedOptions[0]?.dataset['thumb'];
-      if (img && thumb) img.src = thumb;
-    }
-    refresh();
-  });
-  window.addEventListener('beforeunload', (e) => { if (dirty().length && !busy) e.preventDefault(); });
-
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const changed = dirty();
-    if (!changed.length || busy) return;
-    busy = true;
-    save.disabled = true;
-    say('A guardar…');
-
-    let res: Response | null = null;
-    let body: { error?: string; nothing?: boolean; commit?: string; changed?: string[]; shas?: Record<string, string> } = {};
-    try {
-      res = await fetch('/admin/api/guardar/', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-        body: JSON.stringify({
-          screen: form.dataset['screen'],
-          shas: JSON.parse(form.dataset['shas'] ?? '{}'),
-          edits: Object.fromEntries(changed.map((c) => [c.name, c.value])),
-        }),
-      });
-      body = await res.json();
-    } catch { /* network: res stays null */ }
-
-    busy = false;
-    if (!res || !res.ok) {
-      refresh();
-      // After refresh(), which would otherwise replace the reason with a change count.
-      say(body.error ?? 'Não foi possível guardar (sem ligação?). Nada foi guardado.', 'error');
-      return;
-    }
-
+    // Published: the drafts are now the live values.
+    storeDrafts({});
     for (const c of controls) c.dataset['original'] = c.value;
-    if (body.shas) form.dataset['shas'] = JSON.stringify(body.shas);
-    refresh();
-    if (body.nothing) { say('Nada mudou: não havia nada para guardar.'); return; }
-    say(`Guardado: ${(body.changed ?? []).join(', ')}. A preparar a pré-visualização (cerca de 2 minutos)…`, 'ok');
-    if (body.commit) void follow(body.commit, Date.now());
+    markDirty();
+    showCount();
+    render();
+    if (body.nothing) { say('Nada mudou: não havia nada para publicar.'); return; }
+    say('Enviado. A atualizar nextvisionfilms.com (normalmente 2 a 3 minutos)…', 'ok');
+    if (body.commit) void followLive(body.commit, Date.now(), say);
   });
-
-  let following = 0;
-
-  /**
-   * Follow the build of THIS save until it is finished, then reload the preview.
-   *
-   * A newer push to `dev` cancels an older build (dev.yml's concurrency), and the newer
-   * build contains this save too, so any build STARTED after this save counts. A later
-   * save starts its own follow and this one stops.
-   */
-  async function follow(commit: string, since: number) {
-    const mine = ++following;
-    const until = Date.now() + POLL_FOR_MS;
-    while (Date.now() < until && mine === following) {
-      await new Promise((r) => setTimeout(r, POLL_MS));
-      const s = await buildState();
-      showBuild(s);
-      if (mine !== following) return;
-      const covers = s?.commit === commit || (s?.at !== undefined && Date.parse(s.at) >= since - 5000);
-      if (!s?.configured || !covers) continue;
-      if (s.state === 'ready') {
-        say('Pré-visualização pronta. Confira à direita; quando estiver bem, publique em «Publicar».', 'ok');
-        void refreshPending();
-        const frame = document.querySelector<HTMLIFrameElement>('.admin-viewer iframe');
-        if (frame) frame.src = frame.src;
-        return;
-      }
-      if (s.state === 'failed') {
-        say('As alterações estão guardadas, mas a pré-visualização falhou. Veja os detalhes na barra de baixo ou fale com o programador.', 'error');
-        return;
-      }
-    }
-    if (mine === following) say('A pré-visualização está a demorar mais do que o normal. As alterações estão guardadas.');
-  }
-
-  refresh();
 }
 
 /* ── new media: upload for a field (A4) ─────────────────────────────────── */
@@ -366,8 +383,8 @@ for (const panel of document.querySelectorAll<HTMLDetailsElement>('[data-upload]
       uploading -= 1;
       bar.hidden = true;
       say(kind === 'video'
-        ? 'Recebido. A processar o vídeo — normalmente 3 a 8 minutos. Pode continuar a trabalhar ou fechar esta página.'
-        : 'Recebido. A processar a imagem — normalmente 2 a 4 minutos.', 'ok');
+        ? 'Recebido. A processar o vídeo (3 a 8 minutos); depois vai para o site sozinho. Pode continuar a trabalhar ou fechar esta página.'
+        : 'Recebido. A processar a imagem (2 a 4 minutos); depois vai para o site sozinho.', 'ok');
       void followUpload(id, say);
     } catch (e) {
       uploading = Math.max(0, uploading - 1);
@@ -380,7 +397,10 @@ for (const panel of document.querySelectorAll<HTMLDetailsElement>('[data-upload]
   });
 }
 
-/** Processing (media-ingest.yml), then the preview build of the commit that attached it. */
+/**
+ * Processing (media-ingest.yml), then the production deploy of the commit that attached it
+ * (A10: an upload goes live by itself; a refused file never deploys at all).
+ */
 async function followUpload(id: string, say: (t: string, tone?: 'ok' | 'error') => void) {
   const until = Date.now() + 40 * 60_000;
   while (Date.now() < until) {
@@ -389,19 +409,9 @@ async function followUpload(id: string, say: (t: string, tone?: 'ok' | 'error') 
     try { s = await (await fetch(`/admin/api/estado/?carregamento=${encodeURIComponent(id)}`, { cache: 'no-store' })).json(); } catch { continue; }
     if (s.status === 'failed') { say(`Não foi possível usar o ficheiro: ${s.error ?? 'erro desconhecido.'}`, 'error'); return; }
     if (s.status !== 'ready' || !s.head) continue;
-    say('Processado. A preparar a pré-visualização…', 'ok');
-    while (Date.now() < until) {
-      await new Promise((r) => setTimeout(r, POLL_MS));
-      const b = await buildState();
-      showBuild(b);
-      if (b?.commit !== s.head) continue;
-      if (b.state === 'ready') {
-        say('Pronto: o novo ficheiro já está na pré-visualização. Quando estiver bem, publique em «Publicar».', 'ok');
-        void refreshPending();
-        return;
-      }
-      if (b.state === 'failed') { say('O ficheiro foi processado, mas a pré-visualização falhou. Fale com o programador.', 'error'); return; }
-    }
+    say('Processado. A publicar no site (normalmente 2 a 3 minutos)…', 'ok');
+    await followLive(s.head, Date.now(), say);
+    return;
   }
   say('O processamento está a demorar mais do que o normal. Volte a esta página mais tarde.');
 }

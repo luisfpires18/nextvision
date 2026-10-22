@@ -388,6 +388,7 @@ Decided by Luís, 2026-10-22.
 | A7 | Where edits are committed | **`luisfpires18/nextvision`**, through a GitHub App owned by Luís's account and installed on that repository only (§3.1) |
 | A4 | Who publishes to the live site | **Owners.** Publish merges `dev → master` after a confirm screen listing the changes; validators still block anything broken |
 | A5 | Max upload size per video | **2 GB** |
+| A10 | Save / preview / publish steps | **One Publicar, straight to production** (Luís, 2026-10-22). Edits are drafts kept in the browser, across pages; Publicar shows them all in a modal and writes them as ONE commit to `master` = one deploy, followed until live. No Save, no `dev` preview, no Publish page. Uploads publish themselves once processed; a refused file never deploys. `dev` is the developer's branch only. Supersedes the save-to-dev parts of §4 and of A3/A8 |
 | A9 | Undo button | **None.** A mistake is fixed by editing again; only the field's source label (`owner:`) is not restored, and no visitor sees it (Luís, 2026-10-22) |
 | A8 | Where the admin lives | **On the live site, `nextvisionfilms.com/admin` (prod Worker only).** Moved from dev the same day it was built. Saves still go to `dev` (preview), Publish still merges to `master`. The prod build carries the admin route; dev carries none (Luís, 2026-10-22) |
 | A6 | Media hostname | **Deferred to Step 15.** Not needed for A0–A3; until then CI pulls new media into the build mirror |
