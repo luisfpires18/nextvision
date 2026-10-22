@@ -72,3 +72,17 @@
   --poster-ratio: 2 / 3;
   --rule-heavy: 0.25rem;
 }
+
+/* The owners' admin (dev Worker only, docs/ADMIN_DASHBOARD_PLAN.md §5). Layout boxes for
+   the edit bay; it reuses every colour, type and space token above and adds none. */
+:root {
+  --admin-nav-w: 11rem;
+  --admin-bin-w: 19rem;
+  --admin-thumb: 10rem;
+  --admin-name-w: 12rem;
+  --admin-label-w: 9rem;
+  --admin-viewer-h: 72vh;
+  --admin-hairline: 0.0625rem;
+  --admin-focus: 0.1875rem;
+  --admin-status-h: 2.75rem;
+}

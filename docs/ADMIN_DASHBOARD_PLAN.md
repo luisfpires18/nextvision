@@ -298,7 +298,7 @@ Each phase ships on its own and is useful without the next.
 | # | Phase | Delivers | Size |
 |---|---|---|---|
 | A0 ✅ | Content extraction (§2.2) | Hero video, page images, page copy, BTS frames become data in `src/content/page-content/*.json`. Done 2026-10-22; `PROJECT_CONTEXT.md` §20 | S |
-| A1 | Access + shell | `/admin/` on dev Worker only, Cloudflare Access, JWT check, read-only browse of all content | S |
+| A1 ✅ | Access + shell | `/admin/` on dev Worker only, Cloudflare Access, JWT check, read-only browse of all content. Done 2026-10-22; `PROJECT_CONTEXT.md` §21 | S |
 | A2 | Text & settings editing | Forms for every §2.1 collection, schema validation server-side, commit via GitHub App, build status | M |
 | A3 | Publish + history | `dev → master` PR/merge button, change list, undo | S |
 | A4 | Media ingest | R2 multipart upload, `recipes.json`, `media-ingest.yml`, video window picker, image upload | L |

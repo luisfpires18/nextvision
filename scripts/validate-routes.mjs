@@ -538,6 +538,33 @@ if (staticOk === STATIC_PAGES.length) ok.push(`routes: ${staticOk}/${STATIC_PAGE
   }
 }
 
+/* ------------------------------------------------------------------ admin
+   The owners' admin exists on the DEV Worker only (docs/ADMIN_DASHBOARD_PLAN.md §3). It
+   is injected at build time, so the check is on the ARTEFACT, not on the intention: a
+   build for any target but dev must contain no admin route at all, and a dev build must
+   contain it. Read from the server bundle's route manifest, which is what the Worker
+   actually routes by. */
+{
+  const SERVER = path.join(ROOT, 'dist', 'server');
+  const files = [];
+  const walk = (dir) => {
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      const full = path.join(dir, entry.name);
+      if (entry.isDirectory()) walk(full);
+      else if (entry.name.endsWith('.mjs')) files.push(full);
+    }
+  };
+  if (fs.existsSync(SERVER)) walk(SERVER);
+  const routed = files.some((f) => read(f).includes('"route":"/admin/[...path]"'));
+  const target = process.env['CLOUDFLARE_ENV'] ?? '(unset)';
+
+  if (!files.length) errors.push('admin: no server bundle found in dist/server to check');
+  else if (target === 'dev' && !routed) errors.push('admin: a dev build must carry /admin/, and this one does not');
+  else if (target !== 'dev' && routed) {
+    errors.push(`admin: /admin/ is in a build for CLOUDFLARE_ENV=${target} — the admin may exist on the dev Worker only`);
+  } else ok.push(`admin: ${routed ? 'present' : 'absent'} in a build for CLOUDFLARE_ENV=${target}, as it must be`);
+}
+
 /* ---------------------------------------------------------------- report */
 
 for (const o of ok) console.log(`  ok    ${o}`);

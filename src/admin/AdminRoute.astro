@@ -1,0 +1,163 @@
+---
+/**
+ * /admin/ — the owners' content browser. Phase A1: READ-ONLY.
+ *
+ * Injected only into the dev Worker's build (astro.config.mjs, `nvf:admin`), behind
+ * Cloudflare Access, and verified again here on every request (src/lib/admin/guard.ts).
+ *
+ * The layout is the edit bay of docs/ADMIN_DASHBOARD_PLAN.md §5: the five stripes of the
+ * logo plus settings down the left, the bin of items beside them, and the open item with
+ * the real page in a viewer next to it. It reads the site's own tokens and adds no colour.
+ *
+ *   /admin/                          every section and how many items it holds
+ *   /admin/<area>/                   that section's items
+ *   /admin/<area>/<group>/<item>/    one item, with the page that shows it
+ */
+export const prerender = false;
+
+import '../styles/tokens.colour.css';
+import '../styles/tokens.type.css';
+import '../styles/tokens.space.css';
+import '../styles/fonts.css';
+import '../styles/admin.css';
+import Field from './Field.astro';
+import { adminIdentity, LOGOUT_PATH } from '../lib/admin/guard.ts';
+import { AREAS, findArea, type AdminItem } from '../lib/admin/content.ts';
+
+const HEADERS = {
+  'Cache-Control': 'no-store',
+  'X-Robots-Tag': 'noindex, nofollow',
+  'X-Frame-Options': 'DENY',
+  'Referrer-Policy': 'same-origin',
+};
+
+const who = await adminIdentity(Astro.request);
+if (!who) {
+  return new Response('Sem acesso. Entre através do link de acesso enviado para o email autorizado.', {
+    status: 403,
+    headers: { ...HEADERS, 'Content-Type': 'text/plain; charset=utf-8' },
+  });
+}
+for (const [k, v] of Object.entries(HEADERS)) Astro.response.headers.set(k, v);
+
+const [areaId, groupId, itemId, extra] = (Astro.params['path'] ?? '').split('/').filter(Boolean);
+const area = areaId ? findArea(areaId) : null;
+if (extra || (areaId && !area) || (groupId && !itemId)) {
+  return new Response('Não encontrado.', { status: 404, headers: { ...HEADERS, 'Content-Type': 'text/plain; charset=utf-8' } });
+}
+
+/* Every group's items, loaded once: the overview needs counts, an area needs its list. */
+const loaded = await Promise.all(AREAS.map(async (a) => ({
+  area: a,
+  groups: await Promise.all(a.groups.map(async (g) => ({ group: g, items: await g.load() }))),
+})));
+const current = loaded.find((l) => l.area === area) ?? null;
+
+let item: AdminItem | null = null;
+if (current && groupId) {
+  item = current.groups.find((g) => g.group.id === groupId)?.items.find((i) => i.id === itemId) ?? null;
+  if (!item) {
+    return new Response('Não encontrado.', { status: 404, headers: { ...HEADERS, 'Content-Type': 'text/plain; charset=utf-8' } });
+  }
+}
+
+const href = (...parts: string[]) => `/admin/${parts.map(encodeURIComponent).join('/')}${parts.length ? '/' : ''}`;
+---
+
+<!doctype html>
+<html lang="pt-PT">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>{item ? `${item.label} · ` : area ? `${area.label} · ` : ''}Admin · Next Vision Films</title>
+  </head>
+  <body class="admin">
+    <nav class="admin-nav" aria-label="Secções">
+      <a class="admin-home" href={href()} aria-current={!area ? 'page' : undefined}>NVF</a>
+      <ul>
+        {AREAS.map((a) => (
+          <li data-section={a.section ?? undefined}>
+            <a href={href(a.id)} aria-current={a === area ? 'page' : undefined}>{a.label}</a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+
+    {!current ? (
+      <main class="admin-overview">
+        <h1>Conteúdo do site</h1>
+        <p class="admin-lede">Tudo o que vai poder ser alterado aqui, organizado pelas secções do site. Por agora só é possível consultar.</p>
+        <ul class="admin-areas">
+          {loaded.map((l) => (
+            <li data-section={l.area.section ?? undefined}>
+              <a href={href(l.area.id)}>
+                <span class="admin-areas__name">{l.area.label}</span>
+                <span class="admin-areas__count">{l.groups.map((g) => `${g.group.label}${g.items.length > 1 ? ` (${g.items.length})` : ''}`).join(' · ')}</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </main>
+    ) : (
+      <div class="admin-bay" data-section={current.area.section ?? undefined}>
+        <section class="admin-bin" aria-labelledby="bin-h">
+          {item ? <p id="bin-h" class="admin-bin__title">{current.area.label}</p> : <h1 id="bin-h" class="admin-bin__title">{current.area.label}</h1>}
+          {current.groups.map(({ group, items }) => (
+            <div class="admin-group">
+              <h2>{group.label} {items.length > 1 ? <span class="admin-count">{items.length}</span> : null}</h2>
+              {items.length === 0 ? <p class="admin-empty">Ainda não há nenhum.</p> : (
+                <ul>
+                  {items.map((i) => (
+                    <li>
+                      <a href={href(current.area.id, group.id, i.id)} aria-current={i === item ? 'page' : undefined}>
+                        <span>{i.label}</span>
+                        {i.meta ? <span class="admin-meta">{i.meta}</span> : null}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          ))}
+        </section>
+
+        {item ? (
+          <main class="admin-item admin-item--open">
+            <header class="admin-item__head">
+              <a class="admin-back" href={href(current.area.id)}>Voltar a {current.area.label}</a>
+              <h1>{item.label}</h1>
+              {item.locked ? <p class="admin-locked">{item.locked}</p> : null}
+            </header>
+            <div class="admin-item__body">
+              <div class="admin-fields">
+                <Field value={item.data} />
+                {item.body?.trim() ? (
+                  <details class="admin-body">
+                    <summary>Texto do ficheiro</summary>
+                    <pre>{item.body.trim()}</pre>
+                  </details>
+                ) : null}
+              </div>
+              {item.viewPath ? (
+                <aside class="admin-viewer" aria-label="Página no site">
+                  <p><a href={item.viewPath} target="_blank" rel="noopener">Abrir {item.viewPath} numa janela nova</a></p>
+                  <iframe src={item.viewPath} title={`Pré-visualização de ${item.viewPath}`} loading="lazy"></iframe>
+                </aside>
+              ) : null}
+            </div>
+          </main>
+        ) : (
+          <main class="admin-item admin-item--empty">
+            <p>Escolha um item à esquerda para o ver, ao lado da página onde aparece.</p>
+          </main>
+        )}
+      </div>
+    )}
+
+    <footer class="admin-status">
+      <span><strong>Só leitura.</strong> A edição chega na próxima fase.</span>
+      <span>{who.email} · <a href={LOGOUT_PATH}>Sair</a></span>
+    </footer>
+  </body>
+</html>

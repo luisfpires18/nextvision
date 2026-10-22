@@ -1524,3 +1524,37 @@ before, because the dead portfolio row data no longer ships either.
 
 **Rule:** a browser module never imports from `homepage.ts`, `static-pages.ts`,
 `portfolio.ts` or `page-content.ts`.
+
+## 21. Admin phase A1 — login and read-only browsing (2026-10-22)
+
+`/admin/` exists on the **dev Worker only**, behind Cloudflare Access (team
+`royal-hall-6f88`, email one-time code, `nextvisionfilmsagency@gmail.com` only). It lists
+everything the owners will be able to change, grouped by the five rail sections plus
+Definições. Each item shows its fields, with Portuguese and English side by side and media
+shown as the picture, next to the real page in a preview frame. Nothing can be edited
+yet; that is A2.
+
+- **Not in production, by construction.** The route is *injected* by `nvf:admin` in
+  `astro.config.mjs`, only under `astro dev` or `CLOUDFLARE_ENV=dev`. An unset variable
+  leaves it out. `validate:routes` reads the server bundle's route manifest and fails a
+  dev build without the route, or any other build with it. A `CLOUDFLARE_ENV=prod` build
+  was checked: no admin file anywhere in `dist/`.
+- **Fails closed.** The Worker verifies the `Cf-Access-Jwt-Assertion` RS256 signature
+  against the team's keys, plus audience, issuer, expiry and email, using WebCrypto with
+  no dependency (`src/lib/admin/access.ts`). `ACCESS_TEAM_DOMAIN` and `ACCESS_AUD` are
+  non-secret `vars` on `env.dev` in `wrangler.jsonc`; unset means every request is
+  refused. `npm run test:access` (now in `verify`) signs real tokens with throwaway keys:
+  22 cases, and only the valid token gets in. It was tested by deleting the audience check,
+  which made it fail. Under workerd, a missing token, a forged `alg: none` token and a deep
+  path each answered `403` with `no-store`, `noindex` and `X-Frame-Options: DENY`.
+- **`astro dev`** skips the check only when the host is `localhost`; `IS_DEV` is false in
+  every build.
+- **The service worker** now leaves `/admin*` alone, so a signed-in page is never cached
+  on a device.
+- **Layout tokens** for the edit bay are in `tokens.space.css` (`--admin-*`). Colours are
+  mixes of brand ink and cream, so no new hue was added. Checked at 1440 px and 375 px:
+  no horizontal scroll, one `<h1>`.
+
+**Measured on the way:** a stopped `wrangler dev` task left its node and workerd processes
+running and holding `dist/` (rule 25 again). Stop `wrangler dev` by its process tree, not
+by the shell that launched it.
