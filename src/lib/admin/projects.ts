@@ -22,6 +22,7 @@
 import { Document, parseDocument, isMap } from 'yaml';
 import { EditError } from './edit.ts';
 import { slugFrom } from './slug.ts';
+import { applyBlocks, blocksValue } from './blocks.ts';
 
 export { slugFrom };
 
@@ -31,7 +32,7 @@ export const PROJECTS_DIR = 'src/content/projects';
 export const projectFilePath = (slug: string): string => `${PROJECTS_DIR}/${slug}.mdx`;
 export const projectDraftFile = (slug: string): string => `${PROJECT_FILE}/${slug}`;
 
-export type ProjectKind = 'title' | 'tagline' | 'year' | 'category' | 'film' | 'visibility' | 'image' | 'video';
+export type ProjectKind = 'title' | 'tagline' | 'year' | 'category' | 'film' | 'visibility' | 'image' | 'video' | 'blocks';
 
 export interface ProjectField {
   /** Dotted path into the front matter. */
@@ -50,6 +51,7 @@ export const PROJECT_FIELDS: ProjectField[] = [
   { path: 'draft', label: 'No site', kind: 'visibility', note: 'Um projeto escondido sai do portfólio e a sua página deixa de existir.' },
   { path: 'poster.key', label: 'Capa', kind: 'image', note: 'A imagem do projeto no portfólio e nas partilhas.' },
   { path: 'heroVideo', label: 'Vídeo de abertura', kind: 'video', note: 'O excerto que corre em silêncio no topo da página do projeto. A capa vem com ele.' },
+  { path: 'blocks', label: 'Blocos da página', kind: 'blocks' },
 ];
 
 export interface ProjectContext {
@@ -98,6 +100,7 @@ export function fieldsFor(data: Record<string, unknown>): ProjectField[] {
  */
 export function projectValue(data: Record<string, unknown>, path: string, lang?: string): string {
   const v = steps(path).reduce<unknown>((n, p) => (n !== null && typeof n === 'object' ? (n as Record<string, unknown>)[p] : undefined), data);
+  if (path === 'blocks') return blocksValue(v);
   if (path === 'tagline') return ((v as Record<string, string> | undefined)?.[lang ?? 'pt']) ?? '';
   if (path === 'categories') return Array.isArray(v) ? String(v[0] ?? '') : '';
   if (path === 'draft') return v === true ? 'true' : 'false';
@@ -153,6 +156,10 @@ export function applyProjectEdits(text: string, edits: Record<string, string>, c
 
     const raw = edits[f.path];
     if (raw === undefined) continue;
+    if (f.kind === 'blocks') {
+      if (applyBlocks(doc, raw, { mediaKind: ctx.mediaKind, englishProse: data['sourceLocale'] === 'en', youtubeId })) changed.push(f.label);
+      continue;
+    }
     const value = clean(raw).trim();
     if (value === projectValue(data, f.path)) continue;
 

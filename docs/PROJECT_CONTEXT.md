@@ -1976,3 +1976,41 @@ Only comment lines moved. Team portraits take uploads: the ingest applies them w
 `npm run test:admin`: 52 checks. Clicked through locally: a phone on the contacts screen
 and a service name on the services screen published as ONE commit. It changed exactly
 those two lines, plus each file's `ownerEdited`.
+
+## 31. Admin: a project page's blocks (2026-10-22)
+
+**Every project form now ends with «Blocos da página»: the page below the film, top to
+bottom.**
+- Add a text, an image, two images, a gallery (2–12 images) or a YouTube film with its
+  poster.
+- Remove any block, after a confirmation.
+- Move any block with ↑/↓.
+- Edit each block: texts in PT/EN and their width; images from the site's list, starting
+  on the project's own cover; a pair's weight; a gallery's layout.
+
+Quote, credits, spacer and a self-hosted film are shown as fixed blocks. They can be moved
+or removed, but not edited here.
+
+**The whole list is ONE draft** (`projeto/<slug>:blocks`), a JSON view of the owner's
+choices, drawn by the browser and published like any field. `src/lib/admin/blocks.ts`
+writes it back into the YAML and **reuses the existing node of every block that did not
+change**, so a moved block keeps the comments that explain it. Every image keeps the
+alt-text state it already had anywhere on that page; a new image is `altStatus: todo`.
+
+Refusals: an empty text; a missing English text unless the project is `sourceLocale: en`
+(the same rule `validate:data` applies); a gallery outside 2–12; a film with no YouTube
+link; a video where an image goes; a fixed block that no longer matches the file.
+
+**Known limit:** if a block whose comment sits above it is moved to the top and then moved
+back, the comment may stay at the top of the list. YAML attaches a comment above the
+first item to the list itself. The content is unaffected.
+
+**Not built: uploading a NEW image straight into a block.** Blocks pick from the site's
+images. A new still goes in through a field that takes uploads (the cover, for example),
+and from then on it is in the list.
+
+`npm run test:admin`: 57 checks. Clicked through locally:
+- the text moved below the image pair and a film block was added;
+- the draft survived a reload and published as one commit;
+- that file built, the film rendered as the YouTube embed, and every validator passed;
+- the screen fits 375 px.

@@ -1,0 +1,38 @@
+---
+/**
+ * A project page's blocks: add, remove, reorder, edit (blocks.ts).
+ *
+ * The list is drawn by the browser from ONE hidden field holding the blocks as JSON, so
+ * the whole list is one draft like any other field and goes out with Publicar. The images
+ * an owner can pick travel with the page, as data.
+ */
+import { MEDIA, thumb } from './media-options.ts';
+
+interface Props {
+  name: string;
+  value: string;
+  label: string;
+  /** Prose already in English: the English box may stay empty. */
+  englishProse: boolean;
+  /** Where a new block's images start: the project's own cover. */
+  defaultImage: string;
+}
+const { name, value, label, englishProse, defaultImage } = Astro.props;
+const images = MEDIA.image.map(([group, keys]) => ({ group, items: keys.map((k) => ({ key: k, label: k.split('/').slice(1).join(' / '), thumb: thumb(k) })) }));
+---
+
+<fieldset class="ed-field ed-blocks" data-field>
+  <legend>Blocos da página</legend>
+  <p class="ed-note">O que aparece na página do projeto, por baixo do filme, de cima para baixo. As imagens escolhem-se entre as que já estão no site.{englishProse ? ' Este projeto publica os textos já em inglês, por isso o campo inglês pode ficar vazio.' : ''}</p>
+  <input type="hidden" name={name} value={value} data-original={value} data-label={label} data-default-image={defaultImage} data-blocks />
+  <ol class="ed-blocklist" data-block-list></ol>
+  <div class="ed-blockadd">
+    <span class="f-lang">Acrescentar</span>
+    <button type="button" data-add="text">Texto</button>
+    <button type="button" data-add="full-width-image">Imagem</button>
+    <button type="button" data-add="image-pair">Duas imagens</button>
+    <button type="button" data-add="image-grid">Galeria</button>
+    <button type="button" data-add="embedded-film">Filme</button>
+  </div>
+  <script type="application/json" data-block-images set:html={JSON.stringify(images)} />
+</fieldset>

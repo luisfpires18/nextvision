@@ -10,6 +10,7 @@
 import { fieldsFor, projectDraftFile, projectValue, type ProjectField } from '../lib/admin/projects.ts';
 import { MEDIA, thumb } from './media-options.ts';
 import UploadPanel from './UploadPanel.astro';
+import BlocksEditor from './BlocksEditor.astro';
 import { requestsFor, type UploadEntry } from '../lib/admin/uploads.ts';
 
 interface Props {
@@ -29,7 +30,7 @@ const rows = (v: string) => Math.min(8, Math.ceil(v.length / 60) + v.split('\n')
 ---
 
 <form class="admin-editor" data-editor data-screen="projeto" data-project={slug} novalidate>
-  {fieldsFor(data).map((f) => {
+  {fieldsFor(data).filter((f) => f.kind !== 'blocks').map((f) => {
     const value = projectValue(data, f.path);
     const id = `p-${f.path.replace(/\W/g, '-')}`;
     return (
@@ -107,6 +108,14 @@ const rows = (v: string) => Math.min(8, Math.ceil(v.length / 60) + v.split('\n')
       </fieldset>
     );
   })}
+
+  <BlocksEditor
+    name={`${projectDraftFile(slug)}:blocks`}
+    value={projectValue(data, 'blocks')}
+    label={`Projeto «${title}» — Blocos da página`}
+    englishProse={alreadyEnglish}
+    defaultImage={projectValue(data, 'poster.key')}
+  />
 
   <p class="ed-message" role="status" aria-live="polite" data-message></p>
 </form>

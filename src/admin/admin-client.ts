@@ -201,7 +201,9 @@ if (dialog) {
         name.textContent = d.label.split(' — ').slice(1).join(' — ');
         const change = document.createElement('span');
         change.className = 'pub-fields';
-        change.textContent = d.label.endsWith('— Ordem') ? 'nova ordem' : `${short(d.from)} → ${short(d.to)}`;
+        change.textContent = d.label.endsWith('— Ordem') ? 'nova ordem'
+          : d.label.endsWith('— Blocos da página') ? 'blocos alterados'
+          : `${short(d.from)} → ${short(d.to)}`;
         li.append(name, change);
         ul.append(li);
       }
@@ -558,4 +560,169 @@ if (creator) {
       bar.hidden = true;
     }
   });
+}
+
+/* ── a project page's blocks: add, remove, reorder, edit ─────────────────── */
+
+type BlockView =
+  | { type: 'text'; pt: string; en: string; width: 'narrow' | 'wide' }
+  | { type: 'full-width-image'; media: string[] }
+  | { type: 'image-pair'; media: string[]; weight: 'left' | 'right' | 'equal' }
+  | { type: 'image-grid'; media: string[]; mode: 'strip' | 'stack' | 'scrub' }
+  | { type: 'embedded-film'; film: string; poster: string }
+  | { type: 'fixed'; kind: string; ref: number };
+
+const blocksInput = document.querySelector<HTMLInputElement>('[data-blocks]');
+const blockList = document.querySelector<HTMLOListElement>('[data-block-list]');
+if (blocksInput && blockList) {
+  const images = JSON.parse(document.querySelector('[data-block-images]')?.textContent ?? '[]') as
+    { group: string; items: { key: string; label: string; thumb: string }[] }[];
+  const thumbOf = new Map(images.flatMap((g) => g.items.map((i) => [i.key, i.thumb] as const)));
+  // A new block starts on this project's own cover, not on whatever sorts first.
+  const firstImage = blocksInput.dataset['defaultImage'] || (images[0]?.items[0]?.key ?? '');
+  let blocks: BlockView[] = [];
+  try { blocks = JSON.parse(blocksInput.value) as BlockView[]; } catch { blocks = []; }
+
+  const NAMES: Record<string, string> = {
+    text: 'Texto', 'full-width-image': 'Imagem', 'image-pair': 'Duas imagens', 'image-grid': 'Galeria', 'embedded-film': 'Filme',
+  };
+  const FIXED: Record<string, string> = {
+    quote: 'Citação', credits: 'Créditos', spacer: 'Espaço', 'full-width-video': 'Vídeo', 'embedded-film': 'Filme',
+  };
+
+  const commit = () => {
+    blocksInput.value = JSON.stringify(blocks);
+    blocksInput.dispatchEvent(new Event('input', { bubbles: true }));
+  };
+  const el = <T extends HTMLElement = HTMLElement>(tag: string, props: Record<string, unknown> = {}, ...kids: (Node | string)[]): T => {
+    const e = Object.assign(document.createElement(tag), props) as T;
+    e.append(...kids);
+    return e;
+  };
+  const labelled = (text: string, control: HTMLElement) =>
+    el('label', { className: 'ed-media__pick' }, el('span', { className: 'f-lang', textContent: text }), control);
+  const choice = (value: string, options: [string, string][], on: (v: string) => void) => {
+    const s = el<HTMLSelectElement>('select');
+    for (const [v, t] of options) s.append(el('option', { value: v, textContent: t, selected: v === value }));
+    s.addEventListener('change', () => { on(s.value); commit(); });
+    return s;
+  };
+  /** An image picker with its thumbnail; the current key is always an option. */
+  const picker = (key: string, on: (k: string) => void, removable?: () => void) => {
+    const img = el<HTMLImageElement>('img', { src: thumbOf.get(key) ?? '', alt: '', width: 96, height: 54 });
+    const s = el<HTMLSelectElement>('select');
+    s.setAttribute('aria-label', 'Imagem');
+    if (!thumbOf.has(key)) s.append(el('option', { value: key, textContent: key ? `${key} (atual)` : '(escolha)', selected: true }));
+    for (const g of images) {
+      const og = el('optgroup', { label: g.group });
+      for (const i of g.items) og.append(el('option', { value: i.key, textContent: i.label, selected: i.key === key }));
+      s.append(og);
+    }
+    s.addEventListener('change', () => { img.src = thumbOf.get(s.value) ?? ''; on(s.value); commit(); });
+    const row = el('div', { className: 'ed-blockimg' }, img, s);
+    if (removable) {
+      const x = el('button', { type: 'button', textContent: '×', title: 'Tirar esta imagem' });
+      x.setAttribute('aria-label', 'Tirar esta imagem');
+      x.addEventListener('click', () => { removable(); commit(); render(); });
+      row.append(x);
+    }
+    return row;
+  };
+
+  const body = (b: BlockView): HTMLElement => {
+    const box = el('div', { className: 'ed-blockbody' });
+    switch (b.type) {
+      case 'text': {
+        const area = (lang: 'pt' | 'en') => {
+          const t = el<HTMLTextAreaElement>('textarea', { value: b[lang], rows: Math.min(8, Math.ceil(b[lang].length / 60) + 2), lang: lang === 'pt' ? 'pt-PT' : 'en' });
+          t.addEventListener('input', () => { b[lang] = t.value; commit(); });
+          return el('label', {}, el('span', { className: 'f-lang', textContent: lang === 'pt' ? 'Português' : 'Inglês' }), t);
+        };
+        box.append(
+          el('div', { className: 'ed-pair' }, area('pt'), area('en')),
+          labelled('Largura', choice(b.width, [['narrow', 'Estreita'], ['wide', 'Larga']], (v) => { b.width = v as 'narrow' | 'wide'; })),
+        );
+        break;
+      }
+      case 'full-width-image':
+        box.append(picker(b.media[0] ?? '', (k) => { b.media = [k]; }));
+        break;
+      case 'image-pair':
+        b.media.forEach((k, i) => box.append(picker(k, (v) => { b.media[i] = v; })));
+        box.append(labelled('Disposição', choice(b.weight, [['left', 'Maior à esquerda'], ['right', 'Maior à direita'], ['equal', 'Iguais']],
+          (v) => { b.weight = v as 'left' | 'right' | 'equal'; })));
+        break;
+      case 'image-grid': {
+        b.media.forEach((k, i) => box.append(picker(k, (v) => { b.media[i] = v; }, b.media.length > 2 ? () => { b.media.splice(i, 1); } : undefined)));
+        if (b.media.length < 12) {
+          const more = el('button', { type: 'button', textContent: 'Acrescentar imagem' });
+          more.addEventListener('click', () => { b.media.push(firstImage); commit(); render(); });
+          box.append(more);
+        }
+        box.append(labelled('Disposição', choice(b.mode, [['strip', 'Em faixa'], ['stack', 'Empilhadas'], ['scrub', 'A passar com o scroll']],
+          (v) => { b.mode = v as 'strip' | 'stack' | 'scrub'; })));
+        break;
+      }
+      case 'embedded-film': {
+        const url = el<HTMLInputElement>('input', { type: 'text', value: b.film, placeholder: 'https://www.youtube.com/watch?v=…', spellcheck: false });
+        url.addEventListener('input', () => { b.film = url.value; commit(); });
+        box.append(labelled('Filme no YouTube', url), el('p', { className: 'f-lang', textContent: 'Capa do filme' }), picker(b.poster, (k) => { b.poster = k; }));
+        break;
+      }
+      case 'fixed':
+        box.append(el('p', { className: 'ed-note', textContent: 'Este bloco só se pode mover ou apagar aqui. Para o alterar, fale com o programador.' }));
+        break;
+    }
+    return box;
+  };
+
+  const render = () => {
+    blockList.replaceChildren();
+    if (!blocks.length) blockList.append(el('li', { className: 'ed-note', textContent: 'Esta página ainda não tem blocos.' }));
+    blocks.forEach((b, i) => {
+      const name = b.type === 'fixed' ? FIXED[b.kind] ?? b.kind : NAMES[b.type] ?? b.type;
+      const move = (d: -1 | 1, sign: string, what: string) => {
+        const btn = el('button', { type: 'button', textContent: sign, disabled: !blocks[i + d] });
+        btn.setAttribute('aria-label', `${what} o bloco ${i + 1}`);
+        btn.addEventListener('click', () => {
+          [blocks[i], blocks[i + d]] = [blocks[i + d]!, blocks[i]!];
+          commit();
+          render();
+          blockList.querySelector<HTMLButtonElement>(`[aria-label="${what} o bloco ${i + 1 + d}"]`)?.focus();
+        });
+        return btn;
+      };
+      const del = el('button', { type: 'button', textContent: '×' });
+      del.setAttribute('aria-label', `Apagar o bloco ${i + 1}`);
+      del.addEventListener('click', () => {
+        if (!window.confirm(`Apagar o bloco ${i + 1} (${name})?`)) return;
+        blocks.splice(i, 1);
+        commit();
+        render();
+      });
+      blockList.append(el('li', { className: 'ed-block' },
+        el('div', { className: 'ed-blockhead' }, el('strong', { textContent: `${i + 1}. ${name}` }),
+          el('span', { className: 'ed-order__moves' }, move(-1, '↑', 'Subir'), move(1, '↓', 'Descer'), del)),
+        body(b)));
+    });
+  };
+
+  document.querySelector('.ed-blockadd')?.addEventListener('click', (e) => {
+    const type = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-add]')?.dataset['add'];
+    if (!type) return;
+    const fresh: Record<string, BlockView> = {
+      text: { type: 'text', pt: '', en: '', width: 'narrow' },
+      'full-width-image': { type: 'full-width-image', media: [firstImage] },
+      'image-pair': { type: 'image-pair', media: [firstImage, firstImage], weight: 'equal' },
+      'image-grid': { type: 'image-grid', media: [firstImage, firstImage, firstImage], mode: 'strip' },
+      'embedded-film': { type: 'embedded-film', film: '', poster: firstImage },
+    };
+    const add = fresh[type];
+    if (!add) return;
+    blocks.push(structuredClone(add));
+    commit();
+    render();
+    blockList.lastElementChild?.scrollIntoView({ block: 'nearest' });
+  });
+  render();
 }

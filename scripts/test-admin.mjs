@@ -223,6 +223,45 @@ await check('every offered field exists in its file', () => {
     assert.equal(entry.key, 'owner/abcdefgh12/image');
     assert.throws(() => planUpload(fields, { screen: 'projeto', target: 'projeto/leonor:title.pt', source: 'uploads/2026-10-22/abcdefgh12/capa.jpg', name: 'capa.jpg' }, 'abcdefgh12', 'x', 'y'), /não aceita/);
   });
+  const view = (text) => JSON.parse(projectValue(projectData(text), 'blocks'));
+  await check('blocks: the view lists every block, and an unchanged view writes nothing', () => {
+    const v = view(leonor);
+    assert.deepEqual(v.map((b) => b.type), ['text', 'image-pair', 'image-grid', 'full-width-image']);
+    assert.deepEqual(applyProjectEdits(leonor, { blocks: JSON.stringify(v) }, ctx).changed, []);
+  });
+  await check('blocks: a moved block keeps its comments and its images keep their alt state', () => {
+    const v = view(leonor);
+    const { text, changed } = applyProjectEdits(leonor, { blocks: JSON.stringify([v[1], v[0], v[2], v[3]]) }, ctx);
+    assert.deepEqual(changed, ['Blocos da página']);
+    assert.deepEqual(view(text).map((b) => b.type), ['image-pair', 'text', 'image-grid', 'full-width-image']);
+    assert.match(text, /# Six frames of the film, in the order they occur in it/);
+    assert.equal(projectData(text).blocks[0].media[0].altStatus, 'todo');
+    assert.doesNotMatch(text, /^[ \t]+$/m, 'no whitespace-only lines');
+  });
+  await check('blocks: add a gallery and a YouTube film, remove a block', () => {
+    const v = view(leonor);
+    const next = [...v.slice(1), { type: 'image-grid', media: ['projects/leonor/still-01', 'projects/leonor/still-02'], mode: 'stack' },
+      { type: 'embedded-film', film: 'https://youtu.be/0C-yySHAzCI', poster: 'projects/leonor/poster' }];
+    const d = projectData(applyProjectEdits(leonor, { blocks: JSON.stringify(next) }, ctx).text);
+    assert.equal(d.blocks.length, 5);
+    assert.deepEqual(d.blocks[3], { type: 'image-grid', mode: 'stack', media: [{ key: 'projects/leonor/still-01', altStatus: 'todo' }, { key: 'projects/leonor/still-02', altStatus: 'todo' }] });
+    assert.deepEqual(d.blocks[4].film, { provider: 'youtube', id: '0C-yySHAzCI' });
+  });
+  await check('blocks: refused when a gallery is too small, a film has no link, an image is a video, or English is missing', () => {
+    const one = (b) => () => applyProjectEdits(leonor, { blocks: JSON.stringify([b]) }, ctx);
+    assert.throws(one({ type: 'image-grid', media: ['projects/leonor/still-01'], mode: 'strip' }), /entre 2 e 12/);
+    assert.throws(one({ type: 'embedded-film', film: '', poster: 'projects/leonor/poster' }), /YouTube/);
+    assert.throws(one({ type: 'full-width-image', media: ['projects/the-end/hero'] }), /imagens da lista/);
+    assert.throws(one({ type: 'text', pt: '', en: '', width: 'narrow' }), /vazio/);
+    const pt = leonor.replace(/^sourceLocale: en$/m, 'sourceLocale: pt');
+    assert.throws(() => applyProjectEdits(pt, { blocks: JSON.stringify([{ type: 'text', pt: 'Olá', en: '', width: 'narrow' }]) }, ctx), /inglês/);
+    assert.throws(() => applyProjectEdits(leonor, { blocks: '[{"type":"fixed","kind":"quote","ref":0}]' }, ctx), /mudaram/);
+  });
+  await check('blocks: a page can be left with none', () => {
+    const text = applyProjectEdits(leonor, { blocks: '[]' }, ctx).text;
+    assert.deepEqual(projectData(text).blocks, []);
+    assert.ok(roundTrips(text));
+  });
   await check('the film field is offered only for a YouTube film', () => {
     assert.ok(fieldsFor({ film: { provider: 'youtube' } }).some((f) => f.kind === 'film'));
     assert.ok(!fieldsFor({}).some((f) => f.kind === 'film'));
