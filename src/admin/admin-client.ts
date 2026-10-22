@@ -46,6 +46,82 @@ function showBuild(s: BuildState | null) {
 
 void buildState().then(showBuild);
 
+/* ── how much is saved but not yet live, on the "Publicar" link ─────────── */
+
+const badge = document.querySelector<HTMLElement>('[data-pending]');
+async function refreshPending() {
+  if (!badge) return;
+  try {
+    const res = await fetch('/admin/api/estado/?pendentes=1', { cache: 'no-store' });
+    const s = (await res.json()) as { pending?: number; blocked?: boolean };
+    badge.textContent = s.pending ? `(${s.pending})` : '';
+    badge.title = s.pending ? `${s.pending} por publicar${s.blocked ? ' (bloqueado: alterações técnicas por rever)' : ''}` : '';
+  } catch { badge.textContent = ''; }
+}
+void refreshPending();
+
+/* ── publishing ─────────────────────────────────────────────────────────── */
+
+const pub = document.querySelector<HTMLElement>('[data-publish]');
+if (pub) {
+  const start = pub.querySelector<HTMLButtonElement>('[data-publish-start]')!;
+  const confirm = pub.querySelector<HTMLElement>('[data-publish-confirm]')!;
+  const go = pub.querySelector<HTMLButtonElement>('[data-publish-go]')!;
+  const cancel = pub.querySelector<HTMLButtonElement>('[data-publish-cancel]')!;
+  const out = pub.querySelector<HTMLElement>('[data-publish-message]')!;
+  const say = (text: string, tone?: 'ok' | 'error') => {
+    out.textContent = text;
+    if (tone) out.dataset['tone'] = tone; else delete out.dataset['tone'];
+  };
+
+  start.addEventListener('click', () => { start.hidden = true; confirm.hidden = false; go.focus(); });
+  cancel.addEventListener('click', () => { confirm.hidden = true; start.hidden = false; start.focus(); });
+
+  go.addEventListener('click', async () => {
+    go.disabled = true;
+    cancel.disabled = true;
+    say('A publicar…');
+    let res: Response | null = null;
+    let body: { error?: string; nothing?: boolean; merged?: string } = {};
+    try {
+      res = await fetch('/admin/api/publicar/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify({ sha: pub.dataset['reviewed'] }),
+      });
+      body = await res.json();
+    } catch { /* network */ }
+
+    if (!res || !res.ok) {
+      go.disabled = false;
+      cancel.disabled = false;
+      say(body.error ?? 'Não foi possível publicar (sem ligação?). Nada foi publicado.', 'error');
+      return;
+    }
+    confirm.hidden = true;
+    if (body.nothing) { say('Já não havia nada por publicar.'); return; }
+    say('Enviado para o site. A atualizar nextvisionfilms.com (cerca de 3 minutos)…', 'ok');
+    void refreshPending();
+    if (body.merged) void followLive(body.merged);
+  });
+
+  async function followLive(commit: string) {
+    const until = Date.now() + POLL_FOR_MS;
+    while (Date.now() < until) {
+      await new Promise((r) => setTimeout(r, POLL_MS));
+      let s: BuildState | null = null;
+      try { s = (await (await fetch('/admin/api/estado/?alvo=site', { cache: 'no-store' })).json()) as BuildState; } catch { /* keep polling */ }
+      if (!s?.configured || s.commit !== commit) continue;
+      if (s.state === 'ready') { say('Publicado. O site já mostra as alterações.', 'ok'); return; }
+      if (s.state === 'failed') {
+        say('As alterações foram enviadas, mas a atualização do site falhou e o site continua como estava. Fale com o programador.', 'error');
+        return;
+      }
+    }
+    say('A atualização do site está a demorar mais do que o normal. As alterações já foram enviadas.');
+  }
+}
+
 /* ── the editor ─────────────────────────────────────────────────────────── */
 
 const form = document.querySelector<HTMLFormElement>('[data-editor]');
@@ -143,7 +219,8 @@ if (form) {
       const covers = s?.commit === commit || (s?.at !== undefined && Date.parse(s.at) >= since - 5000);
       if (!s?.configured || !covers) continue;
       if (s.state === 'ready') {
-        say('Pré-visualização pronta. Confira à direita antes de publicar.', 'ok');
+        say('Pré-visualização pronta. Confira à direita; quando estiver bem, publique em «Publicar».', 'ok');
+        void refreshPending();
         const frame = document.querySelector<HTMLIFrameElement>('.admin-viewer iframe');
         if (frame) frame.src = frame.src;
         return;

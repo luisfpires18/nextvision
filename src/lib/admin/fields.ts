@@ -86,5 +86,16 @@ export const SCREENS: Record<PageFileName, FieldDef[]> = {
   ],
 };
 
+/** Each screen's name, as the admin's navigation shows it. */
+export const SCREEN_LABELS: Record<PageFileName, string> = {
+  home: 'Página inicial',
+  about: 'Página Sobre',
+  services: 'Página Serviços',
+  contact: 'Página Contactos',
+  thanks: 'Página Obrigado',
+  portfolio: 'Página Portfólio',
+  bts: 'Página BTS',
+};
+
 /** Every repository path a screen may write. */
 export const pageFilePath = (file: PageFileName): string => `src/content/page-content/${file}.json`;

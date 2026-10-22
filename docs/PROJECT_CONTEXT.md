@@ -1639,3 +1639,58 @@ Branch `feat/admin-a2-core`.
 
 **Not yet verified:** a real save against GitHub. It needs this branch on the live
 Worker, which means a merge into `dev` and then a `dev → master` merge.
+
+**Verified live after PR #3 merged:** the first real save, from the Next Vision login on
+the Thank-you page, made commit `c0e429b` on `dev`. It was authored by
+`nvf-admin-luisfpires18[bot]`, with one parent and one file (`thanks.json`), and the PT
+title was recorded as `owner:2026-10-22`. Its dev build sat queued for minutes because
+GitHub reported Actions in "degraded performance", which is outside this project. Decision
+**A9** followed: no undo button, a mistake is fixed by editing again.
+
+## 24. Admin phase A3: the owners publish (2026-10-22)
+
+`/admin/publicar/` lists what is saved but not yet live, in the owners' words (page,
+fields, when, by whom), with a link to the preview. **Publicar no site** asks for
+confirmation, then opens the `dev → master` pull request (or reuses an open one) and
+merges it, then follows the live build until "Publicado". A yellow **Publicar** link in
+the navigation carries the count of waiting saves; on a phone it comes right after the
+NVF mark, because at the end of the scrolling strip it was off-screen. Branch
+`feat/admin-a3-publish`.
+
+**The rule** (`src/lib/admin/publish.ts`): publishing merges ALL of `dev`, so it is allowed
+only when every waiting commit is by the admin's App AND every changed file is a
+page-content file. Anything else (a developer commit, a commit GitHub cannot attribute, an
+App commit touching other files) refuses with the reason: "1 alteração técnica do
+programador ainda por rever… Fale com o programador". **Consequence:** while developer
+work sits on `dev`, the owners cannot publish. So developer work merges into `dev` only
+when it is ready to go live with the next owner publish, or the developer publishes it
+first.
+
+**The server checks everything itself** (`POST /admin/api/publicar/`), in order:
+1. `dev` is still exactly the commit the page showed.
+2. Everything waiting is owner content.
+3. The preview of that exact commit built successfully.
+4. GitHub merges only at that same SHA.
+
+So a stale page or a race publishes nothing: GitHub refuses the merge with a 409 at a
+different head.
+
+**Tested:**
+- `npm run test:admin` now has 28 checks, adding the publish rules and the
+  compare → PR (reused, not duplicated) → merge → live-build flow against the fake GitHub.
+  It also covers a merge refused after a newer save, and a developer commit blocking in a
+  real comparison. Mutation-tested on the block rule (3 checks fail without it).
+- Clicked through under `astro dev` against `npm run mock:github`:
+  - The empty state.
+  - A save listed while its preview builds, with no button.
+  - Button, confirm, "Publicado", and the change on `master` with nothing left waiting.
+  - A developer commit (`POST /__mock/push`, a test-only mock endpoint) blocks the
+    screen, and the endpoint refuses it directly too, as it does a stale review. The
+    developer file never reached `master`.
+- The prod build under workerd answers 403 to every unauthenticated or forged call to
+  the new endpoint and pages.
+
+**Not yet verified:** a real publish. It needs this branch live (dev, then a
+`dev → master` merge done by the developer, because this branch is itself technical
+work that would block the owners' button). After that, the first real owner publish
+releases the two Thank-you saves already on `dev`.

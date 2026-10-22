@@ -23,7 +23,10 @@ import '../styles/admin.css';
 import Field from './Field.astro';
 import Editor from './Editor.astro';
 import { githubConfig } from '../lib/admin/repo.ts';
-import { readFile } from '../lib/admin/github.ts';
+import { readFile, branchHead, compare, latestRun } from '../lib/admin/github.ts';
+import { assess, type Assessment } from '../lib/admin/publish.ts';
+import { SAVE_BRANCH, LIVE_BRANCH, BUILD_WORKFLOW } from '../lib/admin/repo.ts';
+import Publish from './Publish.astro';
 import { SCREENS, pageFilePath, type PageFileName } from '../lib/admin/fields.ts';
 import { expandFields, type Field as EditField } from '../lib/admin/edit.ts';
 import { adminIdentity, LOGOUT_PATH } from '../lib/admin/guard.ts';
@@ -55,7 +58,8 @@ for (const [k, v] of Object.entries(HEADERS)) Astro.response.headers.set(k, v);
 
 const [areaId, groupId, itemId, extra] = (Astro.params['path'] ?? '').split('/').filter(Boolean);
 const area = areaId ? findArea(areaId) : null;
-if (extra || (areaId && !area) || (groupId && !itemId)) {
+const publishing = areaId === 'publicar' && !groupId;
+if (extra || (areaId && !area && !publishing) || (groupId && !itemId)) {
   return new Response('Não encontrado.', { status: 404, headers: { ...HEADERS, 'Content-Type': 'text/plain; charset=utf-8' } });
 }
 
@@ -71,6 +75,25 @@ if (current && groupId) {
   item = current.groups.find((g) => g.group.id === groupId)?.items.find((i) => i.id === itemId) ?? null;
   if (!item) {
     return new Response('Não encontrado.', { status: 404, headers: { ...HEADERS, 'Content-Type': 'text/plain; charset=utf-8' } });
+  }
+}
+
+/** The publish screen (A3): what `dev` has that the live site does not, read from GitHub now. */
+let publish: { waiting: Assessment | null; head: string | null; preview: 'ready' | 'building' | 'failed' | 'none'; notice: string | null } | null = null;
+if (publishing) {
+  const cfg = githubConfig();
+  if (!cfg) publish = { waiting: null, head: null, preview: 'none', notice: 'Publicar ainda não está configurado neste servidor.' };
+  else {
+    try {
+      const head = await branchHead(cfg, SAVE_BRANCH);
+      const waiting = assess(await compare(cfg, LIVE_BRANCH, SAVE_BRANCH));
+      const run = await latestRun(cfg, BUILD_WORKFLOW);
+      const preview = !run || run.headSha !== head ? 'building'
+        : run.status !== 'completed' ? 'building' : run.conclusion === 'success' ? 'ready' : 'failed';
+      publish = { waiting, head, preview, notice: null };
+    } catch {
+      publish = { waiting: null, head: null, preview: 'none', notice: 'Não foi possível ler o estado a partir do GitHub. Tente daqui a pouco.' };
+    }
   }
 }
 
@@ -110,11 +133,11 @@ const href = (...parts: string[]) => `/admin/${parts.map(encodeURIComponent).joi
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="robots" content="noindex, nofollow" />
-    <title>{item ? `${item.label} · ` : area ? `${area.label} · ` : ''}Admin · Next Vision Films</title>
+    <title>{publishing ? 'Publicar · ' : item ? `${item.label} · ` : area ? `${area.label} · ` : ''}Admin · Next Vision Films</title>
   </head>
   <body class="admin">
     <nav class="admin-nav" aria-label="Secções">
-      <a class="admin-home" href={href()} aria-current={!area ? 'page' : undefined}>NVF</a>
+      <a class="admin-home" href={href()} aria-current={!area && !publishing ? 'page' : undefined}>NVF</a>
       <ul>
         {AREAS.map((a) => (
           <li data-section={a.section ?? undefined}>
@@ -122,12 +145,17 @@ const href = (...parts: string[]) => `/admin/${parts.map(encodeURIComponent).joi
           </li>
         ))}
       </ul>
+      <a class="admin-publish-link" href={href('publicar')} aria-current={publishing ? 'page' : undefined}>
+        Publicar <span data-pending></span>
+      </a>
     </nav>
 
-    {!current ? (
+    {publishing && publish ? (
+      <Publish waiting={publish.waiting} head={publish.head} preview={publish.preview} notice={publish.notice} />
+    ) : !current ? (
       <main class="admin-overview">
         <h1>Conteúdo do site</h1>
-        <p class="admin-lede">Tudo o que vai poder ser alterado aqui, organizado pelas secções do site. Por agora só é possível consultar.</p>
+        <p class="admin-lede">Tudo o que pode ser alterado aqui, organizado pelas secções do site. As páginas já se editam; o resto, por agora, só se consulta. O que guardar aparece primeiro na pré-visualização e só chega ao site quando carregar em «Publicar».</p>
         <ul class="admin-areas">
           {loaded.map((l) => (
             <li data-section={l.area.section ?? undefined}>

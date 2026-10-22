@@ -11,6 +11,7 @@
 
 import { getCollection } from 'astro:content';
 import { PAGE_CONTENT } from '../page-content.ts';
+import { SCREEN_LABELS } from './fields.ts';
 import { pagePath, projectPath, categoryPath, type PageId } from '../../i18n/routes.ts';
 
 export type Section = 'home' | 'about' | 'commercial' | 'cinema' | 'bts';
@@ -45,7 +46,8 @@ const byOrder = <T extends { data: { order?: number } }>(a: T, b: T) =>
   (a.data.order ?? 0) - (b.data.order ?? 0);
 
 /** One page-content file as a single-item group. */
-function page(file: keyof typeof PAGE_CONTENT, label: string, pageId: PageId): AdminGroup {
+function page(file: keyof typeof PAGE_CONTENT, pageId: PageId): AdminGroup {
+  const label = SCREEN_LABELS[file];
   return {
     id: `pagina-${file}`,
     label,
@@ -56,12 +58,12 @@ function page(file: keyof typeof PAGE_CONTENT, label: string, pageId: PageId): A
 export const AREAS: AdminArea[] = [
   {
     id: 'inicio', label: 'Início', section: 'home',
-    groups: [page('home', 'Página inicial', 'home')],
+    groups: [page('home', 'home')],
   },
   {
     id: 'sobre', label: 'Sobre', section: 'about',
     groups: [
-      page('about', 'Página Sobre', 'about'),
+      page('about', 'about'),
       {
         id: 'equipa', label: 'Equipa',
         load: async () => (await getCollection('team')).sort(byOrder).map((e) => ({
@@ -73,7 +75,7 @@ export const AREAS: AdminArea[] = [
   {
     id: 'comercial', label: 'Comercial', section: 'commercial',
     groups: [
-      page('services', 'Página Serviços', 'services'),
+      page('services', 'services'),
       {
         id: 'servicos', label: 'Serviços',
         load: async () => (await getCollection('services')).sort(byOrder).map((e) => ({
@@ -91,7 +93,7 @@ export const AREAS: AdminArea[] = [
   {
     id: 'cinema', label: 'Cinema', section: 'cinema',
     groups: [
-      page('portfolio', 'Página Portfólio', 'portfolio'),
+      page('portfolio', 'portfolio'),
       {
         id: 'projetos', label: 'Projetos',
         load: async () => (await getCollection('projects'))
@@ -123,7 +125,7 @@ export const AREAS: AdminArea[] = [
   },
   {
     id: 'bts', label: 'BTS', section: 'bts',
-    groups: [page('bts', 'Página BTS', 'bts')],
+    groups: [page('bts', 'bts')],
   },
   {
     id: 'definicoes', label: 'Definições', section: null,
@@ -134,8 +136,8 @@ export const AREAS: AdminArea[] = [
           id: e.id, label: 'Contactos e redes sociais', data: e.data, viewPath: pagePath('contact'),
         })),
       },
-      page('contact', 'Página Contactos', 'contact'),
-      page('thanks', 'Página Obrigado', 'thank-you'),
+      page('contact', 'contact'),
+      page('thanks', 'thank-you'),
       {
         id: 'menu', label: 'Menu',
         load: async () => (await getCollection('navigation')).map((e) => ({
