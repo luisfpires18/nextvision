@@ -70,7 +70,7 @@ Everything downstream — CSS, the production runtime, the concept runtime, devt
 | Tier | Trigger |
 |---|---|
 | `reduced` | `prefers-reduced-motion: reduce` |
-| `minimal` | `saveData`, `deviceMemory ≤ 4`, or `hardwareConcurrency ≤ 4` |
+| `minimal` | `saveData`, `deviceMemory ≤ 2`, or `hardwareConcurrency ≤ 2` (≤ 4 until design v2, 2026-10-22: it put most phones here — see `src/lib/motion/tier.ts`) |
 | `full` | everything else |
 
 Running before paint is not a nicety. It is what allows the loader to be **armed** rather

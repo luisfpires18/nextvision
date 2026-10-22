@@ -16,7 +16,14 @@
  *   reduced  the reader asked for less: no travel, no autoplay, but state changes stay
  *            legible. Not "everything is 0ms" — an interface with no settle at all is
  *            harder to follow, not easier.
- *   minimal  saveData, ≤4 GB of memory or ≤4 cores: a cut everywhere.
+ *   minimal  saveData, ≤2 GB of memory or ≤2 cores: a cut everywhere.
+ *
+ * DESIGN V2 (2026-10-22): the thresholds were ≤4 GB / ≤4 cores, which put most phones in
+ * `minimal` — Chrome on Android reports a great many current devices as 4 GB — so the
+ * homepage opening never played on a phone. `minimal` now means a genuinely low-end device.
+ * And the opening is armed at `minimal` too: it is CSS transforms on a handful of elements
+ * and a 14 KB mark, so it costs nothing that tier exists to save. It is still never armed
+ * for a reader who asked for reduced motion.
  *
  * The bootstrap also decides, in the same pass, whether the opening hold is allowed to
  * appear at all — because that has to be known before the loader can paint, and a loader
@@ -39,7 +46,7 @@ export const SEEN_KEY = 'nvf-seen';
  *   class="js"     so `:root:not(.js)` means "scripting is off", not "scripts are late"
  *   data-loader    "on" only when the opening hold has been earned
  */
-export const MOTION_BOOTSTRAP = `(function(){var r=document.documentElement,n=navigator,t="full";try{if(matchMedia("(prefers-reduced-motion: reduce)").matches)t="reduced";else if(n.connection&&n.connection.saveData)t="minimal";else if((n.deviceMemory||8)<=4)t="minimal";else if((n.hardwareConcurrency||8)<=4)t="minimal";}catch(e){}r.dataset.motion=t;r.classList.add("js");try{var p=performance.getEntriesByType("navigation")[0];if(t==="full"&&sessionStorage.getItem("${SEEN_KEY}")!=="1"&&(!p||p.type!=="back_forward")){r.dataset.loader="on";sessionStorage.setItem("${SEEN_KEY}","1");}}catch(e){}})();`;
+export const MOTION_BOOTSTRAP = `(function(){var r=document.documentElement,n=navigator,t="full";try{if(matchMedia("(prefers-reduced-motion: reduce)").matches)t="reduced";else if(n.connection&&n.connection.saveData)t="minimal";else if((n.deviceMemory||8)<=2)t="minimal";else if((n.hardwareConcurrency||8)<=2)t="minimal";}catch(e){}r.dataset.motion=t;r.classList.add("js");try{var p=performance.getEntriesByType("navigation")[0];if(t!=="reduced"&&sessionStorage.getItem("${SEEN_KEY}")!=="1"&&(!p||p.type!=="back_forward")){r.dataset.loader="on";sessionStorage.setItem("${SEEN_KEY}","1");}}catch(e){}})();`;
 
 /**
  * Read the tier the bootstrap decided.

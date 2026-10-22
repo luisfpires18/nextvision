@@ -53,6 +53,18 @@ click, when the slide played as Astro's default crossfade. Fixed in BaseLayout's
 `astro:before-swap`: the tier is carried onto the incoming document's root. The slide was
 then confirmed with `document.getAnimations()`: `nvf-slide-in` / `nvf-recede`, 900 ms each.
 
+### 3.1 Found on a phone after the first deploy
+
+- **The opening never played on a phone.** The `minimal` tier caught every device with ≤4 GB
+  or ≤4 cores, which is most phones, and the opening was armed only at `full`. The tier now
+  takes ≤2 / ≤2, and the opening is armed at every tier except `reduced`.
+- **The PWA update prompt was hidden.** It sat under the phone's bottom rail, so an installed
+  app could never be offered its new build.
+- **A double top band** on the portfolio and project heads.
+- **The hero's three lockups showed at once**, because they come from a child component and
+  the page's scoped selectors matched nothing.
+- **The sticky reels covered copy** on a phone.
+
 ## 4. What did not change, on purpose
 
 - **Every route, canonical, hreflang pair, redirect and the sitemap.** BTS adds two URLs
