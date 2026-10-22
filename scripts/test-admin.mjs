@@ -329,8 +329,16 @@ await check('a developer commit on dev shows up as blocking in a real comparison
     const doc = appendUpload({ uploads: [] }, e);
     assert.throws(() => appendUpload(doc, e), /já foi feito/);
   });
-  await check('the empty uploads file on disk is the shape the code expects', () => {
-    assert.deepEqual(JSON.parse(fs.readFileSync(UPLOADS_PATH, 'utf8')), { uploads: [] });
+  // The SHAPE, not the contents: once the owners upload, the list is not empty (this check
+  // asserted `[]` until the first real upload, and failed every dev build after it).
+  await check('the uploads file on disk is the shape the code expects', () => {
+    const doc = JSON.parse(fs.readFileSync(UPLOADS_PATH, 'utf8'));
+    assert.ok(Array.isArray(doc.uploads));
+    for (const u of doc.uploads) {
+      assert.ok(isUploadKey(u.source), `source ${u.source}`);
+      assert.ok(['pending', 'ready', 'failed'].includes(u.status), u.id);
+      assert.ok(u.key.startsWith(`owner/${u.id}/`), u.id);
+    }
   });
   await check('processed media and its request are publishable owner content', () => {
     const a = assess({
