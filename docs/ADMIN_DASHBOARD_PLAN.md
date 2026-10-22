@@ -186,7 +186,8 @@ silently and break saving.
 - **Publish** shows the list of changes since the last publish (commit messages written by
   the admin in plain language: "Homepage: hero video replaced"). Production still only moves
   by a `dev → master` merge — it is just an owner pressing it.
-- **Undo** = revert commit. The admin lists recent changes with *Undo this*.
+- **No undo button** (decision A9, 2026-10-22): a mistake is fixed by editing again. The only thing
+  an edit-back does not restore is the field's source label (`owner:` stays), which no visitor sees.
 - **Concurrency:** each save commits against the file's current SHA; a conflict tells the
   owner someone else changed it and reloads.
 
@@ -313,7 +314,7 @@ Each phase ships on its own and is useful without the next.
 | A0 ✅ | Content extraction (§2.2) | Hero video, page images, page copy, BTS frames become data in `src/content/page-content/*.json`. Done 2026-10-22; `PROJECT_CONTEXT.md` §20 | S |
 | A1 ✅ | Access + shell | `/admin/` on dev Worker only, Cloudflare Access, JWT check, read-only browse of all content. Done 2026-10-22; `PROJECT_CONTEXT.md` §21 | S |
 | A2 ◐ | Text & settings editing — **slice 1 done 2026-10-22** (the seven page screens: texts and media picks; `PROJECT_CONTEXT.md` §23). Collections (projects, services, team, settings) still to come | Forms for every §2.1 collection, schema validation server-side, commit via GitHub App, build status | M |
-| A3 | Publish + history | `dev → master` PR/merge button, change list, undo | S |
+| A3 ✅ | Publish | `dev → master` PR/merge button, with the list of what is waiting to go live, refused unless everything waiting is owner content. No undo (A9). Done 2026-10-22; `PROJECT_CONTEXT.md` §24 | S |
 | A4 | Media ingest | R2 multipart upload, `recipes.json`, `media-ingest.yml`, video window picker, image upload | L |
 | A5 | Ordering & blocks | Drag-to-order homepage/portfolio, project page block editor (the 9 closed types) | M |
 
@@ -344,6 +345,7 @@ Decided by Luís, 2026-10-22.
 | A7 | Where edits are committed | **`luisfpires18/nextvision`**, through a GitHub App owned by Luís's account and installed on that repository only (§3.1) |
 | A4 | Who publishes to the live site | **Owners.** Publish merges `dev → master` after a confirm screen listing the changes; validators still block anything broken |
 | A5 | Max upload size per video | **2 GB** |
+| A9 | Undo button | **None.** A mistake is fixed by editing again; only the field's source label (`owner:`) is not restored, and no visitor sees it (Luís, 2026-10-22) |
 | A8 | Where the admin lives | **On the live site, `nextvisionfilms.com/admin` (prod Worker only).** Moved from dev the same day it was built. Saves still go to `dev` (preview), Publish still merges to `master`. The prod build carries the admin route; dev carries none (Luís, 2026-10-22) |
 | A6 | Media hostname | **Deferred to Step 15.** Not needed for A0–A3; until then CI pulls new media into the build mirror |
 

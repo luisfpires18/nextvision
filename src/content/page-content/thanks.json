@@ -2,7 +2,7 @@
   "copy": {
     "title": {
       "text": "Obrigado",
-      "from": "/obrigado/",
+      "from": "owner:2026-10-22",
       "en": "Thank you"
     },
     "lineA": {

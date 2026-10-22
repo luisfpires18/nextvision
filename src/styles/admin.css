@@ -199,6 +199,34 @@
 .ed-message[data-tone='ok'] { color: var(--a-text); }
 .ed-message[data-tone='error'] { color: var(--a-text); padding-inline-start: var(--space-3); border-inline-start: var(--rule-heavy) solid var(--brand-red); }
 
+/* ── publish (A3) ────────────────────────────────────────────────────────── */
+.admin-publish-link {
+  display: block;
+  margin: var(--space-6) var(--space-5) 0;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-s);
+  background: var(--brand-yellow);
+  color: var(--brand-ink);
+  font-weight: 600;
+  text-decoration: none;
+}
+.admin-publish-link[aria-current='page'] { outline: var(--admin-focus) solid var(--brand-cream); }
+.pub-list { display: grid; gap: var(--admin-hairline); margin-block-end: var(--space-6); list-style: none; }
+.pub-list li {
+  display: grid;
+  grid-template-columns: minmax(0, var(--admin-name-w)) 1fr auto;
+  gap: var(--space-4);
+  align-items: baseline;
+  padding: var(--space-3) var(--space-4);
+  background: var(--a-panel);
+}
+.pub-page { font-weight: 600; }
+.pub-meta { font-size: var(--t-meta); color: var(--a-dim); }
+.pub-actions { display: grid; gap: var(--space-4); justify-items: start; }
+.pub-confirm { display: grid; gap: var(--space-3); justify-items: start; padding: var(--space-4); background: var(--a-raise); }
+.pub-confirm[hidden], .pub-actions [hidden] { display: none; }
+.pub-cancel { background: none; border: 0; padding: var(--space-2) 0; color: var(--a-text); font: inherit; text-decoration: underline; cursor: pointer; }
+
 /* ── status bar ──────────────────────────────────────────────────────────── */
 .admin-status {
   grid-column: 2;
@@ -231,6 +259,10 @@
   .admin-nav { grid-row: auto; display: flex; align-items: center; overflow-x: auto; padding: 0; }
   .admin-home { padding: var(--space-3) var(--space-4); }
   .ed-pair { grid-template-columns: 1fr; }
+  /* First after the mark: at the end of a scrolling strip it would be off-screen. */
+  .admin-home { order: -2; }
+  .admin-publish-link { order: -1; margin: 0 var(--space-3); white-space: nowrap; }
+  .pub-list li { grid-template-columns: 1fr; gap: var(--space-1); }
   .ed-media__row { flex-direction: column; align-items: stretch; }
   .ed-actions { flex-direction: column; align-items: stretch; }
   .admin-nav ul { display: flex; }

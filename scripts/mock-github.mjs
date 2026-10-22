@@ -29,6 +29,16 @@ http.createServer(async (req, res) => {
   const chunks = [];
   for await (const c of req) chunks.push(c);
   const body = chunks.length ? Buffer.concat(chunks).toString() : undefined;
+  // Test-only: simulate a commit by someone other than the admin (the developer, by
+  // default), to see the publish screen refuse. Not part of GitHub's API.
+  if (req.method === 'POST' && req.url === '/__mock/push') {
+    const { path: file, text, author } = JSON.parse(body ?? '{}');
+    gh.pushElsewhere(file, text, author ? { author } : {});
+    console.log(`__mock/push ${file} by ${author ?? 'the developer'}`);
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end('{"ok":true}');
+    return;
+  }
   const answer = await gh.handle(`http://127.0.0.1:${PORT}${req.url}`, { method: req.method, headers: req.headers, body });
   if (req.method !== 'GET') console.log(`${req.method} ${req.url} -> ${answer.status}${req.method === 'PATCH' ? `  "${gh.message().split('\n')[0]}"` : ''}`);
   res.writeHead(answer.status, { 'Content-Type': 'application/json' });

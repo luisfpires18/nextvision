@@ -19,6 +19,10 @@ export const REPO = 'luisfpires18/nextvision';
 export const SAVE_BRANCH = 'dev';
 /** The workflow that verifies and deploys the save branch. */
 export const BUILD_WORKFLOW = 'dev.yml';
+/** Publishing merges the save branch into this one, which the live site is built from. */
+export const LIVE_BRANCH = 'master';
+/** The workflow that verifies and deploys the live site. */
+export const LIVE_WORKFLOW = 'prod.yml';
 export const GITHUB_API = 'https://api.github.com';
 
 export function githubConfig(): GitHubConfig | null {

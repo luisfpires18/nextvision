@@ -181,17 +181,81 @@ export interface BuildRun {
   createdAt: string;
 }
 
-/** The newest run of a workflow on the save branch: the build a save started, or an older one. */
-export async function latestRun(cfg: GitHubConfig, workflow: string, opts: Opts = {}): Promise<BuildRun | null> {
+/** The newest run of a workflow on a branch (the save branch unless told otherwise). */
+export async function latestRun(cfg: GitHubConfig, workflow: string, opts: Opts = {}, branch = cfg.branch): Promise<BuildRun | null> {
   const res = await call(
     cfg,
-    `/repos/${cfg.repo}/actions/workflows/${encodeURIComponent(workflow)}/runs?branch=${encodeURIComponent(cfg.branch)}&per_page=1`,
+    `/repos/${cfg.repo}/actions/workflows/${encodeURIComponent(workflow)}/runs?branch=${encodeURIComponent(branch)}&per_page=1`,
     {}, opts,
   );
   if (!res.ok) throw new GitHubError(res.status, `could not read the build status (${res.status})`);
   const body = (await res.json()) as { workflow_runs?: { status: string; conclusion: string | null; head_sha: string; html_url: string; created_at: string }[] };
   const run = body.workflow_runs?.[0];
   return run ? { status: run.status, conclusion: run.conclusion, headSha: run.head_sha, url: run.html_url, createdAt: run.created_at } : null;
+}
+
+/** The commit a branch points at now. */
+export async function branchHead(cfg: GitHubConfig, branch: string, opts: Opts = {}): Promise<string> {
+  const ref = await json<{ object: { sha: string } }>(
+    await call(cfg, `/repos/${cfg.repo}/git/ref/heads/${encodeURIComponent(branch)}`, {}, opts), `could not read ${branch}`);
+  return ref.object.sha;
+}
+
+/**
+ * What `head` has that `base` does not: its commits (oldest first) and every file the
+ * merge would change. Refuses a comparison too long for GitHub to list completely,
+ * rather than judge a release on half of it.
+ */
+export async function compare(cfg: GitHubConfig, base: string, head: string, opts: Opts = {}) {
+  const body = await json<{
+    ahead_by: number;
+    commits: { sha: string; author: { login: string } | null; commit: { message: string; author: { date: string } } }[];
+    files?: { filename: string }[];
+  }>(await call(cfg, `/repos/${cfg.repo}/compare/${encodeURIComponent(base)}...${encodeURIComponent(head)}`, {}, opts), 'could not compare the branches');
+  if (body.commits.length < body.ahead_by || (body.files?.length ?? 0) >= 300) {
+    throw new GitHubError(413, 'too much is waiting to judge it from one comparison');
+  }
+  return {
+    aheadBy: body.ahead_by,
+    commits: body.commits.map((c) => ({ sha: c.sha, author: c.author?.login ?? null, message: c.commit.message, date: c.commit.author.date })),
+    files: (body.files ?? []).map((f) => f.filename),
+  };
+}
+
+/** The open `head → base` pull request, or a new one. */
+export async function openPullRequest(
+  cfg: GitHubConfig, base: string, head: string, title: string, text: string, opts: Opts = {},
+): Promise<{ number: number; url: string }> {
+  const owner = cfg.repo.split('/')[0];
+  const open = await json<{ number: number; html_url: string }[]>(await call(
+    cfg, `/repos/${cfg.repo}/pulls?state=open&base=${encodeURIComponent(base)}&head=${encodeURIComponent(`${owner}:${head}`)}`, {}, opts,
+  ), 'could not list pull requests');
+  if (open[0]) return { number: open[0].number, url: open[0].html_url };
+  const pr = await json<{ number: number; html_url: string }>(await call(cfg, `/repos/${cfg.repo}/pulls`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ base, head, title, body: text }),
+  }, opts), 'could not open the pull request');
+  return { number: pr.number, url: pr.html_url };
+}
+
+/**
+ * Merge a pull request — but only if its head is still exactly `sha`, the commit the
+ * owner reviewed. A newer save in between is a refusal (409), never a surprise release.
+ */
+export async function mergePullRequest(
+  cfg: GitHubConfig, number: number, sha: string, title: string, opts: Opts = {},
+): Promise<{ sha: string }> {
+  const res = await call(cfg, `/repos/${cfg.repo}/pulls/${number}/merge`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ sha, merge_method: 'merge', commit_title: title }),
+  }, opts);
+  if (res.status === 409) throw new GitHubError(409, 'the branch moved since it was reviewed');
+  if (res.status === 405) throw new GitHubError(405, 'GitHub says this cannot be merged');
+  const body = await json<{ sha?: string; merged?: boolean }>(res, 'could not merge');
+  if (!body.merged || !body.sha) throw new GitHubError(502, 'GitHub did not confirm the merge');
+  return { sha: body.sha };
 }
 
 /** Test seam: forget the cached installation token. */
