@@ -47,14 +47,16 @@
   //         https://dev.next-vision-films.workers.dev
   //         Deployed by CI on every push to the `dev` branch.
   //
-  //   prod  Worker `prod`
-  //         https://prod.next-vision-films.workers.dev
-  //         Deployed by CI only on a push to `master`. Step 15 attaches
-  //         nextvisionfilms.com HERE — not to dev, and not today.
+  //   prod  Worker `next-vision-films-production`
+  //         https://www.nextvisionfilms.com  (and nextvisionfilms.com)
+  //         Deployed by CI only on a push to `master`. THE LIVE SITE.
   //
-  // RENAMED 2026-10-22 from `staging` / `production` (Workers `next-vision-films` and
-  // `next-vision-films-production`), at the user's request, for shorter links and one
-  // vocabulary — the branch, the environment and the Worker now share a name.
+  // RENAMED 2026-10-22 from `staging` / `production`, at the user's request. The dev
+  // Worker was renamed too (it was `next-vision-films`, now deleted). The prod Worker
+  // deliberately KEEPS its name: nextvisionfilms.com and www are Custom Domains bound to
+  // THAT Worker, and a deploy under a new name would create a second Worker without
+  // them — the domain would keep serving the old build while the new one went nowhere,
+  // and deleting the old Worker would take the site offline. Never rename it.
   //
   // The top-level `name` is the dev name ON PURPOSE: a bare `wrangler deploy`, with no
   // --env, is then a mistake that lands on dev. Reaching prod requires typing `--env
@@ -73,7 +75,7 @@
       "name": "dev"
     },
     "prod": {
-      "name": "prod"
+      "name": "next-vision-films-production"
     }
   }
 

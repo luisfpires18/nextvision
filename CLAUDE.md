@@ -235,9 +235,10 @@ applying; BaseLayout now carries it across. Record: `docs/DESIGN_V2_ROLLOUT.md`.
 **The project is on GitHub, with two branches and two Workers.** `luisfpires18/nextvision`,
 private, public history reset to ONE root commit — `Initial Commit` — with `master` and
 `dev` starting at the same SHA. The `dev` branch deploys the **`dev`** Worker, `master` the
-**`prod`** Worker, one verify-gated workflow each (`dev.yml`, `prod.yml`), and they
+**prod** Worker (`next-vision-films-production`, which serves the live domain), one verify-gated workflow each (`dev.yml`, `prod.yml`), and they
 are two separate files precisely so that no condition decides which Worker gets overwritten.
-No custom domain and no DNS: that is Step 15. Record: `docs/HANDOVER.md`.
+The prod Worker now carries the live domains `nextvisionfilms.com` and `www.nextvisionfilms.com`
+(Custom Domains, found bound on 2026-10-22). Record: `docs/HANDOVER.md`.
 
 **Two findings, and neither was visible from reading configuration.** `wrangler deploy
 --env production` against a build made with no `CLOUDFLARE_ENV` exits 0 and deploys to
@@ -247,15 +248,15 @@ build the site at all: `media/dist/` is gitignored and `media:build` needs 646 M
 gitignored sources, so `npm run verify` failed at `validate:media` with 0 of 384 renditions.
 `npm run media:pull` fetches them from R2, read-only and hash-verified.
 
-**The site is deployed twice, and neither deployment has a domain.** Both Workers are on
+**The site is deployed twice; only prod has a domain (see above).** Both Workers are on
 the COMPANY account (`c87adf05…8e39`), both serve from Workers Static Assets:
 
 | Branch | Worker | URL |
 |---|---|---|
 | `dev` (default) | `dev` | `https://dev.next-vision-films.workers.dev` |
-| `master` | `prod` | `https://prod.next-vision-films.workers.dev` |
+| `master` | `next-vision-films-production` | `https://www.nextvisionfilms.com` (live; also `nextvisionfilms.com`) |
 
-Renamed 2026-10-22 from `staging` / `production` (`next-vision-films`, `next-vision-films-production`). The `prod` Worker is created by the next `dev -> master` promotion, and the old production Worker is deleted after it.
+Renamed 2026-10-22 from `staging` / `production`. The dev Worker was renamed (old `next-vision-films` deleted); the prod Worker keeps its name because the live domains are bound to it. Never rename it.
 
 The staging deploy needed **no custom domain, no DNS, no secret and no owner input** —
 every unset variable already had a defined, safe meaning, which is what made a

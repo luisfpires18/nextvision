@@ -73,7 +73,7 @@ Direct commits on `dev` are normal; feature branches are optional and merge back
 | Branch | Workflow | Cloudflare Worker | URL |
 |---|---|---|---|
 | `dev` | `.github/workflows/dev.yml` | `dev` | `https://dev.next-vision-films.workers.dev` |
-| `master` | `.github/workflows/prod.yml` | `prod` | `https://prod.next-vision-films.workers.dev` |
+| `master` | `.github/workflows/prod.yml` | `next-vision-films-production` | `https://www.nextvisionfilms.com` (live) |
 
 Both pipelines are live. A failing `npm run verify` stops the deploy. Staging is never deployed from `master` and
 production is never deployed from `dev` — they are two separate workflow files precisely

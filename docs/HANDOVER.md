@@ -56,9 +56,9 @@ No development happens on `master`. It only ever receives merges from `dev`.
 | Branch | Workflow | Worker | URL |
 |---|---|---|---|
 | `dev` | `.github/workflows/dev.yml` | `dev` | `https://dev.next-vision-films.workers.dev` |
-| `master` | `.github/workflows/prod.yml` | `prod` | `https://prod.next-vision-films.workers.dev` |
+| `master` | `.github/workflows/prod.yml` | `next-vision-films-production` | `https://www.nextvisionfilms.com` (live) |
 
-Renamed 2026-10-22 from `staging` / `production` (`next-vision-films`, `next-vision-films-production`). The `prod` Worker is created by the next `dev -> master` promotion, and the old production Worker is deleted after it.
+Renamed 2026-10-22 from `staging` / `production`. The dev Worker was renamed (old `next-vision-films` deleted); the prod Worker keeps its name because the live domains are bound to it. Never rename it.
 
 Both Workers are on the company Cloudflare account, both serve from Workers Static
 Assets, and neither has a custom domain — that is Step 15.
@@ -76,7 +76,7 @@ the target declares. Always deploy through it:
 
 ```bash
 npm run deploy:dev           # verify -> build -> Worker `dev`
-npm run deploy:prod          # verify -> build -> Worker `prod`
+npm run deploy:prod          # verify -> build -> Worker `next-vision-films-production` (LIVE)
 ```
 
 Manual deploys are emergency tooling. The normal path is `git push`.
