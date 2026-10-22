@@ -1,3 +1,23 @@
 {
-  "uploads": []
+  "uploads": [
+    {
+      "id": "1a818b81b11c",
+      "key": "owner/1a818b81b11c/hero",
+      "kind": "video",
+      "source": "uploads/2026-10-22/1a818b81b11c/JtQCOCPR6iMeVv84zyb5l2oAZW3fKHFwLHs0HDKaKmiK42ihyBypPtdU2siOp9yd_pKzABgIv6OrPTkytPVM7Ki79VEGQBN5LIv4xGT_0qBlT3EaU6TA.mp4",
+      "name": "AQNAEGg3UdJtQCOCPR6iMeVv84zyb5l2oAZW3fKHFwLHs0HDKaKmiK42ihyBypPtdU2siOp9yd_pKzABgIv6OrPTkytPVM7Ki79VEGQBN5LIv4xGT_0qBlT3EaU6TA.mp4",
+      "target": {
+        "screen": "home",
+        "file": "home",
+        "path": "heroVideo",
+        "label": "Vídeo da página inicial"
+      },
+      "by": "nextvisionfilmsagency@gmail.com",
+      "at": "2026-10-22T19:04:21.995Z",
+      "status": "pending",
+      "start": 0,
+      "duration": 8,
+      "posterAt": 1
+    }
+  ]
 }
