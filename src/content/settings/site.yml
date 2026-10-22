@@ -5,10 +5,10 @@
 # CLAUDE.md §8: never guess. Each null below is a real open question.
 - id: site
 
-# DISPUTED (decision D2). The live /contactos/ page DISPLAYS
-# "nextvisionfilmsagency@gmail.com" while the mailto: on the same element targets
-# "hello@nextvisionfilms.com", which is also what the footer uses. Until the owner
-# confirms which is canonical, neither is committed here.
+  # DISPUTED (decision D2). The live /contactos/ page DISPLAYS
+  # "nextvisionfilmsagency@gmail.com" while the mailto: on the same element targets
+  # "hello@nextvisionfilms.com", which is also what the footer uses. Until the owner
+  # confirms which is canonical, neither is committed here.
   email: null
   emailStatus: disputed
 
@@ -29,14 +29,14 @@
       url: "https://wa.me/351929130631"
       label: "WhatsApp"
 
-# The live footer reads "copyright 2025 © todos os direitos reservados" (CLAUDE.md §2).
-# {year} is filled from the build year — the only substitution, because a hardcoded year
-# is wrong from the next 1 January onwards. No other character differs from the original.
+  # The live footer reads "copyright 2025 © todos os direitos reservados" (CLAUDE.md §2).
+  # {year} is filled from the build year — the only substitution, because a hardcoded year
+  # is wrong from the next 1 January onwards. No other character differs from the original.
   copyright:
     pt: "copyright {year} © todos os direitos reservados"
     en: "copyright {year} © all rights reserved"
 
-# Not published anywhere on the live site. UNKNOWN, not invented.
+  # Not published anywhere on the live site. UNKNOWN, not invented.
   organisation:
     legalName: null
     vatId: null

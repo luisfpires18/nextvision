@@ -30,6 +30,7 @@ import { ROOT } from './media/recipe.mjs';
 import { INCOMING, MANIFEST_FILE, probeFull, readJson } from './media/lib.mjs';
 import { r2Config, getObject } from './media/r2.mjs';
 import { PROJECT_FILE, PROJECTS_DIR, applyProjectEdits, newProjectText, projectData } from '../src/lib/admin/projects.ts';
+import { applyEntryEdits, entryFilePath, entryTypeOf } from '../src/lib/admin/entries.ts';
 
 const UPLOADS = path.join(ROOT, 'src', 'data', 'media-uploads.json');
 const SOURCE_BUCKET = 'nvf-source-archive';
@@ -94,6 +95,17 @@ async function ingest(u, cfg) {
 
   if (u.target.file.startsWith(`${PROJECT_FILE}/`)) {
     await attachToProject(u, manifest);
+    return;
+  }
+  const [prefix, id] = u.target.file.split('/');
+  const entryType = id ? entryTypeOf(prefix) : null;
+  if (entryType) {
+    // A team portrait and the like: one field in one entry, comments kept.
+    const file = path.join(ROOT, entryFilePath(entryType, id));
+    if (!existsSync(file)) throw new Error('Esta entrada já não existe.');
+    const mediaKind = (key) => (manifest.items[key]?.kind === 'image' ? 'image' : null);
+    const { text } = applyEntryEdits(entryType, await fs.readFile(file, 'utf8'), { [u.target.path]: u.key }, { mediaKind, today: u.at.slice(0, 10) });
+    await fs.writeFile(file, text);
     return;
   }
   const page = path.join(ROOT, 'src', 'content', 'page-content', `${u.target.file}.json`);

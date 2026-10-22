@@ -280,6 +280,8 @@ try {
   ];
   for (const [file, name, role] of ROLES) {
     const src = fs.readFileSync(path.join(ROOT, 'src/content/team', `${file}.md`), 'utf8');
+    // Decision A2: once the owners change an entry in the admin, its words are theirs.
+    if (/^ownerEdited: \d{4}-\d{2}-\d{2}$/m.test(src)) continue;
     if (!src.includes(`"${name}"`)) errors.push(`content: ${file}.md no longer names "${name}"`);
     if (!src.includes(role)) errors.push(`content: ${file}.md role differs from the published one — expected "${role}"`);
   }

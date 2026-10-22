@@ -66,17 +66,17 @@ export function splitMdx(text: string): { front: string; rest: string } {
   return { front: m[1]!, rest: text.slice(m[0].length) };
 }
 
-const parse = (front: string): Document => {
+export const parseFront = (front: string): Document => {
   const doc = parseDocument(front);
   if (doc.errors.length || !isMap(doc.contents)) throw new EditError('O cabeçalho deste projeto não se consegue ler.');
   return doc;
 };
 const steps = (path: string) => path.split('.');
-const write = (doc: Document) => doc.toString({ lineWidth: 0 });
+export const writeFront = (doc: Document) => doc.toString({ lineWidth: 0 });
 
 /** The project's front matter as plain data. */
 export const projectData = (text: string): Record<string, unknown> =>
-  parse(splitMdx(text).front).toJS() as Record<string, unknown>;
+  parseFront(splitMdx(text).front).toJS() as Record<string, unknown>;
 
 /** A YouTube id from an id or any of the usual YouTube addresses; null if neither. */
 export function youtubeId(input: string): string | null {
@@ -112,7 +112,7 @@ export interface ProjectApplied { text: string; changed: string[] }
  */
 export function applyProjectEdits(text: string, edits: Record<string, string>, ctx: ProjectContext): ProjectApplied {
   const { front, rest } = splitMdx(text);
-  const doc = parse(front);
+  const doc = parseFront(front);
   const data = doc.toJS() as Record<string, unknown>;
   const offered = new Map(fieldsFor(data).map((f) => [f.path, f]));
   const clean = (v: string) => v.replace(/\r\n?/g, '\n');
@@ -199,13 +199,13 @@ export function applyProjectEdits(text: string, edits: Record<string, string>, c
     changed.push(f.label);
   }
 
-  return { text: changed.length ? `---\n${write(doc)}---\n${rest}` : text, changed };
+  return { text: changed.length ? `---\n${writeFront(doc)}---\n${rest}` : text, changed };
 }
 
 /** True when the file survives a parse and a write unchanged: the guarantee edits rely on. */
 export const roundTrips = (text: string): boolean => {
   const { front } = splitMdx(text);
-  return write(parse(front)) === front;
+  return writeFront(parseFront(front)) === front;
 };
 
 /* ── the portfolio order ─────────────────────────────────────────────────── */
@@ -242,10 +242,10 @@ export function applyOrder(projects: ProjectFile[], order: string): ProjectFile[
   for (const p of projects) {
     const position = slugs.indexOf(p.slug) + 1;
     const { front, rest } = splitMdx(p.text);
-    const doc = parse(front);
+    const doc = parseFront(front);
     if (doc.get('portfolioOrder') === position) continue;
     doc.set('portfolioOrder', position);
-    out.push({ slug: p.slug, text: `---\n${write(doc)}---\n${rest}` });
+    out.push({ slug: p.slug, text: `---\n${writeFront(doc)}---\n${rest}` });
   }
   return out;
 }
@@ -295,7 +295,7 @@ export function newProjectText(p: NewProject, posterKey: string, order: number, 
     seo: { noindex: false },
   });
   skeleton.commentBefore = ` Created in the admin on ${today}. Every value here is the owners' own.`;
-  const base = `---\n${write(skeleton)}---\n`;
+  const base = `---\n${writeFront(skeleton)}---\n`;
   const edits: Record<string, string> = {
     'title.pt': p.title, year: p.year, categories: p.category, 'film.id': p.film, draft: String(p.hidden),
   };

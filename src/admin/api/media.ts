@@ -19,6 +19,7 @@ import {
   PROJECT_FILE, PROJECTS_DIR, SLUG, fieldsFor, newProjectText, projectData, projectDraftFile, projectFilePath, projectValue, slugFrom,
 } from '../../lib/admin/projects.ts';
 import { projectContext } from '../../lib/admin/project-context.ts';
+import { ENTRY_ID, entryData, entryDraftFile, entryFields, entryFilePath, entryTypeOf } from '../../lib/admin/entries.ts';
 import { sourceBucket } from '../../lib/admin/sources.ts';
 
 export const prerender = false;
@@ -56,7 +57,8 @@ export const POST: APIRoute = async ({ request }) => {
   const req = parsed.data;
 
   const defs = SCREENS[req.screen as PageFileName];
-  if (!defs && req.screen !== PROJECT_FILE && req.screen !== NEW_PROJECT) return answer(404, { error: 'Página desconhecida.' });
+  const entryType = entryTypeOf(req.screen);
+  if (!defs && !entryType && req.screen !== PROJECT_FILE && req.screen !== NEW_PROJECT) return answer(404, { error: 'Página desconhecida.' });
   const cfg = githubConfig();
   const bucket = sourceBucket();
   if (!cfg || !bucket) return answer(503, { error: 'Carregar ficheiros ainda não está configurado neste servidor.' });
@@ -72,6 +74,13 @@ export const POST: APIRoute = async ({ request }) => {
       const docs: Partial<Record<PageFileName, unknown>> = {};
       for (const file of new Set(defs.map((d) => d.file))) docs[file] = JSON.parse((await readFile(cfg, pageFilePath(file))).text);
       fields = expandFields(defs, docs);
+    } else if (entryType) {
+      // `equipa/<id>:portrait.key` — an entry's own image fields.
+      const id = (req.target.split(':')[0] ?? '').slice(entryType.prefix.length + 1);
+      if (!ENTRY_ID.test(id)) return answer(400, { error: 'Pedido inválido.' });
+      const data = entryData(entryType, (await readFile(cfg, entryFilePath(entryType, id))).text);
+      fields = entryFields(entryType, data).filter((f) => f.kind === 'image' && !f.locked)
+        .map((f) => ({ file: entryDraftFile(entryType, id), key: f.path, kind: 'image', label: `${entryType.noun} «${entryType.name(data)}» — ${f.label}` }));
     } else if (req.screen === PROJECT_FILE) {
       // `projeto/<slug>:poster.key` — the project's own media fields.
       const slug = (req.target.split(':')[0] ?? '').slice(PROJECT_FILE.length + 1);

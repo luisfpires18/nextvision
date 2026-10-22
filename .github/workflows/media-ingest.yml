@@ -95,7 +95,7 @@ jobs:
           uid=$(gh api "/users/${SLUG}%5Bbot%5D" --jq .id)
           git config user.name "${SLUG}[bot]"
           git config user.email "${uid}+${SLUG}[bot]@users.noreply.github.com"
-          git add src/data/media-uploads.json src/data/media-manifest.json src/content/page-content/ src/content/projects/
+          git add src/data/media-uploads.json src/data/media-manifest.json src/content/page-content/ src/content/projects/ src/content/team/
           git commit -q -m "$SUMMARY" -m "Processado automaticamente. [ingest]"
           # An owner may have saved while this ran: rebase on top, never overwrite.
           for attempt in 1 2 3; do

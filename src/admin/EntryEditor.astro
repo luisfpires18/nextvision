@@ -1,0 +1,96 @@
+---
+/**
+ * One service, team member, category or the contact details (entries.ts), read from its
+ * file on `master` now. Same conventions as the other editors: each control carries the
+ * value it started from and its draft name, and Publicar sends every draft at once.
+ */
+import { entryDraftFile, entryFields, entryValue, type EntryField, type EntryType } from '../lib/admin/entries.ts';
+import { requestsFor, type UploadEntry } from '../lib/admin/uploads.ts';
+import { MEDIA, thumb } from './media-options.ts';
+import UploadPanel from './UploadPanel.astro';
+
+interface Props {
+  type: EntryType;
+  id: string;
+  data: Record<string, unknown>;
+  uploads: UploadEntry[];
+}
+const { type, id, data, uploads } = Astro.props;
+
+const file = entryDraftFile(type, id);
+const name = (f: EntryField, lang?: 'pt' | 'en') => `${file}:${f.path}${lang ? `#${lang}` : ''}`;
+const named = (f: EntryField, lang?: string) => `${type.noun} «${type.name(data)}» — ${f.label}${lang ? ` (${lang})` : ''}`;
+const rows = (v: string) => Math.min(8, Math.ceil(v.length / 60) + 1);
+---
+
+<form class="admin-editor" data-editor data-screen={type.prefix} novalidate>
+  {entryFields(type, data).map((f) => {
+    const value = entryValue(data, f.path);
+    const id = `e-${f.path.replace(/\W/g, '-')}`;
+    return (
+      <fieldset class="ed-field" data-field>
+        <legend>{f.label}</legend>
+        {f.note ? <p class="ed-note">{f.note}</p> : null}
+        {f.locked ? (
+          <>
+            <p class="f-text">{value || 'por decidir'}</p>
+            <p class="admin-locked">{f.locked}</p>
+          </>
+        ) : f.kind === 'pair' ? (
+          <div class="ed-pair">
+            {(['pt', 'en'] as const).map((lang) => {
+              const v = entryValue(data, f.path, lang);
+              return (
+                <label>
+                  <span class="f-lang">{lang === 'pt' ? 'Português' : 'Inglês'}</span>
+                  {f.long ? (
+                    <textarea name={name(f, lang)} data-original={v} data-label={named(f, lang.toUpperCase())} rows={rows(v)} lang={lang === 'pt' ? 'pt-PT' : 'en'}>{v}</textarea>
+                  ) : (
+                    <input type="text" name={name(f, lang)} data-original={v} data-label={named(f, lang.toUpperCase())} value={v} lang={lang === 'pt' ? 'pt-PT' : 'en'} maxlength="200" />
+                  )}
+                </label>
+              );
+            })}
+          </div>
+        ) : f.kind === 'image' ? (
+          <>
+            <div class="ed-media__row">
+              <img src={value ? thumb(value) : ''} alt="" data-preview-for={id} width="160" height="90" />
+              <label class="ed-media__pick">
+                <span class="f-lang">Imagem</span>
+                <select id={id} name={name(f)} data-original={value} data-label={named(f)}>
+                  {!value ? <option value="" selected>(nenhuma)</option> : null}
+                  {value && !MEDIA.image.some(([, keys]) => keys.includes(value)) ? (
+                    <option value={value} data-thumb={thumb(value)} selected>{value} (atual)</option>
+                  ) : null}
+                  {MEDIA.image.map(([group, keys]) => (
+                    <optgroup label={group}>
+                      {keys.map((k) => <option value={k} data-thumb={thumb(k)} selected={k === value}>{k.split('/').slice(1).join(' / ')}</option>)}
+                    </optgroup>
+                  ))}
+                </select>
+              </label>
+            </div>
+            <UploadPanel target={`${file}:${f.path}`} kind="image" requests={requestsFor(uploads, file, f.path)} />
+          </>
+        ) : (
+          <label class="ed-media__pick">
+            <span class="f-lang">{f.kind === 'url' ? 'Endereço' : f.kind === 'phone' ? 'Número' : 'Texto'}</span>
+            <input
+              type="text"
+              name={name(f)}
+              data-original={value}
+              data-label={named(f)}
+              value={value}
+              inputmode={f.kind === 'phone' ? 'tel' : f.kind === 'url' ? 'url' : undefined}
+              maxlength="300"
+              autocomplete="off"
+              spellcheck="false"
+            />
+          </label>
+        )}
+      </fieldset>
+    );
+  })}
+  <p class="ed-message" role="status" aria-live="polite" data-message></p>
+</form>

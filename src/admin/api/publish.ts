@@ -30,6 +30,7 @@ import {
   ORDER_DRAFT, PROJECT_FILE, SLUG, applyOrder, applyProjectEdits, portfolioSequence, projectData, projectFilePath, projectValue, PROJECTS_DIR,
 } from '../../lib/admin/projects.ts';
 import { projectContext } from '../../lib/admin/project-context.ts';
+import { ENTRY_ID, applyEntryEdits, entryData, entryFilePath, entryTypeOf, entryValue } from '../../lib/admin/entries.ts';
 
 export const prerender = false;
 
@@ -53,10 +54,18 @@ export const POST: APIRoute = async ({ request }) => {
   // are stored differently, and land together in one commit.
   const projectDrafts = new Map<string, Record<string, { from: string; to: string }>>();
   const pageDrafts: typeof drafts = {};
+  /** Services, team, categories, contacts (entries.ts), by `prefix/id`. */
+  const entryDrafts = new Map<string, Record<string, { from: string; to: string }>>();
   const orderDraft = drafts[ORDER_DRAFT];
   for (const [name, d] of Object.entries(drafts)) {
     const [file = '', field = ''] = name.split(':');
     if (name === ORDER_DRAFT) continue;
+    const [prefix = '', id = ''] = file.split('/');
+    if (entryTypeOf(prefix)) {
+      if (!ENTRY_ID.test(id)) return answer(400, { error: 'Pedido inválido.' });
+      entryDrafts.set(file, { ...entryDrafts.get(file), [field]: d });
+      continue;
+    }
     if (file.startsWith(`${PROJECT_FILE}/`)) {
       const slug = file.slice(PROJECT_FILE.length + 1);
       if (!SLUG.test(slug)) return answer(400, { error: 'Pedido inválido.' });
@@ -131,6 +140,30 @@ export const POST: APIRoute = async ({ request }) => {
         if (moved.length) projectChanged.push('Ordem do portfólio — Ordem');
       }
     }
+    // The smaller entries: the same read, freshness check and apply, one file each.
+    const entryWrites: { path: string; text: string }[] = [];
+    for (const [file, ed] of entryDrafts) {
+      const [prefix = '', id = ''] = file.split('/');
+      const t = entryTypeOf(prefix)!;
+      const path = entryFilePath(t, id);
+      const read = await readFile(cfg, path).catch((e: unknown) => {
+        if (e instanceof GitHubError && e.status === 404) throw new EditError(`${t.noun}: esta entrada já não existe.`);
+        throw e;
+      });
+      const data = entryData(t, read.text);
+      const name = `${t.noun} «${t.name(data)}»`;
+      for (const [field, d] of Object.entries(ed)) {
+        const [p = '', lang] = field.split('#');
+        if (entryValue(data, p, lang) !== d.from) stale.push(`${name} — ${field}`);
+      }
+      if (stale.length) continue;
+      const applied = applyEntryEdits(t, read.text, Object.fromEntries(Object.entries(ed).map(([f, d]) => [f, d.to])), { ...ctx, today: new Date().toISOString().slice(0, 10) });
+      if (!applied.changed.length) continue;
+      entryWrites.push({ path, text: applied.text });
+      current[path] = read.sha;
+      projectChanged.push(...applied.changed.map((c) => `${name} — ${c}`));
+    }
+
     const projectWrites: { path: string; text: string }[] = [];
     for (const [slug, f] of projects) {
       if (f.text === f.original) continue;
@@ -147,7 +180,7 @@ export const POST: APIRoute = async ({ request }) => {
 
     const today = new Date().toISOString().slice(0, 10);
     const { docs: next, changed } = applyEdits([...fields.values()], docs, pageEdits, today);
-    if (!changed.length && !projectWrites.length) return answer(200, { nothing: true });
+    if (!changed.length && !projectWrites.length && !entryWrites.length) return answer(200, { nothing: true });
 
     const touched = [...new Set(changed.map((c) => c.file))];
     for (const file of touched) {
@@ -158,7 +191,7 @@ export const POST: APIRoute = async ({ request }) => {
     const labels = [...changed.map((c) => c.label), ...projectChanged];
     const pages = [...new Set(labels.map((l) => l.split(' — ')[0]))];
     const message = `content: ${pages.join(', ')}\n\n${labels.map((l) => `- ${l}`).join('\n')}\n\nPublicado no admin por ${g.who.email}.`;
-    const writes = [...touched.map((file) => ({ path: pageFilePath(file), text: serialise(next[file]) })), ...projectWrites];
+    const writes = [...touched.map((file) => ({ path: pageFilePath(file), text: serialise(next[file]) })), ...projectWrites, ...entryWrites];
     const { commit } = await commitFiles(
       cfg,
       writes,

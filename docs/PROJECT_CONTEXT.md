@@ -1941,3 +1941,38 @@ All of it was reverted afterwards. `npm run test:admin`: 46 checks.
 **Line endings:** several admin files in the last two commits had been saved with CRLF by a
 Python edit. Those were put back to LF here. Older CRLF files in `src/components/concepts/`
 predate this work and were left alone.
+
+## 30. Admin: services, team, categories and contacts (2026-10-22)
+
+**Every remaining owner-facing entry now opens as a form.** It is the same YAML editing
+as projects, through one field list per type in `src/lib/admin/entries.ts`, the generic
+`EntryEditor.astro`, and the same drafts and Publicar:
+
+| Type (draft prefix) | Editable |
+|---|---|
+| Serviço (`servico/`) | name, description, homepage sentence — PT and EN |
+| Equipa (`equipa/`) | name, role (PT/EN), portrait (pick or upload), each link |
+| Categoria (`categoria/`) | name (PT/EN) — never the slug, which is the archive URL |
+| Contactos (`definicoes/site`) | each phone, each social link. **The email stays locked (D2)** |
+
+Rules, all refusals:
+- both languages are required;
+- a link must be `https://`;
+- a phone is digits with its country code, stored without spaces;
+- a service's homepage sentence must still be a literal selection from its description,
+  in each language. That is decision A44, the schema's own refinement, checked before
+  the build would.
+
+**Decision A2 for entries:** any entry the admin changes gets `ownerEdited: YYYY-MM-DD`. The
+schemas ignore the extra key. `validate:data` held the two team members' names and roles
+word for word against the archive, and it now accepts an entry that declares itself
+owner-edited, exactly as `owner:` provenance does for page copy.
+
+`site.yml` had comments at column 0 inside its single list item, which a YAML writer
+indents. They were indented once, here, so every entry file round-trips byte for byte.
+Only comment lines moved. Team portraits take uploads: the ingest applies them with
+`applyEntryEdits`, and `media-ingest.yml` now commits `src/content/team/` too.
+
+`npm run test:admin`: 52 checks. Clicked through locally: a phone on the contacts screen
+and a service name on the services screen published as ONE commit. It changed exactly
+those two lines, plus each file's `ownerEdited`.

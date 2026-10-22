@@ -20,6 +20,7 @@ import { applyEdits, expandFields, fieldName, liveValue, serialise, EditError } 
 import { readFile, commitFiles, latestRun, gitBlobSha, resetGitHubToken, GitHubError } from '../src/lib/admin/github.ts';
 import { planUpload, appendUpload, safeName, kindOf, uploadKey, isUploadKey, UPLOADS_PATH } from '../src/lib/admin/uploads.ts';
 import { applyProjectEdits, applyOrder, newProjectText, portfolioSequence, projectData, projectValue, fieldsFor, roundTrips, slugFrom, youtubeId } from '../src/lib/admin/projects.ts';
+import { ENTRY_TYPES, applyEntryEdits, entryData, entryFields, entryRoundTrips } from '../src/lib/admin/entries.ts';
 import { createMockGitHub, gitBlobSha as nodeBlobSha } from './lib/mock-github.mjs';
 
 let failed = 0;
@@ -225,6 +226,63 @@ await check('every offered field exists in its file', () => {
   await check('the film field is offered only for a YouTube film', () => {
     assert.ok(fieldsFor({ film: { provider: 'youtube' } }).some((f) => f.kind === 'film'));
     assert.ok(!fieldsFor({}).some((f) => f.kind === 'film'));
+  });
+}
+
+/* ── services, team, categories, contacts ───────────────────────────────── */
+
+{
+  const ectx = { mediaKind: (k) => (k.startsWith('team/') || k.startsWith('projects/') ? 'image' : null) };
+  const files = (t) => fs.readdirSync(t.dir).filter((f) => t.prefix !== 'definicoes' || f === 'site.yml');
+  const read = (t, f) => fs.readFileSync(`${t.dir}/${f}`, 'utf8');
+  const differing = (a, b) => { const y = b.split('\n'); return a.split('\n').filter((l, i) => l !== y[i]).length; };
+
+  await check('every service, team, category and settings file round-trips byte for byte', () => {
+    const bad = Object.values(ENTRY_TYPES).flatMap((t) => files(t).filter((f) => !entryRoundTrips(t, read(t, f))).map((f) => `${t.prefix}/${f}`));
+    assert.deepEqual(bad, []);
+  });
+  await check('a service text changes only its own lines, both languages required', () => {
+    const t = ENTRY_TYPES.servico;
+    const text = read(t, 'producao-de-video.md');
+    const { text: next, changed } = applyEntryEdits(t, text, { 'title#pt': 'Vídeo', 'title#en': 'Video' }, ectx);
+    assert.deepEqual(changed, ['Nome']);
+    assert.equal(differing(text, next), 2);
+    assert.throws(() => applyEntryEdits(t, text, { 'title#en': '' }, ectx), /inglês/);
+  });
+  await check('a service excerpt must stay a selection from its description (decision A44)', () => {
+    const t = ENTRY_TYPES.servico;
+    const text = read(t, 'producao-de-video.md');
+    assert.throws(() => applyEntryEdits(t, text, { 'description#pt': 'Outra descrição.' }, ectx), /dentro da descrição/);
+    const d = entryData(t, text);
+    const both = applyEntryEdits(t, text, { 'description#pt': `${d.description.pt} Mais.`, 'excerpt#pt': 'Mais.' }, ectx);
+    assert.equal(entryData(t, both.text).excerpt.pt, 'Mais.');
+  });
+  await check('contacts: a phone is digits, a link is https, the email stays locked', () => {
+    const t = ENTRY_TYPES.definicoes;
+    const text = read(t, 'site.yml');
+    const fields = entryFields(t, entryData(t, text)).map((f) => f.path);
+    assert.ok(fields.includes('phones.0.number') && fields.includes('socials.2.url'));
+    const { text: next } = applyEntryEdits(t, text, { 'phones.0.number': '+351 912 345 678' }, ectx);
+    assert.equal(entryData(t, next).phones[0].number, '+351912345678');
+    assert.equal(differing(text, next), 1);
+    assert.throws(() => applyEntryEdits(t, text, { 'phones.0.number': 'ligue-me' }, ectx), /algarismos/);
+    assert.throws(() => applyEntryEdits(t, text, { 'socials.0.url': 'youtube.com/x' }, ectx), /https/);
+    assert.throws(() => applyEntryEdits(t, text, { email: 'a@b.pt' }, ectx), /não pode ser alterado/);
+  });
+  await check('an entry the owners change is dated as theirs (decision A2)', () => {
+    const t = ENTRY_TYPES.equipa;
+    const { text } = applyEntryEdits(t, read(t, 'helder-afonso.md'), { 'role#pt': 'Produção & Direção Artística' }, { ...ectx, today: '2026-10-22' });
+    assert.match(text, /^ownerEdited: 2026-10-22$/m);
+    const s = ENTRY_TYPES.definicoes;
+    assert.equal(entryData(s, applyEntryEdits(s, read(s, 'site.yml'), { 'phones.1.number': '+351911111111' }, { ...ectx, today: '2026-10-22' }).text).ownerEdited, '2026-10-22');
+  });
+  await check('a team portrait takes an image; unknown fields are refused', () => {
+    const t = ENTRY_TYPES.equipa;
+    const text = read(t, 'helder-afonso.md');
+    assert.throws(() => applyEntryEdits(t, text, { 'portrait.key': 'owner/x/hero' }, ectx), /imagem/);
+    assert.throws(() => applyEntryEdits(t, text, { order: '1' }, ectx), /desconhecido/);
+    const { changed } = applyEntryEdits(t, text, { 'links.0.url': 'https://www.instagram.com/outro/' }, ectx);
+    assert.deepEqual(changed, ['Ligação: Instagram']);
   });
 }
 
