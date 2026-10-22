@@ -209,6 +209,7 @@ Do not fill gaps with plausible-sounding text.
 | `docs/PWA-ICONS-TODO.md` | Phase 15. The archived vector logo, why the icons are rasterised from the square monogram anyway, and what ships. |
 | `docs/HANDOVER.md` | Step 14. How to run, edit and deploy: git flow, the two Workers, what CI needs, a fresh clone, content, PT/EN, media, R2, and what is deployed but unconfigured. |
 | `docs/STAGING_DEPLOY.md` | Step 12. The Worker, the staging URL, the deploy commands, the environment matrix, what staging refuses to pretend, and the `_redirects` defect only a real deploy could find. |
+| `docs/ADMIN_DASHBOARD_PLAN.md` | PLAN ONLY. Owner admin at `/admin/` on the dev Worker: content inventory, what moves out of components first, Cloudflare Access login, commit-to-dev + publish flow, CI media ingest, admin UI design, phases A0–A5, open decisions. |
 | `docs/content/` | Verbatim content extracts and machine-readable inventories. **Read-only source material — never edited.** |
 
 Read `docs/PROJECT_CONTEXT.md` at the start of every session to pick up where the last
@@ -253,7 +254,7 @@ the COMPANY account (`c87adf05…8e39`), both serve from Workers Static Assets:
 
 | Branch | Worker | URL |
 |---|---|---|
-| `dev` (default) | `dev` | `https://dev.next-vision-films.workers.dev` |
+| `dev` (default) | `dev` | `https://dev.nextvisionfilms.com` (also `dev.next-vision-films.workers.dev`) |
 | `master` | `next-vision-films-production` | `https://www.nextvisionfilms.com` (live; also `nextvisionfilms.com`) |
 
 Renamed 2026-10-22 from `staging` / `production`. The dev Worker was renamed (old `next-vision-films` deleted); the prod Worker keeps its name because the live domains are bound to it. Never rename it.

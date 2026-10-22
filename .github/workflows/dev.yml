@@ -1,4 +1,4 @@
-# dev branch  ->  `dev` Worker  (https://dev.next-vision-films.workers.dev)
+# dev branch  ->  `dev` Worker  (https://dev.nextvisionfilms.com)
 #
 # The prod twin is .github/workflows/prod.yml. The two files are deliberately
 # separate rather than one workflow with a branch condition: a single file with an `if`

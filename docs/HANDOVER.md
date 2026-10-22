@@ -55,7 +55,7 @@ No development happens on `master`. It only ever receives merges from `dev`.
 
 | Branch | Workflow | Worker | URL |
 |---|---|---|---|
-| `dev` | `.github/workflows/dev.yml` | `dev` | `https://dev.next-vision-films.workers.dev` |
+| `dev` | `.github/workflows/dev.yml` | `dev` | `https://dev.nextvisionfilms.com` |
 | `master` | `.github/workflows/prod.yml` | `next-vision-films-production` | `https://www.nextvisionfilms.com` (live) |
 
 Renamed 2026-10-22 from `staging` / `production`. The dev Worker was renamed (old `next-vision-films` deleted); the prod Worker keeps its name because the live domains are bound to it. Never rename it.
@@ -281,3 +281,18 @@ Everything still open — blocked items, owner decisions and deferred work — i
 the production domain and DNS, the contact recipient and email provider, production
 Turnstile keys, the analytics token, the media delivery hostname, and Review A (the visual
 identity is still provisional).
+
+
+## Custom domains (2026-10-22)
+
+| Hostname | Worker |
+|---|---|
+| `nextvisionfilms.com`, `www.nextvisionfilms.com` | `next-vision-films-production` (prod, live) |
+| `dev.nextvisionfilms.com` | `dev` |
+
+All three are Workers **Custom Domains** attached in Cloudflare, not in `wrangler.jsonc`, so
+deploys leave them alone (see the comment there). `dev.` replaced a leftover A record pointing
+at the old cPanel host (`62.233.41.61`), which served only the host's default placeholder page.
+Unchanged on purpose: the `dev` TXT (SPF) record and `www.dev`, which still point at that host.
+The dev copy does not compete in search, because every page's canonical points at
+`www.nextvisionfilms.com`.

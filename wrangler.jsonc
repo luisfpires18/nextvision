@@ -44,7 +44,7 @@
   // URL; repurposing that URL would silently invalidate the record rather than update it.
   //
   //   dev   Worker `dev`
-  //         https://dev.next-vision-films.workers.dev
+  //         https://dev.nextvisionfilms.com  (also https://dev.next-vision-films.workers.dev)
   //         Deployed by CI on every push to the `dev` branch.
   //
   //   prod  Worker `next-vision-films-production`
@@ -57,6 +57,12 @@
   // THAT Worker, and a deploy under a new name would create a second Worker without
   // them — the domain would keep serving the old build while the new one went nowhere,
   // and deleting the old Worker would take the site offline. Never rename it.
+  //
+  // CUSTOM DOMAINS ARE ATTACHED IN CLOUDFLARE, NOT HERE. `www`, the apex and `dev` are
+  // Workers Custom Domains bound to their Worker in the dashboard/API, and wrangler leaves
+  // a Worker's custom domains alone when this file declares no `routes` — which is why they
+  // survive every CI deploy. Declaring them here instead would make every deploy re-assert
+  // them, and the CI token would then need zone DNS permissions it does not have.
   //
   // The top-level `name` is the dev name ON PURPOSE: a bare `wrangler deploy`, with no
   // --env, is then a mistake that lands on dev. Reaching prod requires typing `--env
