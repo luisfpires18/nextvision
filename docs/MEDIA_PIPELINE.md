@@ -125,6 +125,14 @@ Offline gets the shell and the document, not the photography.
 
 ## 5. Adding media later — the whole workflow
 
+> **Since A4, the owners add media themselves** from the admin ("Carregar novo ficheiro…"
+> on any image or video field). Their uploads are a second, data-only recipe list,
+> `src/data/media-uploads.json`, processed in CI by `.github/workflows/media-ingest.yml` →
+> `scripts/media-ingest.mjs` → `media-build` stage 7/7. Their originals live only in
+> `nvf-source-archive/uploads/`. A full local `media:build` CARRIES OVER owner assets whose
+> source is not on disk, so it never drops them. The developer workflow below is unchanged.
+> Record: `docs/PROJECT_CONTEXT.md` §25.
+
 ```bash
 # 1. look at the file. This writes nothing and never touches the source.
 npm run media:inspect -- media/incoming/new-film.mp4

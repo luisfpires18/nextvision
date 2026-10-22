@@ -1694,3 +1694,81 @@ different head.
 `dev → master` merge done by the developer, because this branch is itself technical
 work that would block the owners' button). After that, the first real owner publish
 releases the two Thank-you saves already on `dev`.
+
+**Live after PR #4 merged directly (`99c496f`)** at the developer's request. Nothing was
+left waiting on `dev`.
+
+## 25. Admin phase A4: new videos and images from the admin (2026-10-22)
+
+Every image or video field on the seven page screens has **"Carregar novo ficheiro…"**.
+The owner chooses a file. For a film, they mark the loop's start, end and cover frame on
+the LOCAL file, with buttons or typed seconds; the typed seconds are the fallback when the
+browser cannot play the format, as with some ProRes `.mov`. The file uploads in 20 MB
+parts with a progress bar. The admin then reports, in order: received → processed →
+preview ready. Earlier requests show next to their field, with the reason when one failed.
+Branch `feat/admin-a4-media`.
+
+**The chain** (design: `ADMIN_DASHBOARD_PLAN.md` §4.1, revised):
+1. **Upload.** Browser → prod Worker → **private** `nvf-source-archive` under
+   `uploads/<date>/<id>/<name>`, as an R2 multipart upload through a new `SOURCES`
+   binding on `env.prod` only. The id is made by the server, and every key is checked
+   against that exact shape (`uploads.ts isUploadKey`), so nothing can be written
+   elsewhere. Parts are streamed, never buffered. The size limit is 2 GB (A5).
+2. **Request.** `POST /admin/api/media/` checks it against the screen's fields: right
+   kind, unlocked, a 2–30 s window that contains its cover. It confirms the object exists
+   with a HEAD, then appends one entry to **`src/data/media-uploads.json`** as one App
+   commit. That file is not under `media/` because `/media/` is gitignored whole, which is
+   how the original plan's `media/uploads.json` would have silently never been committed.
+3. **Ingest.** `.github/workflows/media-ingest.yml`, on push to `dev` touching that file:
+   - mints an App token, installs ffmpeg and runs `media:pull`;
+   - runs `scripts/media-ingest.mjs`, which downloads the original with the **read-only
+     source key**, refuses a still under 1140 px or a film under 1280 px (the site never
+     upscales) or a window past the end, encodes with `media-build --only owner/<id>/…`,
+     points the field at the new key, and marks the entry ready or failed with the
+     owners' reason;
+   - uploads renditions **add-only** with `media:sync --execute`;
+   - commits as `nvf-admin-luisfpires18[bot]`, so dev.yml rebuilds the preview and
+     Publish trusts it. The `[ingest]` marker stops it re-triggering itself, and it
+     rebases rather than overwriting if an owner saved meanwhile.
+4. **Publish.** It is unchanged in shape. Its allowed files now include the uploads list
+   and the media manifest; allowed authors are still the App only.
+
+**`media-build` stage 7/7** builds owner uploads whose source is in
+`media/incoming/<id>/`. When the source is NOT there, it **carries the existing manifest
+entry over**. Measured: without that rule, a full local rebuild replaces the manifest and
+would delete every owner film from the site.
+
+Keys: `owner/<id>/hero` for a film (its cover is `…/hero/poster`, as the homepage schema
+requires, and it gets WebM like other hero clips) and `owner/<id>/image` for a still.
+`MediaProvenance` gains `owner`, and `SourceQuality` gains `owner-upload`.
+
+**Tested:**
+- `npm run test:admin` has 39 checks, adding the request rules: kind per field, the
+  window, keys outside `uploads/` or walking out of it, unsupported types, safe names
+  (`Vídeo` → `Video`, a bug those checks caught), duplicate ids, and the publish
+  allowlist for processed media.
+- **The real ingest script ran on this machine** against the real showreel: the 1280 px
+  film encoded (MP4 and WebM at 1280 and 720, plus its cover), the homepage field
+  pointed at it, the entry was marked ready, `media:verify` passed, and the site BUILT
+  with the homepage referencing the new renditions. A 624 px still was refused with the
+  owners' reason, and its field was left unchanged. A full rebuild without the source
+  carried the film over (0 encoded, 384 reused). Then everything was restored.
+- In the browser, under `CLOUDFLARE_ENV=prod astro dev` (wrangler's local R2) against
+  `npm run mock:github`:
+  - a 1.6 MB clip with its window marked by the buttons, uploaded, and the request commit
+    carrying exactly 3 s + 7 s with the cover at 5 s;
+  - a 45 MB file in three parts (20 + 20 + 5 MB), with the typed-seconds fallback;
+  - the status chain through to "Pronto";
+  - a failed request shown next to its field with its reason.
+- The prod build under workerd answers 403 to every unauthenticated or forged call to
+  the five admin APIs, and `/` is 200, `/api/contact/` 303 throughout.
+
+**Not yet verified, only possible live:**
+- the R2 binding deploys with CI's Cloudflare token (if the prod deploy fails at the
+  binding, that token needs R2 permission);
+- `nvf-ci-media` can WRITE and `nvf-ci-sources` can READ;
+- `actions/create-github-app-token` with the Actions secrets;
+- ffmpeg on the runner;
+- a real end-to-end upload.
+
+The first real upload should be a small film for one field, followed on GitHub Actions.

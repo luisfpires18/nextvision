@@ -27,6 +27,7 @@ import { readFile, branchHead, compare, latestRun } from '../lib/admin/github.ts
 import { assess, type Assessment } from '../lib/admin/publish.ts';
 import { SAVE_BRANCH, LIVE_BRANCH, BUILD_WORKFLOW } from '../lib/admin/repo.ts';
 import Publish from './Publish.astro';
+import { UPLOADS_PATH, type UploadsDoc, type UploadEntry } from '../lib/admin/uploads.ts';
 import { SCREENS, pageFilePath, type PageFileName } from '../lib/admin/fields.ts';
 import { expandFields, type Field as EditField } from '../lib/admin/edit.ts';
 import { adminIdentity, LOGOUT_PATH } from '../lib/admin/guard.ts';
@@ -103,7 +104,7 @@ if (publishing) {
  * behind a save that has not been published yet.
  */
 const screen = item && groupId?.startsWith('pagina-') && item.id in SCREENS ? (item.id as PageFileName) : null;
-let editor: { fields: EditField[]; docs: Partial<Record<PageFileName, unknown>>; shas: Record<string, string> } | null = null;
+let editor: { fields: EditField[]; docs: Partial<Record<PageFileName, unknown>>; shas: Record<string, string>; uploads: UploadEntry[] } | null = null;
 let editorNotice: string | null = null;
 if (screen) {
   const cfg = githubConfig();
@@ -117,7 +118,10 @@ if (screen) {
         docs[file] = JSON.parse(text);
         shas[file] = sha;
       }
-      editor = { fields: expandFields(SCREENS[screen], docs), docs, shas };
+      // This screen's upload requests (A4). A missing list is just none yet.
+      const all = await readFile(cfg, UPLOADS_PATH).then((f) => (JSON.parse(f.text) as UploadsDoc).uploads).catch(() => []);
+      const uploads = all.filter((u) => u.target.screen === screen).reverse();
+      editor = { fields: expandFields(SCREENS[screen], docs), docs, shas, uploads };
     } catch {
       editorNotice = 'Não foi possível ler a versão atual a partir do GitHub. Pode consultar; tente editar daqui a pouco.';
     }
@@ -200,7 +204,7 @@ const href = (...parts: string[]) => `/admin/${parts.map(encodeURIComponent).joi
             <div class="admin-item__body">
               <div class="admin-fields">
                 {screen && editor ? (
-                  <Editor screen={screen} fields={editor.fields} docs={editor.docs} shas={editor.shas} />
+                  <Editor screen={screen} fields={editor.fields} docs={editor.docs} shas={editor.shas} uploads={editor.uploads} />
                 ) : (
                   <>
                     {editorNotice ? <p class="admin-locked">{editorNotice}</p> : null}

@@ -235,3 +235,173 @@ if (form) {
 
   refresh();
 }
+
+/* ── new media: upload for a field (A4) ─────────────────────────────────── */
+
+const MAX_UPLOAD = 2 * 1024 ** 3;
+const VIDEO_NAME = /\.(mp4|mov|m4v|webm)$/i;
+const IMAGE_NAME = /\.(jpe?g|png|webp|tiff?)$/i;
+let uploading = 0;
+window.addEventListener('beforeunload', (e) => { if (uploading) e.preventDefault(); });
+
+for (const panel of document.querySelectorAll<HTMLDetailsElement>('[data-upload]')) {
+  const kind = panel.dataset['kind'] as 'video' | 'image';
+  const min = Number(panel.dataset['min']);
+  const max = Number(panel.dataset['max']);
+  const input = panel.querySelector<HTMLInputElement>('[data-upload-file]')!;
+  const go = panel.querySelector<HTMLButtonElement>('[data-upload-go]')!;
+  const bar = panel.querySelector<HTMLProgressElement>('[data-upload-progress]')!;
+  const out = panel.querySelector<HTMLElement>('[data-upload-message]')!;
+  const windowBox = panel.querySelector<HTMLElement>('[data-window]');
+  const video = panel.querySelector<HTMLVideoElement>('[data-upload-video]');
+  const time = (which: string) => panel.querySelector<HTMLInputElement>(`[data-time="${which}"]`);
+  const say = (text: string, tone?: 'ok' | 'error') => {
+    out.textContent = text;
+    if (tone) out.dataset['tone'] = tone; else delete out.dataset['tone'];
+  };
+  let file: File | null = null;
+  let duration = Number.NaN;
+
+  /** The same rules the server applies (uploads.ts), so the owner hears them before uploading. */
+  const problem = (): string | null => {
+    if (!file) return 'Escolha um ficheiro.';
+    if (file.size > MAX_UPLOAD) return 'O ficheiro tem mais de 2 GB. Exporte uma versão mais pequena.';
+    if (!(kind === 'video' ? VIDEO_NAME : IMAGE_NAME).test(file.name)) {
+      return kind === 'video' ? 'Este lugar precisa de um vídeo (MP4, MOV ou WebM).' : 'Este lugar precisa de uma imagem (JPG, PNG, WebP ou TIFF).';
+    }
+    if (kind === 'image') return null;
+    const [s, e, p] = ['start', 'end', 'poster'].map((w) => Number(time(w)?.value === '' ? Number.NaN : time(w)?.value));
+    if ([s, e, p].some((n) => !Number.isFinite(n))) return 'Marque o início, o fim e a capa do excerto.';
+    if (e! - s! < min) return `O excerto tem de ter pelo menos ${min} segundos.`;
+    if (e! - s! > max) return `O excerto pode ter no máximo ${max} segundos.`;
+    if (p! < s! || p! > e!) return 'A capa tem de ser um momento dentro do excerto.';
+    if (Number.isFinite(duration) && e! > duration + 0.05) return `O vídeo só tem ${duration.toFixed(1)} segundos.`;
+    return null;
+  };
+  const check = () => {
+    const p = problem();
+    go.disabled = Boolean(p) || uploading > 0;
+    if (!uploading) say(p ?? (kind === 'video' ? `Excerto de ${(Number(time('end')!.value) - Number(time('start')!.value)).toFixed(1)} s pronto a carregar.` : 'Pronto a carregar.'));
+  };
+
+  input.addEventListener('change', () => {
+    file = input.files?.[0] ?? null;
+    duration = Number.NaN;
+    if (video && windowBox && file) {
+      windowBox.hidden = false;
+      video.src = URL.createObjectURL(file);
+      for (const w of ['start', 'end', 'poster']) time(w)!.value = '';
+    }
+    check();
+  });
+  video?.addEventListener('loadedmetadata', () => {
+    duration = video.duration;
+    if (time('start')!.value === '') {
+      time('start')!.value = '0';
+      time('end')!.value = Math.min(8, duration).toFixed(1);
+      time('poster')!.value = '1';
+    }
+    check();
+  });
+  video?.addEventListener('error', () => {
+    panel.querySelector<HTMLElement>('[data-video-note]')!.textContent =
+      'O navegador não consegue mostrar este vídeo (acontece com alguns MOV). Escreva os tempos em segundos: o ficheiro é processado na mesma.';
+  });
+  panel.addEventListener('click', (e) => {
+    const b = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-mark]');
+    if (!b || !video) return;
+    time(b.dataset['mark']!)!.value = video.currentTime.toFixed(1);
+    check();
+  });
+  panel.addEventListener('input', check);
+
+  const post = async (url: string, body: unknown) => {
+    const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' }, body: JSON.stringify(body) });
+    const data = (await res.json().catch(() => ({}))) as Record<string, unknown>;
+    if (!res.ok) throw new Error(String(data['error'] ?? 'Falhou.'));
+    return data;
+  };
+
+  go.addEventListener('click', async () => {
+    if (problem() || !file) return;
+    uploading += 1;
+    go.disabled = true;
+    bar.hidden = false;
+    bar.value = 0;
+    const f = file;
+    type Started = { key: string; uploadId: string; partBytes: number };
+    let started: Started | null = null;
+    try {
+      say('A carregar…');
+      const begun = (await post('/admin/api/carregar/', { acao: 'iniciar', name: f.name, size: f.size })) as unknown as Started;
+      started = begun;
+      const { key, uploadId, partBytes } = begun;
+      const parts: { partNumber: number; etag: string }[] = [];
+      const count = Math.max(1, Math.ceil(f.size / partBytes));
+      for (let n = 1; n <= count; n++) {
+        const blob = f.slice((n - 1) * partBytes, n * partBytes);
+        let done: { partNumber: number; etag: string } | null = null;
+        for (let attempt = 1; attempt <= 3 && !done; attempt++) {
+          const res = await fetch(`/admin/api/carregar/parte/?key=${encodeURIComponent(key)}&uploadId=${encodeURIComponent(uploadId)}&n=${n}`, { method: 'PUT', body: blob }).catch(() => null);
+          if (res?.ok) done = (await res.json()) as { partNumber: number; etag: string };
+          else if (attempt < 3) await new Promise((r) => setTimeout(r, attempt * 2000));
+        }
+        if (!done) throw new Error('A ligação falhou durante o carregamento. Volte a tentar.');
+        parts.push(done);
+        bar.value = Math.round((n / count) * 100);
+        say(`A carregar… ${bar.value}%`);
+      }
+      await post('/admin/api/carregar/', { acao: 'concluir', key, uploadId, parts });
+      started = null;
+
+      const request: Record<string, unknown> = { screen: (panel.closest('[data-editor]') as HTMLElement).dataset['screen'], target: panel.dataset['target'], source: key, name: f.name };
+      if (kind === 'video') {
+        request['start'] = Number(time('start')!.value);
+        request['end'] = Number(time('end')!.value);
+        request['posterAt'] = Number(time('poster')!.value);
+        const note = panel.querySelector<HTMLInputElement>('[data-upload-note]')!.value.trim();
+        if (note) request['note'] = note;
+      }
+      const { id } = (await post('/admin/api/media/', request)) as { id: string };
+      uploading -= 1;
+      bar.hidden = true;
+      say(kind === 'video'
+        ? 'Recebido. A processar o vídeo — normalmente 3 a 8 minutos. Pode continuar a trabalhar ou fechar esta página.'
+        : 'Recebido. A processar a imagem — normalmente 2 a 4 minutos.', 'ok');
+      void followUpload(id, say);
+    } catch (e) {
+      uploading = Math.max(0, uploading - 1);
+      bar.hidden = true;
+      const open = started as Started | null;
+      if (open) void post('/admin/api/carregar/', { acao: 'abortar', key: open.key, uploadId: open.uploadId }).catch(() => undefined);
+      say(e instanceof Error ? e.message : 'Não foi possível carregar.', 'error');
+      check();
+    }
+  });
+}
+
+/** Processing (media-ingest.yml), then the preview build of the commit that attached it. */
+async function followUpload(id: string, say: (t: string, tone?: 'ok' | 'error') => void) {
+  const until = Date.now() + 40 * 60_000;
+  while (Date.now() < until) {
+    await new Promise((r) => setTimeout(r, 10_000));
+    let s: { status?: string; error?: string | null; head?: string | null } = {};
+    try { s = await (await fetch(`/admin/api/estado/?carregamento=${encodeURIComponent(id)}`, { cache: 'no-store' })).json(); } catch { continue; }
+    if (s.status === 'failed') { say(`Não foi possível usar o ficheiro: ${s.error ?? 'erro desconhecido.'}`, 'error'); return; }
+    if (s.status !== 'ready' || !s.head) continue;
+    say('Processado. A preparar a pré-visualização…', 'ok');
+    while (Date.now() < until) {
+      await new Promise((r) => setTimeout(r, POLL_MS));
+      const b = await buildState();
+      showBuild(b);
+      if (b?.commit !== s.head) continue;
+      if (b.state === 'ready') {
+        say('Pronto: o novo ficheiro já está na pré-visualização. Quando estiver bem, publique em «Publicar».', 'ok');
+        void refreshPending();
+        return;
+      }
+      if (b.state === 'failed') { say('O ficheiro foi processado, mas a pré-visualização falhou. Fale com o programador.', 'error'); return; }
+    }
+  }
+  say('O processamento está a demorar mais do que o normal. Volte a esta página mais tarde.');
+}

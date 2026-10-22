@@ -1,0 +1,99 @@
+# media-ingest — process files the owners uploaded in the admin (phase A4).
+#
+# The admin appends a request to src/data/media-uploads.json on `dev`; this encodes the
+# uploaded original (kept in the PRIVATE bucket), uploads the renditions to the delivery
+# bucket ADD-ONLY, points the requested field at the new media, and commits — as the
+# admin's GitHub App, for two reasons:
+#   - a push made with the default Actions token does not trigger other workflows, so
+#     dev.yml would never rebuild the preview with the new media;
+#   - the admin's Publish rule only trusts the App's commits (src/lib/admin/publish.ts).
+#
+# Its own commit touches the same file, so it carries "[ingest]" and is skipped here.
+# Record: docs/ADMIN_DASHBOARD_PLAN.md §4.1, docs/PROJECT_CONTEXT.md.
+
+name: media-ingest
+
+on:
+  push:
+    branches: [dev]
+    paths: ['src/data/media-uploads.json']
+  workflow_dispatch:
+
+# One at a time, and never cancelled half-way: a cancelled run could leave renditions
+# uploaded with no commit pointing at them (harmless, but untidy).
+concurrency:
+  group: media-ingest
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  ingest:
+    name: process uploads
+    if: ${{ !contains(github.event.head_commit.message, '[ingest]') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      R2_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      R2_BUCKET: nvf-media
+      R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+      R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+      R2_SOURCE_ACCESS_KEY_ID: ${{ secrets.R2_SOURCE_ACCESS_KEY_ID }}
+      R2_SOURCE_SECRET_ACCESS_KEY: ${{ secrets.R2_SOURCE_SECRET_ACCESS_KEY }}
+    steps:
+      - name: Act as the admin's App
+        id: app
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.NVF_ADMIN_APP_ID }}
+          private-key: ${{ secrets.NVF_ADMIN_APP_PRIVATE_KEY }}
+
+      - uses: actions/checkout@v4
+        with:
+          ref: dev
+          token: ${{ steps.app.outputs.token }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install
+        run: |
+          npm ci
+          sudo apt-get update -q
+          sudo apt-get install -y -q --no-install-recommends ffmpeg
+          ffmpeg -hide_banner -encoders 2>/dev/null | grep -E 'libx264|libvpx-vp9|libaom-av1|libwebp' | awk '{print $2}'
+
+      # The whole mirror: media-build's cache, and media:sync's set difference, both need it.
+      - name: Restore the media mirror
+        run: npm run media:pull
+
+      - name: Process pending uploads
+        id: ingest
+        run: node scripts/media-ingest.mjs
+
+      - name: Upload new renditions (add-only, never deletes)
+        if: steps.ingest.outputs.ready == 'true'
+        run: npm run media:sync -- --execute
+
+      - name: Commit as the App
+        if: steps.ingest.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ steps.app.outputs.token }}
+          SUMMARY: ${{ steps.ingest.outputs.summary }}
+          SLUG: ${{ steps.app.outputs.app-slug }}
+        run: |
+          uid=$(gh api "/users/${SLUG}%5Bbot%5D" --jq .id)
+          git config user.name "${SLUG}[bot]"
+          git config user.email "${uid}+${SLUG}[bot]@users.noreply.github.com"
+          git add src/data/media-uploads.json src/data/media-manifest.json src/content/page-content/
+          git commit -q -m "$SUMMARY" -m "Processado automaticamente. [ingest]"
+          # An owner may have saved while this ran: rebase on top, never overwrite.
+          for attempt in 1 2 3; do
+            git pull -q --rebase origin dev && git push -q origin HEAD:dev && exit 0
+            sleep $((attempt * 5))
+          done
+          echo "::error::could not push after 3 attempts; the uploads stay pending and the next change re-runs them"
+          exit 1

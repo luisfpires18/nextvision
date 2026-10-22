@@ -17,8 +17,9 @@
 import manifest from '../data/media-manifest.json' with { type: 'json' };
 import { MEDIA_BASE_URL } from '../config/site.ts';
 
-export type MediaProvenance = 'wordpress' | 'smash' | 'master' | 'authored' | 'unknown';
-export type SourceQuality = 'master' | 'web-export' | 'derivative' | 'unknown';
+/** `owner`: uploaded by the owners in the admin (phase A4). */
+export type MediaProvenance = 'wordpress' | 'smash' | 'master' | 'authored' | 'owner' | 'unknown';
+export type SourceQuality = 'master' | 'web-export' | 'derivative' | 'owner-upload' | 'unknown';
 export type MediaFormat = 'webp' | 'avif' | 'mp4' | 'webm';
 
 /** One encoded file in the bucket. `path` is an object key, never a URL. */
