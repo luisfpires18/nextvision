@@ -9,12 +9,6 @@
 export const SITE_URL = 'https://www.nextvisionfilms.com';
 
 /**
- * The dev Worker, where a change saved in the admin appears before it is published
- * (docs/ADMIN_DASHBOARD_PLAN.md §4). The admin on the live site previews pages here.
- */
-export const PREVIEW_URL = 'https://dev.nextvisionfilms.com';
-
-/**
  * Public base for delivered media.
  *
  * The DEFAULT is the local mirror, not the R2 host, and that is deliberate. `media/dist/`

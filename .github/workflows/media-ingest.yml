@@ -1,12 +1,14 @@
 # media-ingest — process files the owners uploaded in the admin (phase A4).
 #
-# The admin appends a request to src/data/media-uploads.json on `dev`; this encodes the
+# The admin appends a request to src/data/media-uploads.json on `master` (A10); this encodes the
 # uploaded original (kept in the PRIVATE bucket), uploads the renditions to the delivery
 # bucket ADD-ONLY, points the requested field at the new media, and commits — as the
 # admin's GitHub App, for two reasons:
 #   - a push made with the default Actions token does not trigger other workflows, so
-#     dev.yml would never rebuild the preview with the new media;
-#   - the admin's Publish rule only trusts the App's commits (src/lib/admin/publish.ts).
+#     prod.yml would never deploy the new media;
+#   - every owner change on master is the App's, so the history says who did what.
+# The request commit and a FAILED result touch only the uploads list, which prod.yml
+# ignores: a refused file never deploys. A successful result is the deploy.
 #
 # Its own commit touches the same file, so it carries "[ingest]" and is skipped here.
 # Record: docs/ADMIN_DASHBOARD_PLAN.md §4.1, docs/PROJECT_CONTEXT.md.
@@ -15,7 +17,7 @@ name: media-ingest
 
 on:
   push:
-    branches: [dev]
+    branches: [master]
     paths: ['src/data/media-uploads.json']
   workflow_dispatch:
 
@@ -51,7 +53,7 @@ jobs:
 
       - uses: actions/checkout@v4
         with:
-          ref: dev
+          ref: master
           token: ${{ steps.app.outputs.token }}
 
       - uses: actions/setup-node@v4
@@ -97,7 +99,7 @@ jobs:
           git commit -q -m "$SUMMARY" -m "Processado automaticamente. [ingest]"
           # An owner may have saved while this ran: rebase on top, never overwrite.
           for attempt in 1 2 3; do
-            git pull -q --rebase origin dev && git push -q origin HEAD:dev && exit 0
+            git pull -q --rebase origin master && git push -q origin HEAD:master && exit 0
             sleep $((attempt * 5))
           done
           echo "::error::could not push after 3 attempts; the uploads stay pending and the next change re-runs them"

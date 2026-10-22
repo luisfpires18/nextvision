@@ -42,7 +42,8 @@ http.createServer(async (req, res) => {
     return;
   }
   const answer = await gh.handle(`http://127.0.0.1:${PORT}${req.url}`, { method: req.method, headers: req.headers, body });
-  if (req.method !== 'GET') console.log(`${req.method} ${req.url} -> ${answer.status}${req.method === 'PATCH' ? `  "${gh.message().split('\n')[0]}"` : ''}`);
+  const patched = req.method === 'PATCH' ? decodeURIComponent(req.url.split('/heads/')[1] ?? '') : '';
+  if (req.method !== 'GET') console.log(`${req.method} ${req.url} -> ${answer.status}${patched ? `  "${gh.message(patched).split('\n')[0]}"` : ''}`);
   res.writeHead(answer.status, { 'Content-Type': 'application/json' });
   res.end(await answer.text());
 }).listen(PORT, '127.0.0.1', () => console.log(`mock GitHub on http://127.0.0.1:${PORT} — ${Object.keys(files).length} files, branch dev`));

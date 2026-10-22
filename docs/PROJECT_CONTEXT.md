@@ -1772,3 +1772,64 @@ requires, and it gets WebM like other hero clips) and `owner/<id>/image` for a s
 - a real end-to-end upload.
 
 The first real upload should be a small film for one field, followed on GitHub Actions.
+
+**Live, 2026-10-22.** The first prod deploy of A4 failed safely: the deploy token
+`nvf-github-actions-deploy` had no R2 permission, so wrangler could not validate the new
+binding (`code 10000`). Luís added *Workers R2 Storage: Read*, and PR #6 deployed. The
+first `media-ingest` run hung for over 20 minutes on a stalled Ubuntu mirror;
+`f8edb6f` added apt download timeouts and retries. After that, a dispatched run passed
+every step: App token, ffmpeg with x264, VP9, AV1 and WebP, and the 384-file mirror via
+`nvf-ci-media`. **First real upload:** a 640×368 phone export for the homepage was refused
+by name ("precisa de pelo menos 1280 px"), the field was left unchanged, and the App
+committed only the status. It exposed one bug, a test asserting the uploads list was
+EMPTY, which failed every build after the first real upload (`a47b2bb`).
+
+## 26. One Publicar, straight to production (decision A10, 2026-10-22)
+
+The owners found Save → preview → Publish too many steps. Now:
+- **Every change is a draft the moment it is typed**, kept in the browser
+  (`localStorage`, in memory if storage is refused), across all pages. The menu shows
+  **Publicar (N)**.
+- **Publicar** opens a modal listing every draft by page, before → after. Confirming
+  writes them all as **one commit to `master`**, which is one production deploy, and the
+  modal follows it until "Publicado". "Descartar todos os rascunhos" is there too.
+- **Uploads** publish themselves once processed. `prod.yml` now has `paths-ignore` for
+  `src/data/media-uploads.json`, so an upload REQUEST or a REFUSED file never deploys;
+  only the successful ingest commit (new media plus the field) does. `media-ingest.yml`
+  runs on, and commits to, `master`.
+- **Removed:** Save, the `/admin/api/guardar/` endpoint, the Publish page and its menu
+  badge, the A3 publish rule (`publish.ts`) and its PR/merge/compare GitHub calls,
+  `PREVIEW_URL`. The preview pane shows the live page. The `dev` branch and Worker
+  remain, for developer work only.
+
+**Freshness is per field, not per file.** Each draft carries the value the field had when
+editing began. Publish refuses (409, naming the fields) only if someone else published a
+different value for THAT field. Drafts can therefore wait days without being blocked by
+unrelated publishes. On reopening a page, a stale draft is dropped and named, and the
+field shows the newer live value. `liveValue` is in `edit.ts` and tested.
+
+**Developer rule this creates:** owner edits now land on `master` only, so before every
+`dev → master` release, merge `master` into `dev` first.
+
+**Tested:**
+- `test:admin` has 32 checks: A3's publish/PR tests removed with their code; added
+  per-field freshness and drafts from three files applying as one change.
+- Clicked through against the fake GitHub:
+  - drafts on two pages, kept across navigation, counted (1) → (2), and restored on
+    return;
+  - the modal grouped by page; Publicar → ONE commit to `master` with both edits →
+    "Publicado";
+  - a same-field conflict refused by name, then the stale draft dropped on reload.
+- The prod build under workerd answers 403 to every unauthenticated or forged publish,
+  the removed save route and the status endpoint, while `/` stays 200.
+
+**Two phone-layout defects found and fixed.** One uploaded file name with no spaces
+stretched a `<fieldset>`, which will not shrink below its widest word, and with it the
+page, to 1069 px. And the locked Copyright field's text sat beside its floated legend at
+0 px wide, which made every page 45 px too wide; this one dated from A2. All five
+editable pages now measure 375 px.
+
+**Local tooling note:** wrangler's local proxy drops the next connection after ANY POST
+refused with its body unread. That includes Astro's own cross-site form check on pages,
+which my code cannot drain. It is local-only (the edge has no such proxy), and the admin
+page route now drains bodies itself.

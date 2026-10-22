@@ -146,6 +146,9 @@
 .admin-readonly { margin-block-end: var(--space-4); color: var(--a-dim); }
 .admin-editor { display: grid; gap: var(--admin-hairline); }
 .ed-field {
+  /* A fieldset will not shrink below its widest unbreakable word by default; one long
+     uploaded file name stretched the whole page to 1069 px on a phone. */
+  min-inline-size: 0;
   margin: 0;
   padding: var(--space-4);
   border: 0;
@@ -156,6 +159,9 @@
 .ed-field[data-dirty] { border-inline-start-color: var(--sec); }
 .ed-field legend { float: left; inline-size: 100%; margin-block-end: var(--space-2); font-weight: 600; }
 .ed-note, .ed-source { clear: both; font-size: var(--t-meta); color: var(--a-dim); }
+/* A locked field's read-only text sits UNDER the floated legend, never beside it: beside
+   it, it was squeezed to 0 px and pushed a phone's page 45 px wider. */
+.ed-field > .f-pair, .ed-field > .admin-locked { clear: both; }
 .ed-note { margin-block-end: var(--space-2); }
 .ed-source { margin-block-start: var(--space-2); }
 .ed-pair { clear: both; display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); }
@@ -175,15 +181,6 @@
 .ed-media__row { clear: both; display: flex; gap: var(--space-4); align-items: center; }
 .ed-media__row img { inline-size: var(--admin-thumb); block-size: auto; aspect-ratio: var(--thumb-ratio); object-fit: cover; flex: none; background: var(--a-raise); }
 .ed-media__pick { flex: 1; min-inline-size: 0; }
-.ed-actions {
-  position: sticky;
-  inset-block-end: var(--admin-status-h);
-  display: flex;
-  gap: var(--space-4);
-  align-items: center;
-  padding: var(--space-4);
-  background: var(--a-raise);
-}
 .ed-save {
   padding: var(--space-3) var(--space-5);
   border: 0;
@@ -200,7 +197,7 @@
 .ed-message[data-tone='error'] { color: var(--a-text); padding-inline-start: var(--space-3); border-inline-start: var(--rule-heavy) solid var(--brand-red); }
 
 /* ── new media (A4) ──────────────────────────────────────────────────────── */
-.ed-request { clear: both; margin-block-start: var(--space-3); padding: var(--space-2) var(--space-3); font-size: var(--t-meta); background: var(--a-raise); border-inline-start: var(--rule-heavy) solid var(--brand-yellow); }
+.ed-request { overflow-wrap: anywhere; clear: both; margin-block-start: var(--space-3); padding: var(--space-2) var(--space-3); font-size: var(--t-meta); background: var(--a-raise); border-inline-start: var(--rule-heavy) solid var(--brand-yellow); }
 .ed-request[data-status='failed'] { border-inline-start-color: var(--brand-red); }
 .ed-upload { clear: both; margin-block-start: var(--space-3); }
 .ed-upload summary { cursor: pointer; color: var(--a-text); text-decoration: underline; }
@@ -254,7 +251,22 @@
   font-weight: 600;
   text-decoration: none;
 }
-.admin-publish-link[aria-current='page'] { outline: var(--admin-focus) solid var(--brand-cream); }
+button.admin-publish-link { border: 0; font: inherit; font-weight: 600; text-align: start; cursor: pointer; inline-size: calc(100% - 2 * var(--space-5)); }
+.pub-dialog {
+  inline-size: min(var(--w-text), calc(100vw - 2 * var(--space-5)));
+  max-block-size: calc(100svh - 2 * var(--space-6));
+  padding: var(--space-6);
+  border: 0;
+  border-radius: var(--radius-m);
+  background: var(--a-panel);
+  color: var(--a-text);
+}
+.pub-dialog::backdrop { background: color-mix(in srgb, var(--brand-black) 70%, transparent); }
+.pub-dialog h2 { margin: 0 0 var(--space-4); font-family: var(--font-display); font-weight: var(--w-display); font-size: var(--t-display-s); }
+.pub-dialog h3 { margin: var(--space-4) 0 var(--space-2); font-size: var(--t-ui); }
+.pub-dialog .pub-list li { grid-template-columns: minmax(0, var(--admin-name-w)) 1fr; background: var(--a-raise); }
+.pub-dialog .pub-fields { overflow-wrap: anywhere; }
+.pub-dialog .pub-actions { display: flex; flex-wrap: wrap; gap: var(--space-4); align-items: center; margin-block-start: var(--space-5); }
 .pub-list { display: grid; gap: var(--admin-hairline); margin-block-end: var(--space-6); list-style: none; }
 .pub-list li {
   display: grid;
@@ -266,9 +278,7 @@
 }
 .pub-page { font-weight: 600; }
 .pub-meta { font-size: var(--t-meta); color: var(--a-dim); }
-.pub-actions { display: grid; gap: var(--space-4); justify-items: start; }
-.pub-confirm { display: grid; gap: var(--space-3); justify-items: start; padding: var(--space-4); background: var(--a-raise); }
-.pub-confirm[hidden], .pub-actions [hidden] { display: none; }
+.pub-actions [hidden] { display: none; }
 .pub-cancel { background: none; border: 0; padding: var(--space-2) 0; color: var(--a-text); font: inherit; text-decoration: underline; cursor: pointer; }
 
 /* ── status bar ──────────────────────────────────────────────────────────── */
@@ -308,7 +318,6 @@
   .admin-publish-link { order: -1; margin: 0 var(--space-3); white-space: nowrap; }
   .pub-list li { grid-template-columns: 1fr; gap: var(--space-1); }
   .ed-media__row { flex-direction: column; align-items: stretch; }
-  .ed-actions { flex-direction: column; align-items: stretch; }
   .admin-nav ul { display: flex; }
   .admin-nav li a { border-inline-start: 0; border-block-end: var(--rule-heavy) solid var(--sec); white-space: nowrap; padding: var(--space-3); }
   .admin-overview, .admin-item { padding: var(--space-5) var(--space-4); }
