@@ -1,0 +1,74 @@
+---
+/**
+ * The Cinema shelf — DESIGN V2 (Tatiana).
+ *
+ * Every project as the spine of a VHS cassette, and one of them stood up as a poster.
+ * Each spine is a real link to its project, so the shelf is a complete index on its own;
+ * pointing at or focusing a spine stands it up in the poster slot (portfolio-filter.ts
+ * owns that small script), and pressing it goes to the film.
+ *
+ * The spines are drawn here from each project's own title, number and category — not
+ * Tatiana's artwork, which has not been delivered (docs/BLOCKED_TODOS.md). When it is,
+ * each spine becomes an image keyed by slug and this file keeps its shape.
+ */
+import BrandMark from '../site/BrandMark.astro';
+import { t } from '../../i18n/index.ts';
+import type { CuratedProject } from '../../lib/curated.ts';
+import type { Locale } from '../../config/i18n.ts';
+
+interface Props { projects: CuratedProject[]; locale: Locale }
+const { projects, locale } = Astro.props;
+
+/* The storyboard stands up Dormência, the one project with a true portrait poster. */
+const lead = projects.find((p) => p.slug === 'dormencia-48h') ?? projects[0];
+const no = (i: number): string => String(i + 1).padStart(3, '0');
+---
+
+<div class="shelf-view">
+  <ul class="shelf" aria-label={t('cinema.shelf', locale)}>
+    {projects.map((p, i) => (
+      <li class={`vhs cat-${p.categoryToken}`}>
+        <a
+          href={p.href}
+          data-spine
+          data-title={p.title}
+          data-meta={`${p.categoryName} · ${p.date}`}
+          data-src={p.posterSrc ?? undefined}
+          data-srcset={p.posterSrcset ?? undefined}
+          aria-current={p.slug === lead?.slug ? 'true' : undefined}
+        >
+          <span class="vhs__tag" aria-hidden="true">NVF</span>
+          <span class="vhs__no" aria-hidden="true">{no(i)}</span>
+          <span class="vhs__title">{p.title}</span>
+          <BrandMark mark="monogramColour" class="vhs__logo" />
+          <span class="vhs__fmt" aria-hidden="true">VHS</span>
+        </a>
+      </li>
+    ))}
+  </ul>
+
+  {lead && (
+    <figure class="poster" data-poster aria-live="polite">
+      <a class="poster__frame" href={lead.href} data-poster-link>
+        {lead.posterSrc && (
+          <img
+            src={lead.posterSrc}
+            srcset={lead.posterSrcset}
+            sizes="(min-width: 48rem) 24rem, 80vw"
+            alt=""
+            width={lead.posterWidth}
+            height={lead.posterHeight}
+            loading="lazy"
+            decoding="async"
+            data-poster-img
+          />
+        )}
+      </a>
+      <figcaption>
+        <span class="poster__title" data-poster-title>{lead.title}</span>
+        <span class="poster__meta" data-poster-meta>{`${lead.categoryName} · ${lead.date}`}</span>
+        <a class="poster__go" href={lead.href} data-poster-link>{t('cinema.watch', locale)}</a>
+      </figcaption>
+    </figure>
+  )}
+</div>

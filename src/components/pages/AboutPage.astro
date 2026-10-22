@@ -29,8 +29,10 @@
  */
 import { getCollection, getEntry } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import PageHead from '../site/PageHead.astro';
-import ContactClose from '../site/ContactClose.astro';
+import BrandMark from '../site/BrandMark.astro';
+import Reel from '../site/Reel.astro';
+import { BRAND_LINES } from '../../lib/brand.ts';
+import { t } from '../../i18n/index.ts';
 import { ABOUT } from '../../lib/static-pages.ts';
 import { imageProps, getMedia } from '../../lib/media.ts';
 import { navHref } from '../../lib/nav.ts';
@@ -41,6 +43,7 @@ import { say } from '../../lib/homepage.ts';
 import { pageTitle, pageDescription } from '../../lib/page-meta.ts';
 import { portraitAlt } from '../../lib/alt.ts';
 import '../../styles/pages.css';
+import '../../styles/sections.css';
 
 interface Props { locale: Locale }
 const { locale } = Astro.props;
@@ -69,7 +72,7 @@ const portraits = team.map((member) => {
     image: key
       ? imageProps(key, {
           alt: portraitAlt(member.data.name, locale),
-          sizes: '(min-width: 48rem) 44vw, 92vw',
+          sizes: '(min-width: 48rem) 22vw, 70vw',
         })
       : null,
   };
@@ -115,6 +118,7 @@ const schema = [
 ---
 
 <BaseLayout
+  section="about"
   title={pageTitle('about', locale)}
   description={pageDescription('about', locale) ?? undefined}
   locale={locale}
@@ -124,30 +128,52 @@ const schema = [
   ogImageAlt={portraits[0] ? portraitAlt(portraits[0].member.data.name, locale) : undefined}
   schema={schema}
 >
-  {/* ── A · THE STATEMENT AND THE STORY ────────────────────────────────── */}
-  <PageHead eyebrow={say(ABOUT.eyebrow, locale)} title={say(ABOUT.lead, locale)} layout="beside">
-    <Fragment slot="aside">
-      <div class="pg-prose" data-reveal>
-        <p class="lead">{say(ABOUT.storyA, locale)}</p>
-        <p class="body">{say(ABOUT.storyB, locale)}</p>
+  {/* ── DESIGN V2 (Tatiana) ────────────────────────────────────────────────
+      The storyboard's About: the stacked wordmark at poster size, the statement and the
+      story beside each other, LOVING EVERY FRAME, and the founders on the section's own
+      blue panel, which slides in from the left as it is reached. A reel rolls along the
+      foot of the page with the scroll, unspooling a line of film behind it.
+
+      The words are the page's own published copy, unchanged. The new paragraphs in the
+      storyboard are not on the live site; they are an owner proposal, recorded in
+      docs/DESIGN_V2_ROLLOUT.md, and they replace nothing until approved (CLAUDE.md §2). */}
+  <section class="ab2 ground-cream" data-ground="cream">
+    <BrandMark mark="stack" class="ab2__mark" />
+
+    <p class="ab2__eyebrow">{say(ABOUT.eyebrow, locale)}</p>
+    <h1 class="ab2__lead" id="page-title">{say(ABOUT.lead, locale)}</h1>
+
+    <div class="ab2__cols">
+      <div class="ab2__story">
+        <p>{say(ABOUT.storyA, locale)}</p>
+        <p>{say(ABOUT.storyB, locale)}</p>
       </div>
-    </Fragment>
-  </PageHead>
+      <div class="ab2__close">
+        <h2 class="ab2__close-title">
+          {say(ABOUT.workLineA, locale)} {say(ABOUT.workLineB, locale)}
+        </h2>
+        {ABOUT.closing.map((line) => <p>{say(line, locale)}</p>)}
+        <p class="ab2__actions">
+          <a class="ctl" href={navHref('portfolio', locale)}><span>{say(ABOUT.ctaPortfolio, locale)}</span></a>
+        </p>
+      </div>
+      <svg class="ab2__asterisk" viewBox="-12 -12 24 24" aria-hidden="true"><path d="M0-10V10M-10 0H10M-7-7 7 7M-7 7 7-7" /></svg>
+    </div>
 
-  {/* ── B · THE PEOPLE ─────────────────────────────────────────────────────
-      The rule between the story and the team is the company's own colour reference —
-      `colors.png`, published twice on this page and the source of the whole accent
-      palette. It divides two sections AND it is the identity, which is the only kind of
-      ornament this site allows. */}
-  <section class="section ground-cream" data-ground="cream" data-header="cream" aria-label={say(ABOUT.eyebrow, locale)}>
-    <div class="wide">
-      <hr class="pg-swatches ab-rule" aria-hidden="true" />
+    <p class="tagline" aria-hidden="true">{BRAND_LINES.tagline}</p>
+  </section>
 
-      <div class="ab-team" style={teamCols ? `--cols:${teamCols}` : undefined}>
+  {/* The founders. Names, roles and links are the live page's own; the e-mail addresses
+      and phone numbers in the storyboard are not published until D2 is settled and both
+      founders agree (docs/BLOCKED_TODOS.md). */}
+  <section class="ab2-team" aria-label={say(ABOUT.eyebrow, locale)}>
+    <div class="ab2-team__panel" data-cursor="dark">
+      <BrandMark mark="monogram" class="ab2-team__mono" />
+      <div class="ab2-team__people" style={teamCols ? `--cols:${teamCols}` : undefined}>
         {portraits.map(({ member, ratio, image }) => (
-          <article class="ab-person" data-reveal>
+          <article class="ab2-person">
             {image && (
-              <div class="ab-person__frame" style={ratio ? `--ar:${ratio}` : undefined}>
+              <div class="ab2-person__frame" style={ratio ? `--ar:${ratio}` : undefined}>
                 <picture>
                   {image.avifSrcset && <source type="image/avif" srcset={image.avifSrcset} sizes={image.sizes} />}
                   <img
@@ -163,10 +189,10 @@ const schema = [
                 </picture>
               </div>
             )}
-            <h2 class="ab-person__name">{member.data.name}</h2>
-            <p class="metaline">{member.data.role[locale] ?? member.data.role.pt}</p>
+            <h2 class="ab2-person__name">{member.data.name}</h2>
+            <p class="ab2-person__role">{member.data.role[locale] ?? member.data.role.pt}</p>
             {member.data.links.length > 0 && (
-              <ul class="ab-links">
+              <ul class="ab2-person__links">
                 {member.data.links.map((link) => (
                   <li>
                     <a href={link.url} rel="noopener me" target="_blank">
@@ -180,35 +206,9 @@ const schema = [
           </article>
         ))}
       </div>
+      <span class="ab2-team__spine" aria-hidden="true">{t('rail.about', locale)}</span>
     </div>
   </section>
 
-  {/* ── C · WHAT THE WORK IS FOR ───────────────────────────────────────────
-      The published closing statement, and the page's own invitation to the portfolio.
-      On the live page the invitation comes first and the statement second, with the same
-      button printed on both sides of it. Heading, then the prose it introduces, then one
-      way onward. */}
-  <section class="section ground-cream" data-ground="cream" data-header="cream" aria-labelledby="about-work">
-    <div class="wide ab-close">
-      <div>
-        <h2 class="display" id="about-work">
-          {say(ABOUT.workLineA, locale)} <b>{say(ABOUT.workLineB, locale)}</b>
-        </h2>
-      </div>
-      <div>
-        <div class="ab-close__body" data-reveal>
-          <p class="lead">{say(ABOUT.closing[0]!, locale)}</p>
-          {ABOUT.closing.slice(1).map((line) => <p class="body dim">{say(line, locale)}</p>)}
-        </div>
-        <p class="ab-actions">
-          <a class="ctl" href={navHref('portfolio', locale)}>
-            <span>{say(ABOUT.ctaPortfolio, locale)}</span>
-          </a>
-        </p>
-      </div>
-    </div>
-  </section>
-
-  {/* ── D · THE CLOSE — shared with every other page. */}
-  <ContactClose locale={locale} />
+  <div class="spool" aria-hidden="true"><i class="spool__film"></i><Reel class="spool__reel" /></div>
 </BaseLayout>

@@ -32,9 +32,43 @@
 /* ── Site layout (Review B) ───────────────────────────────────────────────── */
 :root {
   --gutter: clamp(1rem, 0.5rem + 3vw, 4rem);
-  --header-h: 3.25rem;
+  /* DESIGN V2. The only thing across the top of the page is the spine's phone bar, so
+     this is that bar's height below 48rem and nothing above it. Still the ONE number
+     global.css's scroll-padding reads (CLAUDE.md §10, standing rule 5). */
+  --header-h: 3rem;
   --frame-gap: clamp(0.75rem, 0.4rem + 1.4vw, 1.5rem);
   --row-gap: clamp(2rem, 1.2rem + 3vw, 4.5rem);
   --section-pad: clamp(3.5rem, 2rem + 6vw, 8rem);
 }
-@media (min-width: 48rem) { :root { --header-h: 4rem; } }
+@media (min-width: 48rem) { :root { --header-h: 0px; } }
+
+/* ── Design v2: the chrome ───────────────────────────────────────────────────
+   The rail is five stripes and the gaps between them; the spine is the active section's
+   tab docked on the left. On a phone the rail becomes a bottom bar of five tabs. */
+:root {
+  --rail-stripe: 0.75rem;
+  --rail-gap: 0.1875rem;
+  --rail-w: calc(5 * var(--rail-stripe) + 5 * var(--rail-gap));
+  --rail-tab: 3.75rem;
+  --spine-w: 2.5rem;
+  --rail-bar: 3.25rem;
+  --intro-bar: 2.5rem;
+  --reel-s: 2rem;
+  --reel-m: 7rem;
+  --reel-l: 10.5rem;
+  --film-line: 0.5625rem;
+  --z-dim: 30;
+  --z-chrome: 45;
+}
+@media (max-width: 47.99rem) {
+  :root { --spine-w: 0px; --reel-m: 4.5rem; --reel-l: 6.5rem; }
+}
+
+/* Design v2 frames. A thumbnail in the Cinema list and the poster slot on the shelf are
+   LAYOUT boxes the footage is cropped into (object-fit), not claims about the footage's
+   own shape, which stays read from the manifest (CLAUDE.md §10, rule 7). */
+:root {
+  --thumb-ratio: 4 / 3;
+  --poster-ratio: 2 / 3;
+  --rule-heavy: 0.25rem;
+}

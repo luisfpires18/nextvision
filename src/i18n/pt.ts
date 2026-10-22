@@ -112,6 +112,24 @@ export const pt = {
   'pwa.updateAvailable': 'Nova versão disponível',
   'pwa.update': 'Atualizar',
   'pwa.dismiss': 'Dispensar',
+
+  // --- design v2 (Tatiana) [new]
+  // The rail labels are Tatiana's, and she sets them in English on the Portuguese pages
+  // too: they are the section names of the identity, not translations of the menu.
+  'rail.home': 'Homepage',
+  'rail.about': 'About',
+  'rail.commercial': 'Commercial',
+  'rail.cinema': 'Cinema',
+  'rail.bts': 'BTS',
+  'rail.label': 'Secções',
+  'rail.next': 'Secção seguinte',
+  'ui.letsTalk': "Let's talk",
+  'cinema.view': 'Vista',
+  'cinema.shelf': 'Prateleira',
+  'cinema.list': 'Lista',
+  'cinema.watch': 'Ver o projeto',
+  'bts.social': 'Redes sociais',
+  'intro.skip': 'Saltar a abertura',
 } as const;
 
 export type UIKey = keyof typeof pt;

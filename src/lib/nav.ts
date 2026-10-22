@@ -23,7 +23,7 @@ import { DEFAULT_LOCALE, type Locale } from '../config/i18n.ts';
  * `home` is implicit and never listed.
  */
 export const BUILT_PAGES: readonly PageId[] = [
-  'portfolio', 'about', 'services', 'contact', 'thank-you', 'terms', 'privacy',
+  'portfolio', 'about', 'services', 'contact', 'thank-you', 'terms', 'privacy', 'bts',
 ];
 
 /** Homepage section anchors, used while the real page is still to be built. */

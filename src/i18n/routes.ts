@@ -19,7 +19,7 @@ import { DEFAULT_LOCALE, LOCALE_PREFIX, type Locale } from '../config/i18n.ts';
 
 export type PageId =
   | 'home' | 'about' | 'portfolio' | 'services'
-  | 'contact' | 'thank-you' | 'terms' | 'privacy';
+  | 'contact' | 'thank-you' | 'terms' | 'privacy' | 'bts';
 
 /** Path segment per page, per locale. Empty string = site root. */
 export const PAGE_SLUGS: Record<PageId, Record<Locale, string>> = {
@@ -31,6 +31,9 @@ export const PAGE_SLUGS: Record<PageId, Record<Locale, string>> = {
   'thank-you': { pt: 'obrigado', en: 'thank-you' },
   terms: { pt: 'termos-e-condicoes', en: 'terms-and-conditions' },
   privacy: { pt: 'politica-de-privacidade', en: 'privacy-policy' },
+  // Design v2. `BTS` is the label Tatiana gives the section in both languages, so the
+  // slug is the same word in both.
+  bts: { pt: 'bts', en: 'bts' },
 };
 
 /**
@@ -56,6 +59,7 @@ export const PAGE_LOCALES: Record<PageId, readonly Locale[]> = {
   'thank-you': ['pt', 'en'],
   terms: ['pt'],
   privacy: ['pt'],
+  bts: ['pt', 'en'],
 };
 
 export const pageExists = (id: PageId, locale: Locale): boolean =>

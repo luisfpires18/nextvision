@@ -12,7 +12,9 @@
  */
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import PortfolioIndex from '../portfolio/PortfolioIndex.astro';
-import ContactClose from '../site/ContactClose.astro';
+import CinemaShelf from '../portfolio/CinemaShelf.astro';
+import { BRAND_LINES } from '../../lib/brand.ts';
+import { t } from '../../i18n/index.ts';
 import { portfolioProjects } from '../../lib/curated.ts';
 import { PORTFOLIO } from '../../lib/portfolio.ts';
 import { organizationSchema, websiteSchema, absoluteUrl } from '../../lib/seo.ts';
@@ -22,6 +24,7 @@ import { getEntry } from 'astro:content';
 import { say } from '../../lib/homepage.ts';
 import { pageTitle, pageDescription } from '../../lib/page-meta.ts';
 import '../../styles/portfolio.css';
+import '../../styles/sections.css';
 
 interface Props { locale: Locale }
 const { locale } = Astro.props;
@@ -57,18 +60,37 @@ const schema = [
 ---
 
 <BaseLayout
+  section="cinema"
   title={pageTitle('portfolio', locale)}
   description={pageDescription('portfolio', locale) ?? undefined}
   locale={locale}
   ground="cream"
   schema={schema}
 >
-  <PortfolioIndex
-    projects={projects}
-    total={projects.length}
-    heading={say(PORTFOLIO.title, locale)}
-    enhance
-    locale={locale}
-  />
-  <ContactClose locale={locale} />
+  {/* DESIGN V2 (Tatiana) — Cinema. LOVING EVERY FRAME, the VHS shelf with one film stood
+      up as a poster, and the list. Both views are complete indexes of all the work; the
+      list IS the Review C index, with its filters and its routes, re-set as rows. */}
+  <div class="cinema ground-cream" data-cinema data-view="both">
+    <p class="tagline cinema__tagline" aria-hidden="true">{BRAND_LINES.tagline}</p>
+    <div class="cinema__views" role="group" aria-label={t('cinema.view', locale)}>
+      <button type="button" data-view-set="shelf" aria-pressed="true">
+        <svg viewBox="0 0 30 26" aria-hidden="true"><path d="M1 1h4v24H1zM7 1h4v24H7zM13 1h4v24h-4zM19 1h4v24h-4zM25 1h4v24h-4z" /></svg>
+        <span class="visually-hidden">{t('cinema.shelf', locale)}</span>
+      </button>
+      <button type="button" data-view-set="list" aria-pressed="false">
+        <svg viewBox="0 0 30 26" aria-hidden="true"><path d="M1 1h28v3H1zM1 8h28v3H1zM1 15h28v3H1zM1 22h28v3H1z" /></svg>
+        <span class="visually-hidden">{t('cinema.list', locale)}</span>
+      </button>
+    </div>
+    <CinemaShelf projects={projects} locale={locale} />
+    <div class="cinema__list">
+      <PortfolioIndex
+        projects={projects}
+        total={projects.length}
+        heading={say(PORTFOLIO.title, locale)}
+        enhance
+        locale={locale}
+      />
+    </div>
+  </div>
 </BaseLayout>

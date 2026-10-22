@@ -3,12 +3,25 @@
    Themes are attribute overrides so a dark and a cream direction can be compared
    at Review A without a rebuild. NO component may contain a raw hex. */
 :root {
-  --brand-gold: #efb025;
-  --brand-rust: #d54b27;
-  --brand-oxblood: #982703;
-  --brand-teal: #3d7d70;
+  /* DESIGN V2 — the brand guide's own palette (NVF- GUIA DE MARCA 1.0, p. 10), replacing
+     the values sampled from colors.png. The five stripes of the logo, in logo order. */
+  --brand-green: #124a43;  /* Pantone 3302 C */
+  --brand-blue: #2b3990;   /* Pantone 6104 C */
+  --brand-red: #d52b27;    /* Pantone 485 C  — cream on it 4.79:1, the narrowest pass */
+  --brand-orange: #f36e21; /* Pantone 6019 C — cream on it FAILS (2.85:1); ink only */
+  --brand-yellow: #f9c914; /* Pantone 116 C  — a surface, never text on cream (1.50:1) */
+
+  /* The older names stay, now pointing at the guide's colours, so nothing that read them
+     has to change. */
+  --brand-gold: var(--brand-yellow);
+  --brand-rust: var(--brand-orange);
+  --brand-oxblood: var(--brand-red);
+  --brand-teal: var(--brand-green);
+  /* Kept at #292929 rather than the guide's #231F20: the install icons are composited on
+     this exact value (scripts/build-icons.mjs) and the two are indistinguishable on screen. */
   --brand-ink: #292929;
-  --brand-cream: #f0ead6;
+  --brand-cream: #fffaec;  /* Pantone 705 C */
+  --brand-black: #000000;
 
   --ground: var(--brand-cream);
   --ink: var(--brand-ink);
@@ -53,4 +66,53 @@
      raw hex (CLAUDE.md §4), and used only by the legal pages' print rules. */
   --print-paper: #ffffff;
   --print-ink: #000000;
+}
+
+/* ── Design v2: section colours ──────────────────────────────────────────────
+   Every section owns one stripe of the logo. `data-section` is written on <html> by
+   BaseLayout, so the rail, the spine and anything else that wears the section's colour
+   reads --sec / --sec-ink and never names a colour itself.
+
+   --sec-ink is the text colour ON the section colour. Orange and yellow take ink, because
+   cream on them fails (2.85:1 and 1.50:1) — decision C4. */
+:root {
+  --sec: var(--brand-ink);
+  --sec-ink: var(--brand-cream);
+}
+[data-section='home']       { --sec: var(--brand-green);  --sec-ink: var(--brand-cream); }
+[data-section='about']      { --sec: var(--brand-blue);   --sec-ink: var(--brand-cream); }
+[data-section='commercial'] { --sec: var(--brand-red);    --sec-ink: var(--brand-cream); }
+[data-section='cinema']     { --sec: var(--brand-orange); --sec-ink: var(--brand-ink); }
+[data-section='bts']        { --sec: var(--brand-yellow);  --sec-ink: var(--brand-ink); }
+[data-section='contact']    { --sec: var(--brand-yellow); --sec-ink: var(--brand-ink); }
+
+/* The lights-down state while the rail is being considered (decision C2): a full
+   desaturation layer and a dark layer, each faded by opacity alone. */
+:root {
+  --dim-desaturate: hsl(0 0% 50%);
+  --dim-shade: rgb(0 0 0 / 0.6);
+  --scrim-text: rgb(0 0 0 / 0.35);
+}
+
+/* ── Design v2: the cursor (decision C1) ─────────────────────────────────────
+   A native CSS cursor image. No script follows the pointer, so nothing can lag and
+   nothing runs; touch devices never see it (the rule that applies it is gated on a fine
+   pointer). Two variants, so it stays visible on cream and on dark/coloured grounds.
+   The hex values inside the SVGs are the brand tokens above; a data URI cannot read a
+   custom property. */
+:root {
+  --cursor-light: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 22 22'%3E%3Cpath d='M2 2l18 7-8 3-3 8z' fill='%23fffaec' stroke='%23d52b27' stroke-width='2' stroke-linejoin='round'/%3E%3C/svg%3E") 2 2, auto;
+  --cursor-dark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 22 22'%3E%3Cpath d='M2 2l18 7-8 3-3 8z' fill='%23f9c914' stroke='%23000' stroke-width='1.2' stroke-linejoin='round'/%3E%3C/svg%3E") 2 2, auto;
+}
+
+/* ── Design v2: the VHS shelf ────────────────────────────────────────────────
+   Cassette shells and the ink printed on them, after the storyboard's spines. Each pair
+   is measured: the lightest pairing (tan on brown) is 6.1:1, and the grey shell takes
+   ink because cream on it would fail. */
+:root {
+  --vhs-brown: #6e4526;
+  --vhs-tan: #f5dfb5;
+  --vhs-black: #151515;
+  --vhs-cyan: #31c4d4;
+  --vhs-grey: #a39d92;
 }

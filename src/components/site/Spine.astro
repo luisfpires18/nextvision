@@ -1,0 +1,92 @@
+---
+/**
+ * The spine — DESIGN V2 (Tatiana). The active section's tab, docked on the left edge.
+ *
+ * Top to bottom, as in the storyboard: the language switch, the "Let's talk" reel (a link
+ * to /contactos/), the section's name set vertically, and an arrow to the next section.
+ * It wears the section's colour through --sec / --sec-ink, so this file names no colour.
+ * On a phone it becomes a bar across the top.
+ *
+ * ── The language switch, carried over from the Phase 11 header unchanged ─────────
+ * Each control is a real link only where `translatePath` returns a counterpart. On the
+ * two Portuguese-only legal documents the English control is not a link at all — it is a
+ * disabled item that says why. A switch that leads nowhere and admits it is not the live
+ * site's failure (audit §9.1); a switch that leads to an empty page is.
+ */
+import { getEntry } from 'astro:content';
+import { t } from '../../i18n/index.ts';
+import {
+  DEFAULT_LOCALE, activeLocales, LOCALE_LABELS, LOCALE_SHORT, LOCALE_TAGS, type Locale,
+} from '../../config/i18n.ts';
+import { navHref } from '../../lib/nav.ts';
+import { translatePath } from '../../i18n/routes.ts';
+import type { UIKey } from '../../i18n/pt.ts';
+import Reel from './Reel.astro';
+
+interface Props {
+  locale?: Locale;
+  section?: string | undefined;
+  /** The other locale's counterpart, for pages whose URL cannot supply it (the error states). */
+  langAlternate?: Partial<Record<Locale, string>> | undefined;
+}
+const { locale = DEFAULT_LOCALE, section, langAlternate } = Astro.props;
+
+const navigation = await getEntry('navigation', 'navigation');
+const rail = (navigation?.data.items ?? [])
+  .filter((i) => i.showIn.includes('rail'))
+  .sort((a, b) => a.order - b.order);
+
+const index = rail.findIndex((i) => i.section === section);
+const current = index >= 0 ? rail[index] : null;
+const next = rail[(index + 1) % rail.length] ?? rail[0];
+
+const locales = activeLocales();
+const here = Astro.url.pathname;
+---
+
+<aside class="spine" aria-label={current ? t(current.labelKey as UIKey, locale) : undefined}>
+  {locales.length > 1 && (
+    <span class="spine__lang" role="group" aria-label={t('lang.label', locale)}>
+      {locales.map((l) => {
+        const href = l === locale ? null : (langAlternate?.[l] ?? translatePath(here, locale, l));
+        const label = LOCALE_LABELS[l];
+        if (l === locale) {
+          return (
+            <span lang={l} aria-current="true">
+              <span aria-hidden="true">{LOCALE_SHORT[l]}</span>
+              <span class="visually-hidden">{label}</span>
+            </span>
+          );
+        }
+        if (!href) {
+          return (
+            <span class="spine__lang-off" lang={l} aria-disabled="true">
+              <span aria-hidden="true">{LOCALE_SHORT[l]}</span>
+              <span class="visually-hidden">{`${label} (${t('lang.noTranslation', l)})`}</span>
+            </span>
+          );
+        }
+        return (
+          <a href={href} lang={l} hreflang={LOCALE_TAGS[l]} rel="alternate">
+            <span aria-hidden="true">{LOCALE_SHORT[l]}</span>
+            <span class="visually-hidden">{label}</span>
+          </a>
+        );
+      })}
+    </span>
+  )}
+
+  <a class="spine__talk" href={`${navHref('contact', locale)}#contactar`}>
+    <Reel />
+    <span class="visually-hidden">{t('ui.letsTalk', locale)}</span>
+  </a>
+
+  {current && <span class="spine__label" aria-hidden="true">{t(current.labelKey as UIKey, locale)}</span>}
+
+  {next && (
+    <a class="spine__next" href={navHref(next.pageId, locale)}>
+      <svg viewBox="0 0 22 22" aria-hidden="true"><path d="M2 2l18 7-8 3-3 8z" /></svg>
+      <span class="visually-hidden">{`${t('rail.next', locale)}: ${t(next.labelKey as UIKey, locale)}`}</span>
+    </a>
+  )}
+</aside>

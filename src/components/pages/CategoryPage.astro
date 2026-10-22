@@ -19,6 +19,7 @@ import { say } from '../../lib/homepage.ts';
 import { categoryDescription } from '../../lib/page-meta.ts';
 import type { Locale } from '../../config/i18n.ts';
 import '../../styles/portfolio.css';
+import '../../styles/sections.css';
 
 interface Props {
   locale: Locale;
@@ -36,6 +37,7 @@ const projects = all.filter((p) => p.categorySlug === slug);
     for a search result that will never exist. `/portfolio/` is the page we want ranked;
     each of these is a subset of it (astro.config.mjs keeps them out of the sitemap). */}
 <BaseLayout
+  section="cinema"
   title={`${name} - ${say(PORTFOLIO.title, locale)}`}
   description={categoryDescription(name, projects.length, locale)}
   locale={locale}

@@ -1,0 +1,75 @@
+---
+/**
+ * /bts/ — DESIGN V2 (Tatiana). Behind the scenes.
+ *
+ * The storyboard's last panel: black, the NVF mark, the company's three channels, and a
+ * grid of frames that leads to Instagram. The channels are the ones site.yml already
+ * publishes. The grid is CURATED and STATIC — frames from the manifest, each linking to
+ * the Instagram profile — never an Instagram embed, which would load a third party's
+ * script and cookies that validate:analytics forbids and the privacy position rules out.
+ *
+ * No meta description: the live site has no such page and so no sentence to select one
+ * from (src/lib/page-meta.ts says so, which is what validate:seo checks).
+ */
+import { getEntry } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import BrandMark from '../site/BrandMark.astro';
+import { imageProps } from '../../lib/media.ts';
+import { organizationSchema, breadcrumbSchema } from '../../lib/seo.ts';
+import { pagePath } from '../../i18n/routes.ts';
+import { pageTitle } from '../../lib/page-meta.ts';
+import { t } from '../../i18n/index.ts';
+import type { Locale } from '../../config/i18n.ts';
+import '../../styles/sections.css';
+
+interface Props { locale: Locale }
+const { locale } = Astro.props;
+
+const settings = await getEntry('settings', 'site');
+const socials = settings?.data.socials ?? [];
+const instagram = socials.find((s) => s.platform === 'instagram') ?? null;
+
+const FRAMES = [
+  'projects/helder-praia/still-01', 'projects/the-end/still-01', 'projects/ana-reels/still-01',
+  'projects/leonor/still-02', 'projects/nvf-vs-antiqvvm/still-01', 'projects/helder-museu/still-01',
+];
+const frames = FRAMES.map((key) => imageProps(key, { alt: '', sizes: '(min-width: 48rem) 18vw, 30vw' }));
+
+const schema = [
+  organizationSchema({
+    sameAs: socials.map((s) => s.url),
+    email: settings?.data.email ?? null,
+  }),
+  breadcrumbSchema([
+    { name: 'Next Vision Films', path: pagePath('home', locale) },
+    { name: t('rail.bts', locale), path: pagePath('bts', locale) },
+  ]),
+];
+---
+
+<BaseLayout section="bts" title={pageTitle('bts', locale)} locale={locale} ground="dark" schema={schema}>
+  <section class="bts ground-dark" data-ground="dark">
+    <div class="bts__side">
+      <BrandMark mark="mono" class="bts__mark" />
+      <h1 class="bts__title">{t('rail.bts', locale)}</h1>
+      <ul class="bts__links" aria-label={t('bts.social', locale)}>
+        {socials.map((s) => (
+          <li><a href={s.url} rel="noopener me" target="_blank">{s.label}</a></li>
+        ))}
+      </ul>
+    </div>
+    <ul class="bts__grid">
+      {frames.map((img) => img && (
+        <li>
+          <a href={instagram?.url ?? '#'} rel="noopener" target="_blank">
+            <picture>
+              {img.avifSrcset && <source type="image/avif" srcset={img.avifSrcset} sizes={img.sizes} />}
+              <img src={img.src} srcset={img.srcset} sizes={img.sizes} alt="" width={img.width} height={img.height} loading="lazy" decoding="async" />
+            </picture>
+            <span class="visually-hidden">{instagram?.label ?? 'Instagram'}</span>
+          </a>
+        </li>
+      ))}
+    </ul>
+  </section>
+</BaseLayout>

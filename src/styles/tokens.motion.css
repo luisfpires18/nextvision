@@ -134,3 +134,39 @@
     --dur-cinematic: 560ms;
   }
 }
+
+/* ── Design v2 ───────────────────────────────────────────────────────────────
+   The section slide (decision C3) and the opening sequence (decision C5).
+
+   The slide uses the projector curve: a tab being pulled across the frame is a state
+   changing, not feedback. It is longer than --dur-transition because it travels the whole
+   viewport; reduced and minimal never run it (the view-transition rules are gated on the
+   `full` tier), so these values exist only for that tier.
+
+   The opening sequence is the ONE place the site may hold a reader for longer than
+   --dur-hold, and only on the homepage, once per session, at the `full` tier, and always
+   skippable by a click or a key. Its steps are listed in the order they play. */
+:root {
+  --dur-slide: 900ms;
+  --dur-dim: 420ms;
+  --dur-intro-fill: 1700ms;
+  --dur-intro-drop: 900ms;
+  --dur-intro-hello: 380ms;
+  --dur-intro-hold: 450ms;
+  --dur-intro-stand: 1200ms;
+  --dur-intro-travel: 650ms;
+  --dur-intro-wipe: 1300ms;
+  --dur-reel-roll: 1700ms;
+
+  /* The opening's geometry. The bar is drawn at its final size (the viewport's height,
+     --intro-bar thick) and starts as a small loading bar by scaling down; it then drops
+     onto the monogram and finally stands centred on the viewport. */
+  --intro-sx: 0.06;
+  --intro-sy: 0.1;
+  --intro-drop: 36vh;
+  --intro-centre: -2vh;
+}
+
+/* Design v2: how far a reel turns while it rolls a line of film across the page. One
+   value, read by every reel, so they all roll at the same pitch. */
+:root { --reel-turns: 1080deg; }

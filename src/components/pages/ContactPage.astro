@@ -51,6 +51,7 @@ import { pagePath } from '../../i18n/routes.ts';
 import { say } from '../../lib/homepage.ts';
 import { pageTitle, pageDescription } from '../../lib/page-meta.ts';
 import '../../styles/pages.css';
+import '../../styles/sections.css';
 
 interface Props { locale: Locale }
 const { locale } = Astro.props;
@@ -79,6 +80,7 @@ const schema = [
 ---
 
 <BaseLayout
+  section="contact"
   title={pageTitle('contact', locale)}
   description={pageDescription('contact', locale) ?? undefined}
   locale={locale}
