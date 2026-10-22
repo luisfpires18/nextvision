@@ -1,0 +1,106 @@
+---
+/**
+ * One project's editable fields (A2, projects slice), read from its file on `master` now.
+ *
+ * Same conventions as the page editor (Editor.astro): every control carries the value it
+ * started from (`data-original`) and the name its draft is kept under, and nothing is
+ * saved until Publicar sends every draft from every page at once (admin-client.ts).
+ * What may be written, and how, is decided by the server (src/lib/admin/projects.ts).
+ */
+import { fieldsFor, projectDraftFile, projectValue, type ProjectField } from '../lib/admin/projects.ts';
+import { MEDIA, thumb } from './media-options.ts';
+
+interface Props {
+  slug: string;
+  data: Record<string, unknown>;
+  categories: { id: string; name: string }[];
+}
+const { slug, data, categories } = Astro.props;
+
+const title = projectValue(data, 'title.pt');
+const name = (f: ProjectField, lang?: 'pt' | 'en') => `${projectDraftFile(slug)}:${f.path}${lang ? `#${lang}` : ''}`;
+const named = (f: ProjectField, lang?: string) => `Projeto «${title}» — ${f.label}${lang ? ` (${lang})` : ''}`;
+const alreadyEnglish = data['sourceLocale'] === 'en';
+const rows = (v: string) => Math.min(8, Math.ceil(v.length / 60) + v.split('\n').length);
+---
+
+<form class="admin-editor" data-editor data-project={slug} novalidate>
+  {fieldsFor(data).map((f) => {
+    const value = projectValue(data, f.path);
+    const id = `p-${f.path.replace(/\W/g, '-')}`;
+    return (
+      <fieldset class="ed-field" data-field>
+        <legend>{f.label}</legend>
+        {f.note ? <p class="ed-note">{f.note}</p> : null}
+
+        {f.kind === 'tagline' ? (
+          <>
+            <div class="ed-pair">
+              <label>
+                <span class="f-lang">Português</span>
+                <textarea name={name(f, 'pt')} data-original={projectValue(data, f.path, 'pt')} data-label={named(f, 'PT')} rows={rows(projectValue(data, f.path, 'pt'))} lang="pt-PT">{projectValue(data, f.path, 'pt')}</textarea>
+              </label>
+              <label>
+                <span class="f-lang">Inglês</span>
+                <textarea name={name(f, 'en')} data-original={projectValue(data, f.path, 'en')} data-label={named(f, 'EN')} rows={rows(projectValue(data, f.path, 'en'))} lang="en">{projectValue(data, f.path, 'en')}</textarea>
+              </label>
+            </div>
+            {alreadyEnglish ? <p class="ed-source">Este projeto publica a frase já em inglês, por isso o campo inglês pode ficar vazio.</p> : null}
+          </>
+        ) : f.kind === 'category' ? (
+          <label class="ed-media__pick">
+            <span class="f-lang">Categoria</span>
+            <select name={name(f)} data-original={value} data-label={named(f)}>
+              {categories.map((c) => <option value={c.id} selected={c.id === value}>{c.name}</option>)}
+            </select>
+          </label>
+        ) : f.kind === 'visibility' ? (
+          <label class="ed-media__pick">
+            <span class="f-lang">Estado</span>
+            <select name={name(f)} data-original={value} data-label={named(f)}>
+              <option value="false" selected={value === 'false'}>Visível no site</option>
+              <option value="true" selected={value === 'true'}>Escondido</option>
+            </select>
+          </label>
+        ) : f.kind === 'image' || f.kind === 'video' ? (
+          <div class="ed-media__row">
+            <img src={value ? thumb(value) : ''} alt="" data-preview-for={id} width="160" height="90" />
+            <label class="ed-media__pick">
+              <span class="f-lang">{f.kind === 'video' ? 'Vídeo' : 'Imagem'}</span>
+              <select id={id} name={name(f)} data-original={value} data-label={named(f)}>
+                {/* The current value is ALWAYS an option, so the browser never picks another. */}
+                {!value ? <option value="" selected>(nenhum)</option> : null}
+                {value && !MEDIA[f.kind].some(([, keys]) => keys.includes(value)) ? (
+                  <option value={value} data-thumb={thumb(value)} selected>{value} (atual)</option>
+                ) : null}
+                {MEDIA[f.kind].map(([group, keys]) => (
+                  <optgroup label={group}>
+                    {keys.map((k) => <option value={k} data-thumb={thumb(k)} selected={k === value}>{k.split('/').slice(1).join(' / ')}</option>)}
+                  </optgroup>
+                ))}
+              </select>
+            </label>
+          </div>
+        ) : (
+          <label class="ed-media__pick">
+            <span class="f-lang">{f.kind === 'year' ? 'Ano' : f.kind === 'film' ? 'Endereço ou código' : 'Português e inglês'}</span>
+            <input
+              type="text"
+              name={name(f)}
+              data-original={value}
+              data-label={named(f)}
+              value={value}
+              inputmode={f.kind === 'year' ? 'numeric' : undefined}
+              maxlength={f.kind === 'year' ? 4 : 200}
+              autocomplete="off"
+              spellcheck={f.kind === 'title' ? 'true' : 'false'}
+            />
+          </label>
+        )}
+      </fieldset>
+    );
+  })}
+
+  <p class="ed-note">Ainda não é possível carregar ficheiros novos para um projeto: escolha entre as imagens e vídeos que já estão no site. Novos projetos e a ordem do portfólio chegam a seguir.</p>
+  <p class="ed-message" role="status" aria-live="polite" data-message></p>
+</form>

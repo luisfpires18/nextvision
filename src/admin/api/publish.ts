@@ -26,6 +26,8 @@ import { readFile, commitFiles, GitHubError } from '../../lib/admin/github.ts';
 import { SCREENS, SCREEN_LABELS, pageFilePath, type PageFileName } from '../../lib/admin/fields.ts';
 import { applyEdits, expandFields, liveValue, serialise, EditError, type Field } from '../../lib/admin/edit.ts';
 import { PAGE_SCHEMAS } from '../../lib/page-content.ts';
+import { PROJECT_FILE, SLUG, applyProjectEdits, projectData, projectFilePath, projectValue } from '../../lib/admin/projects.ts';
+import { projectContext } from '../../lib/admin/project-context.ts';
 
 export const prerender = false;
 
@@ -41,13 +43,26 @@ export const POST: APIRoute = async ({ request }) => {
   if (!parsed.success) return answer(400, { error: 'Pedido inválido.' });
   const drafts = parsed.data.edits;
   if (!Object.keys(drafts).length) return answer(200, { nothing: true });
-  const edits = Object.fromEntries(Object.entries(drafts).map(([n, d]) => [n, d.to]));
 
   const cfg = githubConfig();
   if (!cfg) return answer(503, { error: 'Publicar ainda não está configurado neste servidor. Nada foi publicado.' });
 
-  // The files the drafts touch: the `file` part of every `file:path#lang` name.
-  const files = [...new Set(Object.keys(edits).map((n) => n.split(':')[0] as PageFileName))];
+  // Drafts for a project (`projeto/<slug>:path`) and for a page file, kept apart: the two
+  // are stored differently, and land together in one commit.
+  const projectDrafts = new Map<string, Record<string, { from: string; to: string }>>();
+  const pageDrafts: typeof drafts = {};
+  for (const [name, d] of Object.entries(drafts)) {
+    const [file = '', field = ''] = name.split(':');
+    if (file.startsWith(`${PROJECT_FILE}/`)) {
+      const slug = file.slice(PROJECT_FILE.length + 1);
+      if (!SLUG.test(slug)) return answer(400, { error: 'Pedido inválido.' });
+      projectDrafts.set(slug, { ...projectDrafts.get(slug), [field]: d });
+    } else pageDrafts[name] = d;
+  }
+  const pageEdits = Object.fromEntries(Object.entries(pageDrafts).map(([n, d]) => [n, d.to]));
+
+  // The page files the drafts touch: the `file` part of every `file:path#lang` name.
+  const files = [...new Set(Object.keys(pageEdits).map((n) => n.split(':')[0] as PageFileName))];
   if (files.some((f) => !(f in PAGE_SCHEMAS))) return answer(400, { error: 'Pedido inválido.' });
 
   try {
@@ -68,9 +83,34 @@ export const POST: APIRoute = async ({ request }) => {
       }
     }
 
-    const stale = [...new Set(Object.entries(drafts)
+    const stale = [...new Set(Object.entries(pageDrafts)
       .filter(([name, d]) => liveValue(docs, name) !== d.from)
       .map(([name]) => fields.get(name.split('#')[0] ?? '')?.label ?? name))];
+
+    // Projects: read each file once, check each draft against its live value, apply.
+    const projectWrites: { path: string; text: string }[] = [];
+    const projectChanged: string[] = [];
+    const ctx = await projectContext();
+    for (const [slug, pd] of projectDrafts) {
+      const path = projectFilePath(slug);
+      const file = await readFile(cfg, path).catch((e: unknown) => {
+        if (e instanceof GitHubError && e.status === 404) throw new EditError('Este projeto já não existe.');
+        throw e;
+      });
+      const data = projectData(file.text);
+      const name = `Projeto «${projectValue(data, 'title.pt')}»`;
+      for (const [field, d] of Object.entries(pd)) {
+        const [p = '', lang] = field.split('#');
+        if (projectValue(data, p, lang) !== d.from) stale.push(`${name} — ${field}`);
+      }
+      if (stale.length) continue;
+      const applied = applyProjectEdits(file.text, Object.fromEntries(Object.entries(pd).map(([f, d]) => [f, d.to])), ctx);
+      if (!applied.changed.length) continue;
+      projectWrites.push({ path, text: applied.text });
+      current[path] = file.sha;
+      projectChanged.push(...applied.changed.map((c) => `${name} — ${c}`));
+    }
+
     if (stale.length) {
       return answer(409, {
         error: `Estes campos foram alterados por outra publicação entretanto: ${stale.join(', ')}. Abra a página, veja o valor atual e volte a editar. Nada foi publicado.`,
@@ -79,8 +119,8 @@ export const POST: APIRoute = async ({ request }) => {
     }
 
     const today = new Date().toISOString().slice(0, 10);
-    const { docs: next, changed } = applyEdits([...fields.values()], docs, edits, today);
-    if (!changed.length) return answer(200, { nothing: true });
+    const { docs: next, changed } = applyEdits([...fields.values()], docs, pageEdits, today);
+    if (!changed.length && !projectWrites.length) return answer(200, { nothing: true });
 
     const touched = [...new Set(changed.map((c) => c.file))];
     for (const file of touched) {
@@ -88,15 +128,17 @@ export const POST: APIRoute = async ({ request }) => {
       if (!ok.success) return answer(422, { error: `Estas alterações deixariam uma página inválida: ${z.prettifyError(ok.error)}` });
     }
 
-    const pages = [...new Set(changed.map((c) => c.label.split(' — ')[0]))];
-    const message = `content: ${pages.join(', ')}\n\n${changed.map((c) => `- ${c.label}`).join('\n')}\n\nPublicado no admin por ${g.who.email}.`;
+    const labels = [...changed.map((c) => c.label), ...projectChanged];
+    const pages = [...new Set(labels.map((l) => l.split(' — ')[0]))];
+    const message = `content: ${pages.join(', ')}\n\n${labels.map((l) => `- ${l}`).join('\n')}\n\nPublicado no admin por ${g.who.email}.`;
+    const writes = [...touched.map((file) => ({ path: pageFilePath(file), text: serialise(next[file]) })), ...projectWrites];
     const { commit } = await commitFiles(
       cfg,
-      touched.map((file) => ({ path: pageFilePath(file), text: serialise(next[file]) })),
-      Object.fromEntries(touched.map((file) => [pageFilePath(file), current[pageFilePath(file)]!])),
+      writes,
+      Object.fromEntries(writes.map((w) => [w.path, current[w.path]!])),
       message,
     );
-    return answer(200, { commit, changed: changed.map((c) => c.label) });
+    return answer(200, { commit, changed: labels });
   } catch (error) {
     if (error instanceof EditError) return answer(422, { error: error.message });
     if (error instanceof GitHubError && error.status === 409) {

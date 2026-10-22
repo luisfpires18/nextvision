@@ -96,7 +96,8 @@ function showCount() {
 }
 
 const form = document.querySelector<HTMLFormElement>('[data-editor]');
-const controls = form ? [...form.querySelectorAll<HTMLTextAreaElement | HTMLSelectElement>('[data-original]')] : [];
+type Control = HTMLTextAreaElement | HTMLSelectElement | HTMLInputElement;
+const controls = form ? [...form.querySelectorAll<Control>('[data-original]')] : [];
 const formSay = (text: string, tone?: 'ok' | 'error') => {
   const m = form?.querySelector<HTMLElement>('[data-message]');
   if (!m) return;
@@ -113,7 +114,7 @@ function syncThumb(select: HTMLSelectElement) {
 function markDirty() {
   if (!form) return;
   for (const fs of form.querySelectorAll<HTMLElement>('[data-field]')) {
-    const changed = [...fs.querySelectorAll<HTMLTextAreaElement | HTMLSelectElement>('[data-original]')]
+    const changed = [...fs.querySelectorAll<Control>('[data-original]')]
       .some((c) => c.value !== c.dataset['original']);
     if (changed) fs.dataset['dirty'] = ''; else delete fs.dataset['dirty'];
   }
@@ -143,7 +144,7 @@ if (form) {
 
   const onChange = (e: Event) => {
     const c = e.target;
-    if (!(c instanceof HTMLTextAreaElement || c instanceof HTMLSelectElement) || c.dataset['original'] === undefined) return;
+    if (!(c instanceof HTMLTextAreaElement || c instanceof HTMLSelectElement || c instanceof HTMLInputElement) || c.dataset['original'] === undefined) return;
     if (c instanceof HTMLSelectElement) syncThumb(c);
     const all = loadDrafts();
     if (c.value === c.dataset['original']) delete all[c.name];

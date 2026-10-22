@@ -21,6 +21,9 @@ const DIR = 'src/content/page-content';
 const files = Object.fromEntries(fs.readdirSync(path.join(ROOT, DIR))
   .filter((f) => f.endsWith('.json'))
   .map((f) => [`${DIR}/${f}`, fs.readFileSync(path.join(ROOT, DIR, f), 'utf8')]));
+// The projects, edited as MDX.
+const PROJECTS = 'src/content/projects';
+for (const f of fs.readdirSync(path.join(ROOT, PROJECTS))) files[`${PROJECTS}/${f}`] = fs.readFileSync(path.join(ROOT, PROJECTS, f), 'utf8');
 // The owners' upload requests (A4).
 files['src/data/media-uploads.json'] = fs.readFileSync(path.join(ROOT, 'src/data/media-uploads.json'), 'utf8');
 

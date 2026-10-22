@@ -11,7 +11,7 @@
  * There is no Save: every change is a draft kept in the browser the moment it is typed,
  * and one Publicar sends the drafts from every page together (A10, admin-client.ts).
  */
-import { allMedia, getMedia, renditions } from '../lib/media.ts';
+import { MEDIA, thumb } from './media-options.ts';
 import { fieldName, getAt, type Field, type Published } from '../lib/admin/edit.ts';
 import { SCREEN_LABELS, type PageFileName } from '../lib/admin/fields.ts';
 import { MAX_LOOP_S, MIN_LOOP_S, type UploadEntry } from '../lib/admin/uploads.ts';
@@ -34,29 +34,6 @@ const shortName = (n: string) => (n.length > 32 ? `${n.slice(0, 14)}…${n.slice
 const requestsFor = (f: Field) => uploads.filter((u) => u.target.file === f.file && u.target.path === f.key
   && (u.status === 'pending' || (u.status === 'failed' && Date.now() - Date.parse(u.at) < 7 * 86_400_000))).slice(0, 3);
 
-const thumb = (key: string): string => {
-  const item = getMedia(key);
-  const still = item?.kind === 'video' ? `${key}/poster` : key;
-  return renditions(still, 'webp')[0]?.src ?? '';
-};
-
-/** The candidates for each kind, grouped by where they come from (`projects/leonor`). */
-const options = (kind: 'image' | 'video') => {
-  // A video's own poster (`…/hero/poster`) belongs to that video, not to the image list.
-  // A project's poster (`projects/x/poster`) is a still like any other and stays in.
-  const isVideoPoster = (key: string) => key.endsWith('/poster') && getMedia(key.slice(0, -'/poster'.length))?.kind === 'video';
-  const items = allMedia().filter((m) => (kind === 'image'
-    ? m.kind === 'image' && !isVideoPoster(m.key)
-    : m.kind === 'video' && getMedia(`${m.key}/poster`) !== null));
-  const groups = new Map<string, string[]>();
-  for (const m of items) {
-    const parts = m.key.split('/');
-    const group = parts.slice(0, 2).join('/');
-    groups.set(group, [...(groups.get(group) ?? []), m.key]);
-  }
-  return [...groups].sort(([a], [b]) => a.localeCompare(b));
-};
-const MEDIA = { image: options('image'), video: options('video') };
 
 const source = (from: string) => from.startsWith('owner:')
   ? `Alterado no admin em ${new Date(from.slice(6)).toLocaleDateString('pt-PT', { dateStyle: 'long' })}`

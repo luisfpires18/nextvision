@@ -166,7 +166,7 @@
 .ed-source { margin-block-start: var(--space-2); }
 .ed-pair { clear: both; display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); }
 .ed-pair label, .ed-media__pick { display: grid; gap: var(--space-1); }
-.admin-editor :where(textarea, select) {
+.admin-editor :where(textarea, select, input[type='text']) {
   inline-size: 100%;
   box-sizing: border-box;
   padding: var(--space-2) var(--space-3);
@@ -178,6 +178,7 @@
   line-height: var(--lh-body);
 }
 .admin-editor textarea { resize: vertical; }
+.ed-field > .ed-media__pick { clear: both; }
 .ed-media__row { clear: both; display: flex; gap: var(--space-4); align-items: center; }
 .ed-media__row img { inline-size: var(--admin-thumb); block-size: auto; aspect-ratio: var(--thumb-ratio); object-fit: cover; flex: none; background: var(--a-raise); }
 .ed-media__pick { flex: 1; min-inline-size: 0; }

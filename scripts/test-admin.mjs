@@ -19,6 +19,7 @@ import { SCREENS, pageFilePath } from '../src/lib/admin/fields.ts';
 import { applyEdits, expandFields, fieldName, liveValue, serialise, EditError } from '../src/lib/admin/edit.ts';
 import { readFile, commitFiles, latestRun, gitBlobSha, resetGitHubToken, GitHubError } from '../src/lib/admin/github.ts';
 import { planUpload, appendUpload, safeName, kindOf, uploadKey, isUploadKey, UPLOADS_PATH } from '../src/lib/admin/uploads.ts';
+import { applyProjectEdits, projectData, projectValue, fieldsFor, roundTrips, youtubeId } from '../src/lib/admin/projects.ts';
 import { createMockGitHub, gitBlobSha as nodeBlobSha } from './lib/mock-github.mjs';
 
 let failed = 0;
@@ -117,6 +118,67 @@ await check('every offered field exists in its file', () => {
     }
   }
 });
+
+/* ── projects (MDX front matter) ────────────────────────────────────────── */
+
+{
+  const dir = 'src/content/projects';
+  const leonor = fs.readFileSync(`${dir}/leonor.mdx`, 'utf8');
+  const ctx = {
+    categories: new Set(fs.readdirSync('src/content/categories').map((f) => f.replace(/\.yml$/, ''))),
+    mediaKind: (k) => (k.endsWith('/hero') ? 'video' : k.startsWith('projects/') ? 'image' : null),
+  };
+  const differing = (a, b) => { const y = b.split('\n'); return a.split('\n').filter((l, i) => l !== y[i]).length; };
+
+  await check('every project file survives a read and a write byte for byte', () => {
+    const bad = fs.readdirSync(dir).filter((f) => !roundTrips(fs.readFileSync(`${dir}/${f}`, 'utf8')));
+    assert.deepEqual(bad, []);
+  });
+  await check('a title change touches only that line, keeping its quotes and every comment', () => {
+    const { text, changed } = applyProjectEdits(leonor, { 'title.pt': 'Words' }, ctx);
+    assert.deepEqual(changed, ['Título']);
+    assert.equal(differing(leonor, text), 1);
+    assert.match(text, /\n {2}pt: "Words"\n/);
+  });
+  await check('a tagline keeps its block style; English is optional only for English prose', () => {
+    const { text } = applyProjectEdits(leonor, { 'tagline#pt': 'Uma\nDuas' }, ctx);
+    assert.match(text, /tagline:\n {2}pt: \|-\n {4}Uma\n {4}Duas\n/);
+    const pt = leonor.replace(/^sourceLocale: en$/m, 'sourceLocale: pt');
+    assert.throws(() => applyProjectEdits(pt, { 'tagline#pt': 'Uma' }, ctx), /inglês/);
+  });
+  await check('a YouTube address becomes its id; anything else is refused', () => {
+    assert.equal(youtubeId('https://www.youtube.com/watch?v=0C-yySHAzCI&t=3'), '0C-yySHAzCI');
+    assert.equal(youtubeId('https://youtu.be/0C-yySHAzCI'), '0C-yySHAzCI');
+    const { text } = applyProjectEdits(leonor, { 'film.id': 'https://youtu.be/AAAAAAAAAAA' }, ctx);
+    assert.equal(projectValue(projectData(text), 'film.id'), 'AAAAAAAAAAA');
+    assert.throws(() => applyProjectEdits(leonor, { 'film.id': 'https://vimeo.com/1' }, ctx), /YouTube/);
+  });
+  await check('year, category and visibility are checked and stored as their types', () => {
+    const data = projectData(applyProjectEdits(leonor, { year: '2024', categories: 'ficcao', draft: 'true' }, ctx).text);
+    assert.equal(data.year, 2024);
+    assert.deepEqual(data.categories, ['ficcao']);
+    assert.equal(data.draft, true);
+    assert.throws(() => applyProjectEdits(leonor, { year: '24' }, ctx), /Ano/);
+    assert.throws(() => applyProjectEdits(leonor, { categories: 'nada' }, ctx), /Categoria/);
+  });
+  await check('a new opening video brings its own poster as the still', () => {
+    const data = projectData(applyProjectEdits(leonor, { heroVideo: 'projects/the-end/hero' }, ctx).text);
+    assert.equal(data.heroStill.key, 'projects/the-end/hero/poster');
+    assert.throws(() => applyProjectEdits(leonor, { heroVideo: 'projects/the-end/poster' }, ctx), /vídeo/);
+    assert.throws(() => applyProjectEdits(leonor, { 'poster.key': 'projects/the-end/hero' }, ctx), /imagem/);
+  });
+  await check('unknown or unoffered fields are refused; no change writes nothing', () => {
+    assert.throws(() => applyProjectEdits(leonor, { date: '2020-01-01' }, ctx), /desconhecido/);
+    assert.throws(() => applyProjectEdits(leonor, { 'title.pt#en': 'x' }, ctx), /desconhecido/);
+    const same = applyProjectEdits(leonor, { year: '2025' }, ctx);
+    assert.equal(same.text, leonor);
+    assert.deepEqual(same.changed, []);
+  });
+  await check('the film field is offered only for a YouTube film', () => {
+    assert.ok(fieldsFor({ film: { provider: 'youtube' } }).some((f) => f.kind === 'film'));
+    assert.ok(!fieldsFor({}).some((f) => f.kind === 'film'));
+  });
+}
 
 /* ── the GitHub client ──────────────────────────────────────────────────── */
 

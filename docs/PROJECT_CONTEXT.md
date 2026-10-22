@@ -1833,3 +1833,34 @@ editable pages now measure 375 px.
 refused with its body unread. That includes Astro's own cross-site form check on pages,
 which my code cannot drain. It is local-only (the edge has no such proxy), and the admin
 page route now drains bodies itself.
+
+## 27. Admin phase A2, slice 2: the owners can edit projects (2026-10-22)
+
+**Every project now opens as a form** at `/admin/cinema/projetos/<slug>/`, read from its
+file on `master` at that moment. The fields are: title, tagline (PT/EN), year, category,
+YouTube film, visible/hidden, cover, and opening video. The opening video brings its own
+poster as `heroStill`. The edits are drafts, like the page drafts, and the same Publicar
+sends both as ONE commit to `master`. Draft names are `projeto/<slug>:<path>[#lang]`.
+
+**A project is MDX, not JSON, so it is edited as a YAML document.** The project rules live in
+`src/lib/admin/projects.ts`. It uses the `yaml` package (now a direct dependency, 2.9.0)
+to change only the nodes that were edited. Every comment, quote style and `|-` block
+survives, and the MDX body is put back as it was. A title edit changes exactly one line.
+Eight project files had double blank lines inside the front matter, which a YAML writer
+collapses. They were collapsed once, here, so that every file now round-trips byte for
+byte. `npm run test:admin` asserts that for all twenty.
+
+**Not editable, deliberately:**
+- the slug (it is the URL);
+- the date;
+- `sourceOfTruth` and `masterRequired`;
+- the page blocks (slice 3).
+
+The tagline's English is required unless the project declares `sourceLocale: en`, which
+is rule 11 applied in the admin. A YouTube link is reduced to its 11-character id.
+Uploading a NEW file for a project field is not wired yet: project fields pick from the
+manifest. New projects and the portfolio order come next.
+
+`npm run test:admin`: 40 checks (was 32). The mock GitHub now serves the project files.
+Clicked through locally: a project edit published as one commit that changed exactly the
+two edited lines.

@@ -22,6 +22,9 @@ import '../styles/fonts.css';
 import '../styles/admin.css';
 import Field from './Field.astro';
 import Editor from './Editor.astro';
+import ProjectEditor from './ProjectEditor.astro';
+import { getCollection } from 'astro:content';
+import { projectData, projectFilePath } from '../lib/admin/projects.ts';
 import { githubConfig } from '../lib/admin/repo.ts';
 import { readFile } from '../lib/admin/github.ts';
 import { UPLOADS_PATH, type UploadsDoc, type UploadEntry } from '../lib/admin/uploads.ts';
@@ -97,6 +100,22 @@ if (screen) {
   }
 }
 
+/** A project is editable the same way, from its file on `master` now. */
+let projectEditor: { slug: string; data: Record<string, unknown>; categories: { id: string; name: string }[] } | null = null;
+if (item && groupId === 'projetos') {
+  const cfg = githubConfig();
+  if (!cfg) editorNotice = 'Publicar ainda não está configurado neste servidor. Pode consultar, mas não alterar.';
+  else {
+    try {
+      const data = projectData((await readFile(cfg, projectFilePath(item.id))).text);
+      const categories = (await getCollection('categories')).sort((a, b) => a.data.order - b.data.order).map((c) => ({ id: c.id, name: c.data.name.pt }));
+      projectEditor = { slug: item.id, data, categories };
+    } catch {
+      editorNotice = 'Não foi possível ler a versão atual a partir do GitHub. Pode consultar; tente editar daqui a pouco.';
+    }
+  }
+}
+
 const href = (...parts: string[]) => `/admin/${parts.map(encodeURIComponent).join('/')}${parts.length ? '/' : ''}`;
 ---
 
@@ -139,7 +158,7 @@ const href = (...parts: string[]) => `/admin/${parts.map(encodeURIComponent).joi
     {!current ? (
       <main class="admin-overview">
         <h1>Conteúdo do site</h1>
-        <p class="admin-lede">Tudo o que pode ser alterado aqui, organizado pelas secções do site. As páginas já se editam; o resto, por agora, só se consulta. As alterações ficam como rascunho neste computador e chegam ao site quando carregar em «Publicar».</p>
+        <p class="admin-lede">Tudo o que pode ser alterado aqui, organizado pelas secções do site. As páginas e os projetos já se editam; o resto, por agora, só se consulta. As alterações ficam como rascunho neste computador e chegam ao site quando carregar em «Publicar».</p>
         <ul class="admin-areas">
           {loaded.map((l) => (
             <li data-section={l.area.section ?? undefined}>
@@ -185,10 +204,12 @@ const href = (...parts: string[]) => `/admin/${parts.map(encodeURIComponent).joi
               <div class="admin-fields">
                 {screen && editor ? (
                   <Editor screen={screen} fields={editor.fields} docs={editor.docs} uploads={editor.uploads} />
+                ) : projectEditor ? (
+                  <ProjectEditor slug={projectEditor.slug} data={projectEditor.data} categories={projectEditor.categories} />
                 ) : (
                   <>
                     {editorNotice ? <p class="admin-locked">{editorNotice}</p> : null}
-                    {!screen ? <p class="admin-readonly">Por agora só se consulta. A edição desta secção chega numa fase seguinte.</p> : null}
+                    {!screen && groupId !== 'projetos' ? <p class="admin-readonly">Por agora só se consulta. A edição desta secção chega numa fase seguinte.</p> : null}
                     <Field value={item.data} />
                   </>
                 )}
