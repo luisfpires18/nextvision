@@ -1,6 +1,6 @@
 ---
 /**
- * The whole index: masthead, filters, and all twenty projects in the composed sequence.
+ * The whole index: masthead, filters, and every project in the composed sequence.
  *
  * Shared by `/portfolio/` and by the five preserved `/categoria-portfolio/{slug}/`
  * archives, so a filtered view is literally the same page — same markup, same order,
@@ -30,12 +30,11 @@ interface Props {
 const { projects, active = FILTER_ALL, heading, total, enhance = false, locale = DEFAULT_LOCALE } = Astro.props;
 const facets = await categoryFacets(locale);
 
-if (projects.length > ROW_CAPACITY) {
-  throw new Error(
-    `PortfolioIndex: ${projects.length} projects but the composed sequence holds ${ROW_CAPACITY}. ` +
-    'Add a row to ROWS in src/lib/portfolio.ts rather than letting work fall off the page.',
-  );
-}
+/**
+ * The composed sequence holds twenty; the owners add projects from the admin, so past that
+ * it starts again from its first row. Twenty projects render exactly as composed.
+ */
+const sequence = Array.from({ length: ROWS.length * Math.max(1, Math.ceil(projects.length / ROW_CAPACITY)) }, (_, i) => ROWS[i % ROWS.length]!);
 
 /**
  * Slice the curated order across the composed rows. A row renders only if it can fill.
@@ -57,7 +56,7 @@ if (projects.length > ROW_CAPACITY) {
  */
 const rows: { row: (typeof ROWS)[number]; take: typeof projects }[] = [];
 let cursor = 0;
-for (const row of ROWS) {
+for (const row of sequence) {
   const take = projects.slice(cursor, cursor + row.ratios.length);
   if (take.length !== row.ratios.length) continue;
   cursor += row.ratios.length;

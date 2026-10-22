@@ -17,8 +17,14 @@
  * Pure: `npm run test:admin` proves every rule.
  */
 
-import { EditError, type Field } from './edit.ts';
-import type { PageFileName } from './fields.ts';
+import { EditError } from './edit.ts';
+import type { NewProject } from './projects.ts';
+
+/**
+ * A field a file can be uploaded for. `file` is a page file (`home`) or a project
+ * (`projeto/<slug>`); `screen` is where the request was made.
+ */
+export interface UploadField { file: string; key: string; kind: string; label: string; locked?: string | undefined }
 
 export const UPLOADS_PATH = 'src/data/media-uploads.json';
 /** Where uploads land in the private source bucket. Nothing else may be written there. */
@@ -46,7 +52,9 @@ export interface UploadEntry {
   posterAt?: number;
   /** What the chosen window avoids, in the owner's words (MEDIA_PIPELINE.md §5). */
   note?: string;
-  target: { screen: PageFileName; file: PageFileName; path: string; label: string };
+  target: { screen: string; file: string; path: string; label: string };
+  /** A new project, written once its cover is processed (projects.ts `NewProject`). */
+  create?: { slug: string; project: NewProject };
   by: string;
   at: string;
   status: 'pending' | 'ready' | 'failed';
@@ -77,7 +85,7 @@ export const uploadKey = (date: string, id: string, name: string) => `${UPLOAD_P
 export const isUploadKey = (key: string) => /^uploads\/\d{4}-\d{2}-\d{2}\/[a-z0-9]{8,32}\/[\w.-]{1,120}$/.test(key);
 
 export interface MediaRequest {
-  screen: PageFileName;
+  screen: string;
   target: string;
   source: string;
   name: string;
@@ -92,8 +100,8 @@ export interface MediaRequest {
  * One request made concrete, or a refusal in the owners' words.
  * `fields` are the screen's fields, expanded; `id`, `by`, `at` come from the server.
  */
-export function planUpload(fields: Field[], req: MediaRequest, id: string, by: string, at: string): UploadEntry {
-  const [file, path] = req.target.split(':') as [PageFileName, string];
+export function planUpload(fields: UploadField[], req: MediaRequest, id: string, by: string, at: string): UploadEntry {
+  const [file = '', path = ''] = req.target.split(':');
   const field = fields.find((f) => f.file === file && f.key === path);
   if (!field || field.kind === 'text') throw new EditError('Este campo não aceita ficheiros.');
   if (field.locked) throw new EditError(`«${field.label}» não pode ser alterado aqui.`);
@@ -141,3 +149,8 @@ export function appendUpload(doc: UploadsDoc, entry: UploadEntry): UploadsDoc {
   if (doc.uploads.some((u) => u.id === entry.id)) throw new EditError('Este pedido já foi feito.');
   return { uploads: [...doc.uploads, entry] };
 }
+
+/** A field's requests worth showing beside it: still processing, or failed in the last week. */
+export const requestsFor = (uploads: UploadEntry[], file: string, path: string, now = Date.now()): UploadEntry[] =>
+  uploads.filter((u) => u.target.file === file && u.target.path === path
+    && (u.status === 'pending' || (u.status === 'failed' && now - Date.parse(u.at) < 7 * 86_400_000))).slice(0, 3);

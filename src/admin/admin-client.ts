@@ -5,6 +5,8 @@
  * server and GitHub answer.
  */
 
+import { slugFrom } from '../lib/admin/slug.ts';
+
 interface BuildState { configured: boolean; state?: 'building' | 'ready' | 'failed' | 'none' | 'unknown'; commit?: string; url?: string; at?: string }
 
 const POLL_MS = 8000;
@@ -333,13 +335,6 @@ for (const panel of document.querySelectorAll<HTMLDetailsElement>('[data-upload]
   });
   panel.addEventListener('input', check);
 
-  const post = async (url: string, body: unknown) => {
-    const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' }, body: JSON.stringify(body) });
-    const data = (await res.json().catch(() => ({}))) as Record<string, unknown>;
-    if (!res.ok) throw new Error(String(data['error'] ?? 'Falhou.'));
-    return data;
-  };
-
   go.addEventListener('click', async () => {
     if (problem() || !file) return;
     uploading += 1;
@@ -347,31 +342,9 @@ for (const panel of document.querySelectorAll<HTMLDetailsElement>('[data-upload]
     bar.hidden = false;
     bar.value = 0;
     const f = file;
-    type Started = { key: string; uploadId: string; partBytes: number };
-    let started: Started | null = null;
     try {
       say('A carregar…');
-      const begun = (await post('/admin/api/carregar/', { acao: 'iniciar', name: f.name, size: f.size })) as unknown as Started;
-      started = begun;
-      const { key, uploadId, partBytes } = begun;
-      const parts: { partNumber: number; etag: string }[] = [];
-      const count = Math.max(1, Math.ceil(f.size / partBytes));
-      for (let n = 1; n <= count; n++) {
-        const blob = f.slice((n - 1) * partBytes, n * partBytes);
-        let done: { partNumber: number; etag: string } | null = null;
-        for (let attempt = 1; attempt <= 3 && !done; attempt++) {
-          const res = await fetch(`/admin/api/carregar/parte/?key=${encodeURIComponent(key)}&uploadId=${encodeURIComponent(uploadId)}&n=${n}`, { method: 'PUT', body: blob }).catch(() => null);
-          if (res?.ok) done = (await res.json()) as { partNumber: number; etag: string };
-          else if (attempt < 3) await new Promise((r) => setTimeout(r, attempt * 2000));
-        }
-        if (!done) throw new Error('A ligação falhou durante o carregamento. Volte a tentar.');
-        parts.push(done);
-        bar.value = Math.round((n / count) * 100);
-        say(`A carregar… ${bar.value}%`);
-      }
-      await post('/admin/api/carregar/', { acao: 'concluir', key, uploadId, parts });
-      started = null;
-
+      const key = await uploadToBucket(f, (pct) => { bar.value = pct; say(`A carregar… ${pct}%`); });
       const request: Record<string, unknown> = { screen: (panel.closest('[data-editor]') as HTMLElement).dataset['screen'], target: panel.dataset['target'], source: key, name: f.name };
       if (kind === 'video') {
         request['start'] = Number(time('start')!.value);
@@ -390,12 +363,47 @@ for (const panel of document.querySelectorAll<HTMLDetailsElement>('[data-upload]
     } catch (e) {
       uploading = Math.max(0, uploading - 1);
       bar.hidden = true;
-      const open = started as Started | null;
-      if (open) void post('/admin/api/carregar/', { acao: 'abortar', key: open.key, uploadId: open.uploadId }).catch(() => undefined);
       say(e instanceof Error ? e.message : 'Não foi possível carregar.', 'error');
       check();
     }
   });
+}
+
+async function post(url: string, body: unknown): Promise<Record<string, unknown>> {
+  const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' }, body: JSON.stringify(body) });
+  const data = (await res.json().catch(() => ({}))) as Record<string, unknown>;
+  if (!res.ok) throw new Error(String(data['error'] ?? 'Falhou.'));
+  return data;
+}
+
+/**
+ * A file into the private bucket, in parts, each retried; returns its object key. A
+ * failure aborts the multipart upload so no half file is left behind.
+ */
+async function uploadToBucket(f: File, progress: (pct: number) => void): Promise<string> {
+  type Started = { key: string; uploadId: string; partBytes: number };
+  const { key, uploadId, partBytes } = (await post('/admin/api/carregar/', { acao: 'iniciar', name: f.name, size: f.size })) as unknown as Started;
+  try {
+    const parts: { partNumber: number; etag: string }[] = [];
+    const count = Math.max(1, Math.ceil(f.size / partBytes));
+    for (let n = 1; n <= count; n++) {
+      const blob = f.slice((n - 1) * partBytes, n * partBytes);
+      let done: { partNumber: number; etag: string } | null = null;
+      for (let attempt = 1; attempt <= 3 && !done; attempt++) {
+        const res = await fetch(`/admin/api/carregar/parte/?key=${encodeURIComponent(key)}&uploadId=${encodeURIComponent(uploadId)}&n=${n}`, { method: 'PUT', body: blob }).catch(() => null);
+        if (res?.ok) done = (await res.json()) as { partNumber: number; etag: string };
+        else if (attempt < 3) await new Promise((r) => setTimeout(r, attempt * 2000));
+      }
+      if (!done) throw new Error('A ligação falhou durante o carregamento. Volte a tentar.');
+      parts.push(done);
+      progress(Math.round((n / count) * 100));
+    }
+    await post('/admin/api/carregar/', { acao: 'concluir', key, uploadId, parts });
+    return key;
+  } catch (e) {
+    void post('/admin/api/carregar/', { acao: 'abortar', key, uploadId }).catch(() => undefined);
+    throw e;
+  }
 }
 
 /**
@@ -481,5 +489,73 @@ if (orderInput && orderList) {
     delete dragging.dataset['dragging'];
     dragging = null;
     commit();
+  });
+}
+
+/* ── a new project: its facts and its cover, in one go ──────────────────── */
+
+const creator = document.querySelector<HTMLFormElement>('[data-new-project]');
+if (creator) {
+  const field = (n: string) => creator.elements.namedItem(n) as HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement;
+  const preview = creator.querySelector<HTMLElement>('[data-slug-preview]')!;
+  const go = creator.querySelector<HTMLButtonElement>('[data-create]')!;
+  const bar = creator.querySelector<HTMLProgressElement>('[data-create-progress]')!;
+  const out = creator.querySelector<HTMLElement>('[data-create-message]')!;
+  const say = (text: string, tone?: 'ok' | 'error') => {
+    out.textContent = text;
+    if (tone) out.dataset['tone'] = tone; else delete out.dataset['tone'];
+  };
+  field('title').addEventListener('input', () => {
+    const slug = slugFrom(field('title').value);
+    preview.textContent = slug ? `Endereço da página: nextvisionfilms.com/portfolio/${slug}/` : 'O endereço da página aparece aqui.';
+  });
+
+  /** The same rules the server applies, so they are heard before the upload. */
+  const problem = (cover: File | undefined): string | null => {
+    if (!slugFrom(field('title').value)) return 'Escreva o título.';
+    if (!field('film').value.trim()) return 'Cole o endereço do filme no YouTube.';
+    if (!/^\d{4}$/.test(field('year').value.trim())) return 'Escreva o ano com quatro algarismos.';
+    const pt = field('taglinePt').value.trim();
+    const en = field('taglineEn').value.trim();
+    if (en && !pt) return 'A frase precisa do texto em português.';
+    if (pt && !en && field('sourceLocale').value === 'pt') return 'Falta a frase em inglês (ou escolha «Já está em inglês»).';
+    if (!cover) return 'Escolha a imagem da capa.';
+    if (!IMAGE_NAME.test(cover.name)) return 'A capa tem de ser uma imagem (JPG, PNG, WebP ou TIFF).';
+    if (cover.size > MAX_UPLOAD) return 'A imagem tem mais de 2 GB.';
+    return null;
+  };
+
+  go.addEventListener('click', async () => {
+    const cover = (field('cover') as HTMLInputElement).files?.[0];
+    const p = problem(cover);
+    if (p || !cover) { say(p ?? 'Escolha a imagem da capa.', 'error'); return; }
+    go.disabled = true;
+    uploading += 1;
+    bar.hidden = false;
+    try {
+      say('A carregar a capa…');
+      const key = await uploadToBucket(cover, (pct) => { bar.value = pct; say(`A carregar a capa… ${pct}%`); });
+      const { id } = (await post('/admin/api/media/', {
+        screen: 'novo-projeto', target: '', source: key, name: cover.name,
+        project: {
+          title: field('title').value.trim(),
+          sourceLocale: field('sourceLocale').value,
+          taglinePt: field('taglinePt').value,
+          taglineEn: field('taglineEn').value,
+          year: field('year').value.trim(),
+          category: field('category').value,
+          film: field('film').value.trim(),
+          hidden: field('hidden').value === 'true',
+        },
+      })) as { id: string };
+      say('Recebido. A preparar a capa (2 a 4 minutos); depois o projeto é criado e vai para o site sozinho. Pode fechar esta página.', 'ok');
+      void followUpload(id, say);
+    } catch (e) {
+      go.disabled = false;
+      say(e instanceof Error ? e.message : 'Não foi possível criar o projeto.', 'error');
+    } finally {
+      uploading = Math.max(0, uploading - 1);
+      bar.hidden = true;
+    }
   });
 }

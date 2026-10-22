@@ -84,9 +84,11 @@ const projects = fs.readdirSync(PROJECT_DIR)
 
 const published = projects.filter((p) => !p.draft);
 
-const EXPECTED = 20;
-if (published.length !== EXPECTED) {
-  errors.push(`content: expected ${EXPECTED} published projects, found ${published.length}`);
+// Twenty were migrated; owners add more from the admin, so this is a FLOOR, not a count.
+// Losing one is still a failure: a project is never removed by accident.
+const MIGRATED = 20;
+if (published.length < MIGRATED) {
+  errors.push(`content: at least ${MIGRATED} published projects expected, found ${published.length}`);
 }
 
 /* ------------------------------------------------------ evidence: the build */
@@ -216,7 +218,7 @@ const unlinked = published.filter((p) => !indexHtml.includes(`href="/portfolio/$
 if (!unlinked.length) ok.push(`reach: all ${published.length} projects are linked from /portfolio/`);
 
 const designed = published.filter((p) => p.hasBlocks).length;
-ok.push(`routes: ${emitted.length}/${EXPECTED} project routes emitted, 0 placeholders`);
+ok.push(`routes: ${emitted.length}/${published.length} project routes emitted, 0 placeholders`);
 ok.push(`pages: ${designed} carry cinematic blocks, ${published.length - designed} are hero + metadata only`);
 ok.push(`seo: ${canonicals.size} unique canonicals across ${canonicals.size} pages`);
 

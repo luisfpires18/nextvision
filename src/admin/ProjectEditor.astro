@@ -9,13 +9,17 @@
  */
 import { fieldsFor, projectDraftFile, projectValue, type ProjectField } from '../lib/admin/projects.ts';
 import { MEDIA, thumb } from './media-options.ts';
+import UploadPanel from './UploadPanel.astro';
+import { requestsFor, type UploadEntry } from '../lib/admin/uploads.ts';
 
 interface Props {
   slug: string;
   data: Record<string, unknown>;
   categories: { id: string; name: string }[];
+  /** This project's upload requests, newest first. */
+  uploads: UploadEntry[];
 }
-const { slug, data, categories } = Astro.props;
+const { slug, data, categories, uploads } = Astro.props;
 
 const title = projectValue(data, 'title.pt');
 const name = (f: ProjectField, lang?: 'pt' | 'en') => `${projectDraftFile(slug)}:${f.path}${lang ? `#${lang}` : ''}`;
@@ -24,7 +28,7 @@ const alreadyEnglish = data['sourceLocale'] === 'en';
 const rows = (v: string) => Math.min(8, Math.ceil(v.length / 60) + v.split('\n').length);
 ---
 
-<form class="admin-editor" data-editor data-project={slug} novalidate>
+<form class="admin-editor" data-editor data-screen="projeto" data-project={slug} novalidate>
   {fieldsFor(data).map((f) => {
     const value = projectValue(data, f.path);
     const id = `p-${f.path.replace(/\W/g, '-')}`;
@@ -63,6 +67,7 @@ const rows = (v: string) => Math.min(8, Math.ceil(v.length / 60) + v.split('\n')
             </select>
           </label>
         ) : f.kind === 'image' || f.kind === 'video' ? (
+          <>
           <div class="ed-media__row">
             <img src={value ? thumb(value) : ''} alt="" data-preview-for={id} width="160" height="90" />
             <label class="ed-media__pick">
@@ -81,6 +86,8 @@ const rows = (v: string) => Math.min(8, Math.ceil(v.length / 60) + v.split('\n')
               </select>
             </label>
           </div>
+          <UploadPanel target={`${projectDraftFile(slug)}:${f.path}`} kind={f.kind} requests={requestsFor(uploads, projectDraftFile(slug), f.path)} />
+          </>
         ) : (
           <label class="ed-media__pick">
             <span class="f-lang">{f.kind === 'year' ? 'Ano' : f.kind === 'film' ? 'Endereço ou código' : 'Português e inglês'}</span>
@@ -101,6 +108,5 @@ const rows = (v: string) => Math.min(8, Math.ceil(v.length / 60) + v.split('\n')
     );
   })}
 
-  <p class="ed-note">Ainda não é possível carregar ficheiros novos para um projeto: escolha entre as imagens e vídeos que já estão no site. Novos projetos e a ordem do portfólio chegam a seguir.</p>
   <p class="ed-message" role="status" aria-live="polite" data-message></p>
 </form>

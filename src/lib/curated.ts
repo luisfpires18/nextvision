@@ -23,6 +23,10 @@ export interface CuratedProject {
   date: string;
   /** ISO date, for structured data. */
   iso: string;
+  /** The media keys the project names, so no component ever derives one from the slug. */
+  posterKey: string;
+  heroKey: string | null;
+  heroStillKey: string | null;
   posterSrc: string | null;
   /** Real encoded widths, so a phone never downloads the 1400px file. */
   posterSrcset: string | undefined;
@@ -88,6 +92,9 @@ async function build(entries: Entry[], locale: Locale): Promise<CuratedProject[]
       categoryToken: cat?.data.accentToken ?? 'ink',
       date: formatDate(p.data.date),
       iso: p.data.date.toISOString().slice(0, 10),
+      posterKey,
+      heroKey: heroKey ?? null,
+      heroStillKey: p.data.heroStill?.key ?? null,
       posterSrc: src(posterKey),
       posterSrcset: imageProps(posterKey)?.srcset,
       posterAvifSrcset: imageProps(posterKey)?.avifSrcset,

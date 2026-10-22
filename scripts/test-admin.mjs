@@ -19,7 +19,7 @@ import { SCREENS, pageFilePath } from '../src/lib/admin/fields.ts';
 import { applyEdits, expandFields, fieldName, liveValue, serialise, EditError } from '../src/lib/admin/edit.ts';
 import { readFile, commitFiles, latestRun, gitBlobSha, resetGitHubToken, GitHubError } from '../src/lib/admin/github.ts';
 import { planUpload, appendUpload, safeName, kindOf, uploadKey, isUploadKey, UPLOADS_PATH } from '../src/lib/admin/uploads.ts';
-import { applyProjectEdits, applyOrder, portfolioSequence, projectData, projectValue, fieldsFor, roundTrips, youtubeId } from '../src/lib/admin/projects.ts';
+import { applyProjectEdits, applyOrder, newProjectText, portfolioSequence, projectData, projectValue, fieldsFor, roundTrips, slugFrom, youtubeId } from '../src/lib/admin/projects.ts';
 import { createMockGitHub, gitBlobSha as nodeBlobSha } from './lib/mock-github.mjs';
 
 let failed = 0;
@@ -177,23 +177,50 @@ await check('every offered field exists in its file', () => {
   const all = fs.readdirSync(dir).map((f) => ({ slug: f.replace(/\.mdx$/, ''), text: fs.readFileSync(`${dir}/${f}`, 'utf8') }));
   await check('the portfolio order reads as the site sorts it', () => {
     const seq = portfolioSequence(all);
-    assert.equal(seq.length, 20);
-    assert.equal(seq[1], 'leonor', 'leonor is portfolioOrder 2');
+    assert.equal(seq.length, all.length);
+    assert.ok(seq.indexOf('helder-praia') < seq.indexOf('leonor'), 'portfolioOrder 1 before 2');
   });
   await check('a new order renumbers only the projects that move, one line each', () => {
     const seq = portfolioSequence(all);
+    // From a list numbered 1…n (a project new from the admin starts before 1).
+    const numbered = applyOrder(all, seq.join(','));
+    const base = all.map((a) => numbered.find((m) => m.slug === a.slug) ?? a);
+    assert.deepEqual(applyOrder(base, seq.join(',')), []);
     const swapped = [seq[1], seq[0], ...seq.slice(2)];
-    const moved = applyOrder(all, swapped.join(','));
+    const moved = applyOrder(base, swapped.join(','));
     assert.deepEqual(moved.map((m) => m.slug).sort(), [seq[0], seq[1]].sort());
-    for (const m of moved) assert.equal(differing(all.find((a) => a.slug === m.slug).text, m.text), 1);
-    assert.deepEqual(portfolioSequence(all.map((a) => moved.find((m) => m.slug === a.slug) ?? a)), swapped);
-    assert.deepEqual(applyOrder(all, seq.join(',')), []);
+    for (const m of moved) assert.equal(differing(base.find((a) => a.slug === m.slug).text, m.text), 1);
+    assert.deepEqual(portfolioSequence(base.map((a) => moved.find((m) => m.slug === a.slug) ?? a)), swapped);
   });
   await check('an order that misses, repeats or invents a project is refused', () => {
     const seq = portfolioSequence(all);
     assert.throws(() => applyOrder(all, seq.slice(1).join(',')), /ordem/);
     assert.throws(() => applyOrder(all, [seq[0], ...seq.slice(0, -1)].join(',')), /ordem/);
     assert.throws(() => applyOrder(all, [...seq.slice(1), 'nao-existe'].join(',')), /ordem/);
+  });
+  const fresh = { title: 'Dormência 48h', sourceLocale: 'pt', taglinePt: 'Uma frase', taglineEn: 'One line', year: '2026', category: 'ficcao', film: 'https://youtu.be/0C-yySHAzCI', hidden: false };
+  await check('a new project is a complete file, first in the portfolio, with its cover', () => {
+    assert.equal(slugFrom(fresh.title), 'dormencia-48h');
+    const text = newProjectText(fresh, 'owner/abc12345/image', 0, '2026-10-22', ctx);
+    assert.ok(roundTrips(text));
+    const d = projectData(text);
+    assert.deepEqual(
+      [d.title, d.tagline, d.year, d.categories, d.film.id, d.poster.key, d.portfolioOrder, d.draft, d.date],
+      [{ pt: 'Dormência 48h' }, { pt: 'Uma frase', en: 'One line' }, 2026, ['ficcao'], '0C-yySHAzCI', 'owner/abc12345/image', 0, false, '2026-10-22'],
+    );
+  });
+  await check('a new project is refused without a film, a title, or its English', () => {
+    assert.throws(() => newProjectText({ ...fresh, film: 'nada' }, 'k', 0, '2026-10-22', ctx), /YouTube/);
+    assert.throws(() => newProjectText({ ...fresh, title: '  ' }, 'k', 0, '2026-10-22', ctx), /Título/);
+    assert.throws(() => newProjectText({ ...fresh, taglineEn: '' }, 'k', 0, '2026-10-22', ctx), /inglês/);
+    assert.ok(newProjectText({ ...fresh, taglineEn: '', sourceLocale: 'en' }, 'k', 0, '2026-10-22', ctx));
+  });
+  await check('an upload for a project field names the project, and only its media fields take one', () => {
+    const fields = [{ file: 'projeto/leonor', key: 'poster.key', kind: 'image', label: 'Projeto «Words» — Capa' }];
+    const entry = planUpload(fields, { screen: 'projeto', target: 'projeto/leonor:poster.key', source: 'uploads/2026-10-22/abcdefgh12/capa.jpg', name: 'capa.jpg' }, 'abcdefgh12', 'x', '2026-10-22T10:00:00Z');
+    assert.deepEqual(entry.target, { screen: 'projeto', file: 'projeto/leonor', path: 'poster.key', label: 'Projeto «Words» — Capa' });
+    assert.equal(entry.key, 'owner/abcdefgh12/image');
+    assert.throws(() => planUpload(fields, { screen: 'projeto', target: 'projeto/leonor:title.pt', source: 'uploads/2026-10-22/abcdefgh12/capa.jpg', name: 'capa.jpg' }, 'abcdefgh12', 'x', 'y'), /não aceita/);
   });
   await check('the film field is offered only for a YouTube film', () => {
     assert.ok(fieldsFor({ film: { provider: 'youtube' } }).some((f) => f.kind === 'film'));

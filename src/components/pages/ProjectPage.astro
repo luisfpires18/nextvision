@@ -63,16 +63,19 @@ const related = relatedProjects(all, index, 2);
 
 /* ── hero media ────────────────────────────────────────────────────────────── */
 
-const heroKey = `projects/${slug}/hero`;
-const heroItem = getMedia(heroKey);
-const heroVideo = videoProps(heroKey);
+// The keys the project NAMES — an owner may replace either from the admin, so nothing
+// here is derived from the slug.
+const heroKey = project?.heroKey ?? null;
+const heroItem = heroKey ? getMedia(heroKey) : null;
+const heroVideo = heroKey ? videoProps(heroKey) : null;
 const heroLg = heroVideo?.mp4[0]?.src ?? null;
 const heroSm = heroVideo?.mp4[1]?.src ?? heroLg;
 const heroWebmLg = heroVideo?.webm[0]?.src ?? null;
 const heroWebmSm = heroVideo?.webm[1]?.src ?? heroWebmLg;
 /* The hero's own poster where one exists, and the card still otherwise — each with its
    OWN srcset, never one image's src beside another image's renditions. */
-const heroPosterKey = getMedia(`${heroKey}/poster`) ? `${heroKey}/poster` : `projects/${slug}/poster`;
+const heroStill = project?.heroStillKey ?? (heroKey ? `${heroKey}/poster` : null);
+const heroPosterKey = heroStill && getMedia(heroStill) ? heroStill : (project?.posterKey ?? '');
 const heroPoster = imageProps(heroPosterKey, { sizes: '(min-width: 72rem) 1140px, 92vw', priority: true });
 
 /**
@@ -83,7 +86,7 @@ const heroPoster = imageProps(heroPosterKey, { sizes: '(min-width: 72rem) 1140px
  */
 if (!heroPoster) {
   throw new Error(
-    `Project "${slug}" has no hero image: neither ${heroKey}/poster nor projects/${slug}/poster ` +
+    `Project "${slug}" has no hero image: neither ${heroStill ?? 'a hero still'} nor ${project?.posterKey ?? 'a poster'} ` +
     'resolves in the media manifest. Every published project must have something to show.',
   );
 }

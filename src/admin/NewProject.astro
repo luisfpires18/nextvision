@@ -1,0 +1,91 @@
+---
+/**
+ * A new project: its facts and its cover, in one go.
+ *
+ * Not a draft: the cover has to be uploaded and processed before the project can exist,
+ * so «Criar projeto» uploads the cover and asks for the project in the same request
+ * (api/media.ts, `novo-projeto`). Processing writes the project file once the cover is
+ * ready, and that commit deploys it. Every rule is checked by the server first, and again
+ * when the file is written (projects.ts `newProjectText`).
+ */
+interface Props {
+  categories: { id: string; name: string }[];
+}
+const { categories } = Astro.props;
+const year = new Date().getFullYear();
+---
+
+<form class="admin-editor" data-new-project novalidate>
+  <fieldset class="ed-field">
+    <legend>Título</legend>
+    <p class="ed-note">O nome do filme. Não se traduz.</p>
+    <label class="ed-media__pick">
+      <span class="f-lang">Título</span>
+      <input type="text" name="title" maxlength="200" required autocomplete="off" />
+    </label>
+    <p class="ed-source" data-slug-preview>O endereço da página aparece aqui.</p>
+  </fieldset>
+
+  <fieldset class="ed-field">
+    <legend>Frase</legend>
+    <p class="ed-note">Opcional. A frase do projeto no portfólio.</p>
+    <label class="ed-media__pick">
+      <span class="f-lang">Em que língua está escrita</span>
+      <select name="sourceLocale">
+        <option value="pt" selected>Português (precisa da tradução em inglês)</option>
+        <option value="en">Já está em inglês</option>
+      </select>
+    </label>
+    <div class="ed-pair">
+      <label><span class="f-lang">Português</span><textarea name="taglinePt" rows="3" lang="pt-PT"></textarea></label>
+      <label><span class="f-lang">Inglês</span><textarea name="taglineEn" rows="3" lang="en"></textarea></label>
+    </div>
+  </fieldset>
+
+  <fieldset class="ed-field">
+    <legend>Ano e categoria</legend>
+    <div class="ed-pair">
+      <label><span class="f-lang">Ano</span><input type="text" name="year" value={String(year)} inputmode="numeric" maxlength="4" /></label>
+      <label>
+        <span class="f-lang">Categoria</span>
+        <select name="category">{categories.map((c) => <option value={c.id}>{c.name}</option>)}</select>
+      </label>
+    </div>
+  </fieldset>
+
+  <fieldset class="ed-field">
+    <legend>Filme no YouTube</legend>
+    <p class="ed-note">Cole o endereço do vídeo no YouTube.</p>
+    <label class="ed-media__pick">
+      <span class="f-lang">Endereço</span>
+      <input type="text" name="film" maxlength="300" autocomplete="off" spellcheck="false" placeholder="https://www.youtube.com/watch?v=…" />
+    </label>
+  </fieldset>
+
+  <fieldset class="ed-field">
+    <legend>Capa</legend>
+    <p class="ed-note">A imagem do projeto no portfólio e no topo da sua página (JPG, PNG, WebP ou TIFF, com pelo menos 1140 píxeis de largura).</p>
+    <label class="ed-media__pick">
+      <span class="f-lang">Imagem</span>
+      <input type="file" name="cover" accept="image/jpeg,image/png,image/webp,image/tiff,.jpg,.jpeg,.png,.webp,.tif,.tiff" />
+    </label>
+  </fieldset>
+
+  <fieldset class="ed-field">
+    <legend>No site</legend>
+    <label class="ed-media__pick">
+      <span class="f-lang">Estado</span>
+      <select name="hidden">
+        <option value="false" selected>Visível assim que estiver pronto</option>
+        <option value="true">Escondido, para rever primeiro</option>
+      </select>
+    </label>
+  </fieldset>
+
+  <div class="ed-upload__go">
+    <button type="button" class="ed-save" data-create>Criar projeto</button>
+    <progress max="100" value="0" data-create-progress hidden></progress>
+  </div>
+  <p class="ed-note">O projeto aparece em primeiro lugar no portfólio. Depois pode mudá-lo de lugar em «Ordem», e acrescentar o vídeo de abertura na página do projeto.</p>
+  <p class="ed-message" role="status" aria-live="polite" data-create-message></p>
+</form>

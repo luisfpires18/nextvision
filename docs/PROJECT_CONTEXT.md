@@ -1887,3 +1887,57 @@ models `GET /git/trees/:ref`.
 `npm run test:admin`: 43 checks. Clicked through locally: one ↑ press survived a reload as
 a draft (1), and published as one commit that changed exactly two lines in two files. The
 screen measures 375 px on a phone.
+
+## 29. Admin: new projects, and uploads onto a project (2026-10-22)
+
+**Cinema → Novo projeto** asks for:
+- the title (with a live preview of its address);
+- the tagline in PT and EN, or "já está em inglês";
+- the year and the category;
+- the YouTube link;
+- visible or hidden;
+- the cover, as an uploaded image.
+
+«Criar projeto» uploads the cover and makes ONE upload request that carries the project
+(`create` on the entry in `media-uploads.json`). The server checks every rule first, with
+the same function that will write the file (`newProjectText`): title, film, English, and
+a slug that is not already taken. The project file is written by `media-ingest.mjs` only
+once its cover is processed. That ingest commit is the deploy, so **a project can never
+reach the site pointing at a picture that does not exist yet.** A new project goes FIRST
+in the portfolio (one before the current first); the owners move it in «Ordem».
+
+**Project covers and opening videos now take uploads too**, through the same panel as the
+pages (`UploadPanel.astro`, extracted from the page editor). Targets are
+`projeto/<slug>:poster.key` / `:heroVideo`; the ingest applies them with
+`applyProjectEdits`, which keeps comments and brings a video's poster as its `heroStill`.
+`media-ingest.yml` now runs with `--experimental-strip-types` (it imports
+`src/lib/admin/projects.ts`) and commits `src/content/projects/`.
+
+**Three things assumed twenty projects forever. All of them were found by building a 21st
+project, not by reading the code:**
+1. **The project page, «next project» and «related work» derived media keys from the slug**
+   (`projects/<slug>/hero`, `/poster`) instead of reading the keys the project names. A
+   changed cover, or any project the admin creates, would have shown the wrong picture or
+   failed the build. They now read `posterKey` / `heroKey` / `heroStillKey` from
+   `curated.ts`. One project disagreed with the convention: `helder-praia` named the
+   retired Review B homepage feature as its `heroVideo`, while its page showed
+   `projects/helder-praia/hero`. Its data now names what the page shows. **All 40 project
+   pages are byte-identical before and after** (built both, diffed).
+2. **The portfolio grid was a hand-composed sequence of exactly 20 slots** and refused to
+   build with 21. Past twenty it now starts the sequence again. Twenty projects render
+   exactly as composed.
+3. `validate:routes` (exactly 20) and `validate:seo` (exactly 40 pages) are now a floor
+   of 20 and "2 × the published projects".
+
+**Proved end to end locally:**
+- the admin form, the request recorded on the fake GitHub, and `media-ingest.mjs` run on
+  that exact entry;
+- the new project file written and the build passing every validator with 21 projects
+  (the project first in the portfolio and in its category);
+- a project-cover upload changing exactly one line of `leonor.mdx`.
+
+All of it was reverted afterwards. `npm run test:admin`: 46 checks.
+
+**Line endings:** several admin files in the last two commits had been saved with CRLF by a
+Python edit. Those were put back to LF here. Older CRLF files in `src/components/concepts/`
+predate this work and were left alone.

@@ -27,7 +27,7 @@ interface Props {
 
 const { projects, category, locale = DEFAULT_LOCALE } = Astro.props;
 const cards = projects
-  .map((p) => ({ p, still: imageProps(`projects/${p.slug}/poster`, { sizes: '(min-width: 48rem) 280px, 44vw' }) }))
+  .map((p) => ({ p, still: imageProps(p.posterKey, { sizes: '(min-width: 48rem) 280px, 44vw' }) }))
   .filter((c): c is { p: CuratedProject; still: NonNullable<ReturnType<typeof imageProps>> } => c.still !== null);
 ---
 

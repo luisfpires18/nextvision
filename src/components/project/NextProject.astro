@@ -22,7 +22,7 @@ interface Props {
 }
 
 const { next, previous, locale = DEFAULT_LOCALE } = Astro.props;
-const still = next ? imageProps(`projects/${next.slug}/poster`, { sizes: '(min-width: 90rem) 1440px, 100vw' }) : null;
+const still = next ? imageProps(next.posterKey, { sizes: '(min-width: 90rem) 1440px, 100vw' }) : null;
 ---
 
 <section class="pj-next ground-dark" data-ground="dark" data-header="dark" aria-labelledby="next-h">

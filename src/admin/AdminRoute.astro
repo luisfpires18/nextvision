@@ -24,8 +24,9 @@ import Field from './Field.astro';
 import Editor from './Editor.astro';
 import ProjectEditor from './ProjectEditor.astro';
 import OrderEditor from './OrderEditor.astro';
+import NewProject from './NewProject.astro';
 import { getCollection } from 'astro:content';
-import { PROJECTS_DIR, portfolioSequence, projectData, projectFilePath, projectValue } from '../lib/admin/projects.ts';
+import { PROJECTS_DIR, portfolioSequence, projectData, projectDraftFile, projectFilePath, projectValue } from '../lib/admin/projects.ts';
 import { githubConfig } from '../lib/admin/repo.ts';
 import { listFiles, readFile } from '../lib/admin/github.ts';
 import { UPLOADS_PATH, type UploadsDoc, type UploadEntry } from '../lib/admin/uploads.ts';
@@ -102,7 +103,7 @@ if (screen) {
 }
 
 /** A project is editable the same way, from its file on `master` now. */
-let projectEditor: { slug: string; data: Record<string, unknown>; categories: { id: string; name: string }[] } | null = null;
+let projectEditor: { slug: string; data: Record<string, unknown>; categories: { id: string; name: string }[]; uploads: UploadEntry[] } | null = null;
 if (item && groupId === 'projetos') {
   const cfg = githubConfig();
   if (!cfg) editorNotice = 'Publicar ainda não está configurado neste servidor. Pode consultar, mas não alterar.';
@@ -110,7 +111,8 @@ if (item && groupId === 'projetos') {
     try {
       const data = projectData((await readFile(cfg, projectFilePath(item.id))).text);
       const categories = (await getCollection('categories')).sort((a, b) => a.data.order - b.data.order).map((c) => ({ id: c.id, name: c.data.name.pt }));
-      projectEditor = { slug: item.id, data, categories };
+      const all = await readFile(cfg, UPLOADS_PATH).then((f) => (JSON.parse(f.text) as UploadsDoc).uploads).catch(() => []);
+      projectEditor = { slug: item.id, data, categories, uploads: all.filter((u) => u.target.file === projectDraftFile(item!.id)).reverse() };
     } catch {
       editorNotice = 'Não foi possível ler a versão atual a partir do GitHub. Pode consultar; tente editar daqui a pouco.';
     }
@@ -136,6 +138,11 @@ if (item && groupId === 'ordem') {
     }
   }
 }
+
+/** A new project: the categories it may be filed under. Nothing is read from GitHub yet. */
+const newProject = item && groupId === 'novo'
+  ? (await getCollection('categories')).sort((a, b) => a.data.order - b.data.order).map((c) => ({ id: c.id, name: c.data.name.pt }))
+  : null;
 
 const href = (...parts: string[]) => `/admin/${parts.map(encodeURIComponent).join('/')}${parts.length ? '/' : ''}`;
 ---
@@ -225,14 +232,16 @@ const href = (...parts: string[]) => `/admin/${parts.map(encodeURIComponent).joi
               <div class="admin-fields">
                 {screen && editor ? (
                   <Editor screen={screen} fields={editor.fields} docs={editor.docs} uploads={editor.uploads} />
+                ) : newProject ? (
+                  <NewProject categories={newProject} />
                 ) : orderEditor ? (
                   <OrderEditor projects={orderEditor} />
                 ) : projectEditor ? (
-                  <ProjectEditor slug={projectEditor.slug} data={projectEditor.data} categories={projectEditor.categories} />
+                  <ProjectEditor slug={projectEditor.slug} data={projectEditor.data} categories={projectEditor.categories} uploads={projectEditor.uploads} />
                 ) : (
                   <>
                     {editorNotice ? <p class="admin-locked">{editorNotice}</p> : null}
-                    {!screen && groupId !== 'projetos' && groupId !== 'ordem' ? <p class="admin-readonly">Por agora só se consulta. A edição desta secção chega numa fase seguinte.</p> : null}
+                    {!screen && groupId !== 'projetos' && groupId !== 'ordem' && groupId !== 'novo' ? <p class="admin-readonly">Por agora só se consulta. A edição desta secção chega numa fase seguinte.</p> : null}
                     <Field value={item.data} />
                   </>
                 )}

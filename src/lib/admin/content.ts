@@ -109,6 +109,10 @@ export const AREAS: AdminArea[] = [
           })),
       },
       {
+        id: 'novo', label: 'Novo projeto',
+        load: async () => [{ id: 'projeto', label: 'Criar um projeto novo', data: null, viewPath: null }],
+      },
+      {
         id: 'ordem', label: 'Ordem',
         load: async () => [{ id: 'portfolio', label: 'Ordem do portfólio', data: null, viewPath: pagePath('portfolio') }],
       },

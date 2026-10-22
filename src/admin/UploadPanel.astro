@@ -1,0 +1,66 @@
+---
+/**
+ * Upload a new file FOR a field (A4): the field's pending and failed requests, and the
+ * panel that uploads to the private bucket and asks for it to be processed. Used by the
+ * page editor and the project editor; `screen` says which, for the request.
+ */
+import { MAX_LOOP_S, MIN_LOOP_S, type UploadEntry } from '../lib/admin/uploads.ts';
+
+interface Props {
+  /** `file:path` — `home:heroVideo`, `projeto/leonor:poster.key`. */
+  target: string;
+  kind: 'image' | 'video';
+  requests: UploadEntry[];
+}
+const { target, kind, requests } = Astro.props;
+
+const when = (iso: string) => new Date(iso).toLocaleString('pt-PT', { dateStyle: 'short', timeStyle: 'short', timeZone: 'Europe/Lisbon' });
+/** Long file names (phone exports run to 130 characters) shortened in the middle. */
+const shortName = (n: string) => (n.length > 32 ? `${n.slice(0, 14)}…${n.slice(-12)}` : n);
+---
+
+{requests.map((u) => (
+  <p class="ed-request" data-request={u.id} data-status={u.status}>
+    <span>
+      {u.status === 'pending'
+        ? `A processar «${shortName(u.name)}» (pedido ${when(u.at)}). Vai para o site sozinho quando terminar.`
+        : `Não foi possível usar «${shortName(u.name)}»: ${u.error ?? 'erro desconhecido.'}`}
+    </span>
+    {u.status === 'failed' ? (
+      <button type="button" class="ed-dismiss" data-dismiss={u.id} aria-label="Fechar esta mensagem">×</button>
+    ) : null}
+  </p>
+))}
+
+<details class="ed-upload" data-upload data-target={target} data-kind={kind}
+  data-min={MIN_LOOP_S} data-max={MAX_LOOP_S}>
+  <summary>Carregar novo ficheiro…</summary>
+  <label class="ed-upload__file">
+    <span class="f-lang">{kind === 'video' ? 'Vídeo (MP4, MOV ou WebM, até 2 GB)' : 'Imagem (JPG, PNG, WebP ou TIFF, até 2 GB)'}</span>
+    <input type="file" data-upload-file
+      accept={kind === 'video' ? 'video/mp4,video/quicktime,video/webm,.mp4,.m4v,.mov,.webm' : 'image/jpeg,image/png,image/webp,image/tiff,.jpg,.jpeg,.png,.webp,.tif,.tiff'} />
+  </label>
+  {kind === 'video' ? (
+    <div class="ed-window" data-window hidden>
+      <video controls muted playsinline preload="metadata" data-upload-video></video>
+      <p class="ed-note" data-video-note>Ponha o vídeo no momento certo e marque. O excerto repete-se em silêncio no site, por isso escolha {MIN_LOOP_S} a {MAX_LOOP_S} segundos sem texto por cima nem cartões finais.</p>
+      <div class="ed-marks">
+        <button type="button" data-mark="start">Início aqui</button>
+        <label><span class="f-lang">Início (s)</span><input type="number" min="0" step="0.1" data-time="start" /></label>
+        <button type="button" data-mark="end">Fim aqui</button>
+        <label><span class="f-lang">Fim (s)</span><input type="number" min="0" step="0.1" data-time="end" /></label>
+        <button type="button" data-mark="poster">Capa aqui</button>
+        <label><span class="f-lang">Capa (s)</span><input type="number" min="0" step="0.1" data-time="poster" /></label>
+      </div>
+      <label class="ed-upload__file">
+        <span class="f-lang">O que este excerto evita (opcional)</span>
+        <input type="text" maxlength="300" data-upload-note placeholder="ex.: sem legendas e sem o logótipo do cliente" />
+      </label>
+    </div>
+  ) : null}
+  <div class="ed-upload__go">
+    <button type="button" class="ed-save" data-upload-go disabled>Carregar e publicar</button>
+    <progress max="100" value="0" data-upload-progress hidden></progress>
+  </div>
+  <p class="ed-message" role="status" aria-live="polite" data-upload-message></p>
+</details>

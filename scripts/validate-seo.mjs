@@ -371,8 +371,12 @@ else {
 /* ══════════════════════════════════════════════════════════ 7 · projects ══ */
 
 const projectRoutes = routes.filter((r) => /^\/(en\/)?portfolio\/[^/]+\/$/.test(r));
-if (projectRoutes.length !== 40) {
-  errors.push(`projects: expected 40 project pages (20 × 2 locales), found ${projectRoutes.length}`);
+// One page per published project per locale. Counted from the content, because the
+// owners add projects from the admin.
+const publishedProjects = fs.readdirSync('src/content/projects')
+  .filter((f) => /\.mdx?$/.test(f) && !/^draft:\s*true\s*$/m.test(fs.readFileSync(`src/content/projects/${f}`, 'utf8').split('\n---\n')[0]));
+if (projectRoutes.length !== publishedProjects.length * 2) {
+  errors.push(`projects: expected ${publishedProjects.length * 2} project pages (${publishedProjects.length} × 2 locales), found ${projectRoutes.length}`);
 }
 
 let withVideo = 0;

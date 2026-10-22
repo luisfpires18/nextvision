@@ -10,7 +10,8 @@
  *   2. check it can do the job (a film long enough for its window; big enough to fill
  *      the slot without upscaling — the site never upscales, MEDIA_PIPELINE.md §3);
  *   3. encode it with `media-build --only <key>`, which merges into the manifest;
- *   4. point the requested field at the new key;
+ *   4. point the requested field at the new key — a page field, a project's field, or,
+ *      for a new project, write the project itself (its cover now exists);
  *   5. mark the entry `ready` — or `failed`, with the reason in the owners' words, which
  *      the admin shows next to the field. A failure changes no field.
  *
@@ -28,6 +29,7 @@ import { spawnSync } from 'node:child_process';
 import { ROOT } from './media/recipe.mjs';
 import { INCOMING, MANIFEST_FILE, probeFull, readJson } from './media/lib.mjs';
 import { r2Config, getObject } from './media/r2.mjs';
+import { PROJECT_FILE, PROJECTS_DIR, applyProjectEdits, newProjectText, projectData } from '../src/lib/admin/projects.ts';
 
 const UPLOADS = path.join(ROOT, 'src', 'data', 'media-uploads.json');
 const SOURCE_BUCKET = 'nvf-source-archive';
@@ -90,10 +92,45 @@ async function ingest(u, cfg) {
     throw new Error('O processamento terminou sem produzir o ficheiro. Fale com o programador.');
   }
 
+  if (u.target.file.startsWith(`${PROJECT_FILE}/`)) {
+    await attachToProject(u, manifest);
+    return;
+  }
   const page = path.join(ROOT, 'src', 'content', 'page-content', `${u.target.file}.json`);
   const doc = JSON.parse(await fs.readFile(page, 'utf8'));
   setAt(doc, u.target.path, u.key);
   await fs.writeFile(page, json(doc));
+}
+
+/**
+ * A project's field, or a NEW project whose cover this is: the file is written only now,
+ * with the cover in the manifest, so the site never points at a picture that is not there.
+ */
+async function attachToProject(u, manifest) {
+  const dir = path.join(ROOT, PROJECTS_DIR);
+  const categories = new Set((await fs.readdir(path.join(ROOT, 'src', 'content', 'categories'))).map((f) => f.replace(/\.ya?ml$/, '')));
+  const ctx = {
+    categories,
+    mediaKind: (key) => {
+      const item = manifest.items[key];
+      if (item?.kind === 'video') return manifest.items[`${key}/poster`] ? 'video' : null;
+      return item?.kind === 'image' ? 'image' : null;
+    },
+  };
+  if (u.create) {
+    const file = path.join(dir, `${u.create.slug}.mdx`);
+    if (existsSync(file)) throw new Error(`Já existe um projeto em /portfolio/${u.create.slug}/. Escolha outro título.`);
+    // First in the portfolio: one before the current first.
+    const orders = await Promise.all((await fs.readdir(dir)).filter((f) => f.endsWith('.mdx'))
+      .map(async (f) => projectData(await fs.readFile(path.join(dir, f), 'utf8'))['portfolioOrder']));
+    const first = Math.min(1, ...orders.filter((n) => typeof n === 'number'));
+    await fs.writeFile(file, newProjectText(u.create.project, u.key, first - 1, u.at.slice(0, 10), ctx));
+    return;
+  }
+  const file = path.join(dir, `${u.target.file.slice(PROJECT_FILE.length + 1)}.mdx`);
+  if (!existsSync(file)) throw new Error('Este projeto já não existe.');
+  const { text } = applyProjectEdits(await fs.readFile(file, 'utf8'), { [u.target.path]: u.key }, ctx);
+  await fs.writeFile(file, text);
 }
 
 async function main() {

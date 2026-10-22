@@ -19,8 +19,11 @@
  * without the manifest and the Worker can run without the file system.
  */
 
-import { parseDocument, isMap, type Document } from 'yaml';
+import { Document, parseDocument, isMap } from 'yaml';
 import { EditError } from './edit.ts';
+import { slugFrom } from './slug.ts';
+
+export { slugFrom };
 
 export const PROJECT_FILE = 'projeto';
 export const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
@@ -245,4 +248,59 @@ export function applyOrder(projects: ProjectFile[], order: string): ProjectFile[
     out.push({ slug: p.slug, text: `---\n${write(doc)}---\n${rest}` });
   }
   return out;
+}
+
+/* ── a new project ───────────────────────────────────────────────────────── */
+
+/**
+ * What an owner gives for a new project. The cover is uploaded with it, so the project
+ * file is only WRITTEN once the cover has been processed (scripts/media-ingest.mjs): a
+ * project can never reach the site pointing at a picture that does not exist yet.
+ */
+export interface NewProject {
+  title: string;
+  /** `pt` is the language the tagline is written in; `en` means it is already English. */
+  sourceLocale: 'pt' | 'en';
+  taglinePt: string;
+  taglineEn: string;
+  year: string;
+  category: string;
+  film: string;
+  hidden: boolean;
+}
+
+/**
+ * The new project's file, checked by the same rules as an edit (applyProjectEdits). It is
+ * placed FIRST in the portfolio (`order`, one before the current first); the owners move
+ * it from there in the order screen.
+ */
+export function newProjectText(p: NewProject, posterKey: string, order: number, today: string, ctx: ProjectContext): string {
+  const skeleton = new Document({
+    title: { pt: 'novo' },
+    sourceLocale: p.sourceLocale,
+    date: today,
+    year: Number(today.slice(0, 4)),
+    categories: [[...ctx.categories][0] ?? 'ficcao'],
+    tags: [],
+    collections: [],
+    featured: false,
+    homepageOrder: null,
+    portfolioOrder: order,
+    draft: false,
+    film: { provider: 'youtube', id: 'AAAAAAAAAAA' },
+    poster: { key: posterKey, altStatus: 'todo' },
+    blocks: [],
+    related: [],
+    previousSlugs: [],
+    seo: { noindex: false },
+  });
+  skeleton.commentBefore = ` Created in the admin on ${today}. Every value here is the owners' own.`;
+  const base = `---\n${write(skeleton)}---\n`;
+  const edits: Record<string, string> = {
+    'title.pt': p.title, year: p.year, categories: p.category, 'film.id': p.film, draft: String(p.hidden),
+  };
+  if (p.taglinePt.trim() || p.taglineEn.trim()) { edits['tagline#pt'] = p.taglinePt; edits['tagline#en'] = p.taglineEn; }
+  if (!p.title.trim()) throw new EditError('«Título»: o título não pode ficar vazio.');
+  if (!youtubeId(p.film)) throw new EditError('«Filme no YouTube»: cole o endereço do vídeo no YouTube.');
+  return applyProjectEdits(base, edits, ctx).text;
 }
