@@ -1,0 +1,24 @@
+{
+  "copy": {
+    "title": {
+      "text": "Portfólio",
+      "from": "/portfolio/",
+      "en": "Portfolio"
+    },
+    "lead": {
+      "text": "Na NVF, transformamos ideias em imagens.",
+      "from": "/portfolio/",
+      "en": "At NVF, we turn ideas into images."
+    },
+    "all": {
+      "text": "Ver Tudo",
+      "from": "/portfolio/{slug}/",
+      "en": "View All"
+    },
+    "more": {
+      "text": "Saber Mais",
+      "from": "/portfolio/",
+      "en": "Learn More"
+    }
+  }
+}

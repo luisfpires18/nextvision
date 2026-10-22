@@ -42,6 +42,9 @@ export const ENV_KEYS = {
   sender: 'CONTACT_SENDER',
   resendKey: 'RESEND_API_KEY',
   brevoKey: 'BREVO_API_KEY',
+  /** The admin's Cloudflare Access team and application (docs/ADMIN_DASHBOARD_PLAN.md §3.1). Not secrets. */
+  accessTeamDomain: 'ACCESS_TEAM_DOMAIN',
+  accessAud: 'ACCESS_AUD',
 } as const;
 
 /**

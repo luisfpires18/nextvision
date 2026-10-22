@@ -44,3 +44,17 @@
   --tracking-eyebrow: 0.12em;
   --tracking-brand: 0.06em;
 }
+
+/* ── Design v2 ───────────────────────────────────────────────────────────────
+   Barlow Condensed Black for every display line, Light for the rail and spine labels
+   (brand guide p. 13). */
+:root {
+  --w-display: 900;
+  --w-label: 300;
+  --t-poster: clamp(3rem, 1rem + 8.5vw, 9.5rem);
+  --t-statement: clamp(2.5rem, 1rem + 6.4vw, 7rem);
+  --t-headline: clamp(2rem, 1rem + 3.4vw, 3.75rem);
+  --t-rail: clamp(1.25rem, 0.9rem + 1.2vh, 2rem);
+  --t-spine-meta: 0.6875rem;
+  --lh-poster: 0.88;
+}

@@ -29,21 +29,14 @@
 
 /* ═══════════════════════════════════════════════════════════════════ copy ══ */
 
-/** Re-exported from src/lib/homepage.ts so there is ONE shape for a published string. */
-import type { Provenanced } from './homepage.ts';
-const v = (text: string, from: string, en?: string): Provenanced =>
-  (en === undefined ? { text, from } : { text, from, en });
+import { PAGE_CONTENT } from './page-content.ts';
 
-export const PORTFOLIO = {
-  /** The live `/portfolio/` <h1>. */
-  title: v('Portfólio', '/portfolio/', 'Portfolio'),
-  /** The live `/portfolio/` <h2>. The only prose on the page, and it is one line. */
-  lead: v('Na NVF, transformamos ideias em imagens.', '/portfolio/', 'At NVF, we turn ideas into images.'),
-  /** The live "Ver Tudo" button label, on all 20 project pages. Used as the "all" filter. */
-  all: v('Ver Tudo', '/portfolio/{slug}/', 'View All'),
-  /** Live `/portfolio/` card button. Reused as the per-project action. */
-  more: v('Saber Mais', '/portfolio/', 'Learn More'),
-} as const;
+/**
+ * The live `/portfolio/` <h1> (`title`) and <h2> (`lead`); `all` is the live "Ver Tudo"
+ * button on all 20 project pages, used as the "all" filter; `more` is the live card
+ * button, reused as the per-project action. In src/content/page-content/portfolio.json.
+ */
+export const PORTFOLIO = PAGE_CONTENT.portfolio.copy;
 
 /**
  * DELIBERATELY UNUSED: the five category descriptions published on `/portfolio/`.
@@ -122,5 +115,9 @@ export const FILTERED_RATIO = 1.5;
  * link to its own preserved archive URL. That is not a compatibility hack — it is what
  * makes the control work with JavaScript off, keeps every view crawlable, and turns five
  * legacy URLs that had no `<h1>` and no canonical into five useful pages.
+ *
+ * Declared in portfolio-filter.ts, the browser module, and re-exported here: this module
+ * reads the page-content JSON through its schema, and importing it from client code
+ * would ship zod and the media manifest to every reader (Phase A0 measured 14 KB → 240 KB).
  */
-export const FILTER_ALL = 'todos';
+export { FILTER_ALL } from './portfolio-filter.ts';

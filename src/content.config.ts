@@ -403,9 +403,11 @@ const navigation = defineCollection({
     id: z.string(),
     items: z.array(z.object({
       /** Reference into src/i18n/routes.ts, never a hardcoded href. */
-      pageId: z.enum(['home', 'about', 'portfolio', 'services', 'contact', 'thank-you', 'terms', 'privacy']),
+      pageId: z.enum(['home', 'about', 'portfolio', 'services', 'contact', 'thank-you', 'terms', 'privacy', 'bts']),
       labelKey: z.string().min(1),
-      showIn: z.array(z.enum(['header', 'footer'])).default(['header']),
+      showIn: z.array(z.enum(['rail', 'footer'])).default(['rail']),
+      /** Design v2: the stripe of the logo this destination wears (tokens.colour.css). */
+      section: z.enum(['home', 'about', 'commercial', 'cinema', 'bts', 'contact']).optional(),
       order: z.number().int().default(0),
     })).default([]),
   }),

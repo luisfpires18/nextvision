@@ -1,0 +1,50 @@
+---
+/**
+ * The rail — DESIGN V2 (Tatiana). The site's menu.
+ *
+ * Five stripes fixed to the right edge, one per section, in the order of the stripes in
+ * the logo. Each stripe is a real link to a real page (decision C3): the "folder tab"
+ * slide is a view transition on the existing router, never a single-page app.
+ *
+ * Hovering or focusing a stripe pulls its tab out to the left of the rail, and the page
+ * behind goes lights-down (.dim in chrome.css, decision C2). Both are transform/opacity
+ * only. On a phone the rail is a bottom bar of five labelled tabs instead.
+ *
+ * Every destination here is ALSO a plain link in the footer. A 12 px stripe is a small
+ * target, and that equivalent is what satisfies WCAG 2.5.8 rather than an exception
+ * nobody wrote down.
+ */
+import { getEntry } from 'astro:content';
+import { t } from '../../i18n/index.ts';
+import { DEFAULT_LOCALE, type Locale } from '../../config/i18n.ts';
+import { navHref } from '../../lib/nav.ts';
+import { pagePath } from '../../i18n/routes.ts';
+import type { UIKey } from '../../i18n/pt.ts';
+
+interface Props { locale?: Locale; section?: string | undefined }
+const { locale = DEFAULT_LOCALE, section } = Astro.props;
+
+const navigation = await getEntry('navigation', 'navigation');
+const items = (navigation?.data.items ?? [])
+  .filter((i) => i.showIn.includes('rail'))
+  .sort((a, b) => a.order - b.order);
+
+const here = Astro.url.pathname;
+const home = pagePath('home', locale);
+---
+
+<nav class="rail" aria-label={t('rail.label', locale)}>
+  {items.map((item) => {
+    const href = navHref(item.pageId, locale);
+    // A section is current when the page belongs to it — a project page is inside Cinema
+    // — or, failing a declared section, when the path is the destination itself.
+    const current = section ? section === item.section : (href === home ? here === home : here.startsWith(href));
+    const label = t(item.labelKey as UIKey, locale);
+    return (
+      <a class="rail__stripe" href={href} data-section={item.section} aria-current={current ? 'page' : undefined}>
+        <span class="rail__tab" aria-hidden="true"><span class="rail__label">{label}</span></span>
+        <span class="rail__name">{label}</span>
+      </a>
+    );
+  })}
+</nav>

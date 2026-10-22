@@ -1,0 +1,89 @@
+---
+/**
+ * One stored value, shown the way an owner reads it — read-only (phase A1).
+ *
+ * Recognises the shapes this site's content actually uses: a published string with its
+ * provenance `{ text, from, en }`, a localised pair `{ pt, en }`, a media KEY (shown as
+ * the picture, never as a URL), a collection reference, lists and nested objects. Anything
+ * else is printed as it is stored. Portuguese and English always sit side by side, so a
+ * missing translation is an empty column rather than a hidden tab.
+ */
+import { getMedia, imageProps } from '../lib/media.ts';
+import { fieldLabel } from '../lib/admin/labels.ts';
+
+interface Props { value: unknown; name?: string }
+const { value, name } = Astro.props;
+
+/** A title with no English is a proper noun (a film is not renamed), not a missing translation. */
+const noEnglish = name === 'title' ? 'igual em inglês (nome próprio)' : 'sem tradução';
+
+type Obj = Record<string, unknown>;
+const isObj = (v: unknown): v is Obj =>
+  typeof v === 'object' && v !== null && !Array.isArray(v) && !(v instanceof Date);
+const isPair = (v: Obj) =>
+  typeof v['pt'] === 'string' && Object.keys(v).every((k) => k === 'pt' || k === 'en');
+const isPublished = (v: Obj) => typeof v['text'] === 'string' && typeof v['from'] === 'string';
+const isReference = (v: Obj) =>
+  typeof v['collection'] === 'string' && typeof v['id'] === 'string' && Object.keys(v).length === 2;
+
+const media = typeof value === 'string' ? getMedia(value) : null;
+const still = media
+  ? imageProps(media.kind === 'video' ? `${media.key}/poster` : media.key, { alt: '', sizes: '10rem' })
+  : null;
+
+/** Lists of plain words or references read as one line, not as a numbered list. */
+const inline = Array.isArray(value) && value.every((v) =>
+  (typeof v === 'string' && !getMedia(v)) || (isObj(v) && isReference(v)));
+
+const entries = isObj(value) ? Object.entries(value).filter(([, v]) => v !== undefined) : [];
+---
+
+{value === null || value === undefined || value === '' ? (
+  <span class="f-empty">vazio</span>
+) : typeof value === 'boolean' ? (
+  <span>{value ? 'Sim' : 'Não'}</span>
+) : typeof value === 'number' ? (
+  <span>{value}</span>
+) : value instanceof Date ? (
+  <time datetime={value.toISOString()}>{value.toLocaleDateString('pt-PT', { dateStyle: 'long' })}</time>
+) : media ? (
+  <figure class="f-media">
+    {still ? <img src={still.src} srcset={still.srcset} sizes={still.sizes} alt="" width={media.width} height={media.height} loading="lazy" /> : null}
+    <figcaption>
+      <span>{media.kind === 'video' ? 'Vídeo' : 'Imagem'} · {media.width}×{media.height}</span>
+      <code>{media.key}</code>
+    </figcaption>
+  </figure>
+) : typeof value === 'string' ? (
+  <span class="f-text">{value}</span>
+) : Array.isArray(value) ? (
+  value.length === 0 ? <span class="f-empty">nenhum</span> : (
+    inline ? (
+      <span class="f-text">{value.map((v) => (isObj(v) ? v['id'] : v)).join(', ')}</span>
+    ) : (
+      <ol class="f-list">{value.map((v) => <li><Astro.self value={v} /></li>)}</ol>
+    )
+  )
+) : isObj(value) && isPublished(value) ? (
+  <div class="f-pair">
+    <p lang="pt-PT"><span class="f-lang">PT</span>{value['text'] as string}</p>
+    <p lang="en">{typeof value['en'] === 'string' ? <><span class="f-lang">EN</span>{value['en']}</> : <span class="f-empty">sem tradução</span>}</p>
+    <p class="f-source">Publicado em {value['from'] as string}</p>
+  </div>
+) : isObj(value) && isPair(value) ? (
+  <div class="f-pair">
+    <p lang="pt-PT"><span class="f-lang">PT</span>{value['pt'] as string}</p>
+    <p lang="en">{typeof value['en'] === 'string' ? <><span class="f-lang">EN</span>{value['en']}</> : <span class="f-empty">{noEnglish}</span>}</p>
+  </div>
+) : isObj(value) && isReference(value) ? (
+  <span class="f-text">{value['id'] as string}</span>
+) : (
+  <dl class="f-fields">
+    {entries.map(([k, v]) => (
+      <div class="f-row">
+        <dt>{fieldLabel(k)}</dt>
+        <dd><Astro.self value={v} name={k} /></dd>
+      </div>
+    ))}
+  </dl>
+)}

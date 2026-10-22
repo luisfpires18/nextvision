@@ -14,7 +14,9 @@
   position: fixed;
   inset-block-end: var(--space-5);
   inset-inline: var(--gutter);
-  z-index: 40;
+  /* Above the rail and the spine (design v2). At 40 it sat UNDER the phone's bottom rail
+     bar, so an installed app could never be offered its update. */
+  z-index: var(--z-menu);
 
   display: flex;
   flex-wrap: wrap;
@@ -73,4 +75,9 @@
 @keyframes pwa-in {
   from { opacity: 0; transform: translateY(var(--rise-reveal)); }
   to { opacity: 1; transform: none; }
+}
+
+/* Design v2: on a phone the rail is a bar across the bottom, so the prompt sits above it. */
+@media (max-width: 47.99rem) {
+  .pwa-update { inset-block-end: calc(var(--rail-bar) + var(--space-3)); }
 }

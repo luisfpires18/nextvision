@@ -1404,9 +1404,179 @@ file change.
 Verify gates the deploy because a failing step ends the job. CI deploys the application
 only: it never syncs, uploads or deletes anything in R2.
 
-### 18.6 What is still needed
+### 18.6 Credentials, and the two defects only a credentialed run could find
 
 Four repository secrets, and the minimum permission for each, are in `HANDOVER.md` §3.
-`CLOUDFLARE_API_TOKEN` needs Account -> Workers Scripts: Edit and nothing else — no zone,
-no DNS, no R2 write. Until it exists, automatic deployment is the one part of step 14 that
-is not live.
+`CLOUDFLARE_API_TOKEN` carries Account -> Workers Scripts: Edit and nothing else — no zone,
+no DNS, no R2 write — and the R2 key is Object Read only on `nvf-media` alone. The wrangler
+OAuth session CANNOT create either (`403`, code 9109 on `/user/tokens/permission_groups`),
+so both were made in the dashboard and entered at `gh secret set`'s hidden prompt. That
+detail matters: **PowerShell 5.1 cannot pipe a secret to a native executable** — it prepends
+a UTF-8 BOM and appends CRLF, measured at 11 bytes for a 6-byte string, and the BOM survives
+a `--body` trim. Git Bash pipes clean. `gh`'s own prompt avoids the question entirely.
+
+Two defects, both invisible until a run had credentials:
+
+1. **`fonts:build` shells out to `python -m fontTools.subset`.** Not an npm dependency, not
+   on the runner, so the first credentialed run died with `ModuleNotFoundError` before it
+   reached the mirror. The script had always documented the requirement; nothing enforced
+   it, because a developer machine that installed it once never notices again. Both
+   workflows now install it, version-pinned — subsetting produces bytes, and different
+   bytes are a different service-worker precache hash.
+
+2. **`media:pull` had no retry.** A later run fetched 350 of 384 objects and then failed
+   with a bare `fetch failed` after 5m39s: one transient socket took the whole staging
+   deploy red. Now 30 s per attempt, four attempts, backoff — and a hash mismatch is never
+   retried, because those bytes arrived and were wrong.
+
+### 18.7 The branch model, and the protection GitHub Free will not sell
+
+`dev` is the GitHub **default branch**: a clone lands on it, and a branch made in the web UI
+forks from it. `master` receives only merges from `dev`. Repository settings allow merge
+commits and disable squash, rebase and auto-merge, so the PR button can only produce the
+visible merge commit the model depends on.
+
+Branch protection was asked for and **cannot be configured**: for a private repository on
+GitHub Free, both `/branches/{b}/protection` and `/rulesets` answer
+
+    403  Upgrade to GitHub Pro or make this repository public to enable this feature.
+
+Confirmed by retrying with an explicit payload — a plan limit, not a token scope. The two
+rules that matter are therefore enforced on the CLIENT by `scripts/hooks/pre-push`
+(`git config core.hooksPath scripts/hooks`): no deletion of `dev` or `master`, and no push
+to either that is not a fast-forward. Tested by breaking it — deletion refused, a real
+non-fast-forward to `master` refused, a fast-forward and an unprotected branch both allowed.
+`--no-verify` bypasses it deliberately, because a hook that cannot be bypassed locks you out
+of your own repository. It protects one machine and is not a substitute for the real thing.
+
+### 18.8 Both Workers, measured
+
+| Branch | Worker | Version | Result |
+|---|---|---|---|
+| `dev` | `next-vision-films` | `a6b1a246` | run `33920024531`, success, 1m10s |
+| `master` | `next-vision-films-production` | `5793e05f` | run `33918496298` from PR #1, success, 1m27s |
+
+Production smoke test: 7 routes 200, a media rendition 200, a missing route 404, the contact
+endpoint refusing an Origin-less POST with 403, and canonicals still pointing at
+`https://www.nextvisionfilms.com/` — which is what keeps both workers.dev copies from
+competing with the live site. No domain, no DNS, no bucket made public.
+
+
+## 19. Design v2 — Tatiana's identity (2026-10-22) ✅ ON STAGING
+
+Built on `feat/design-v2` from Tatiana's storyboard and recording, after the user approved a
+standalone prototype and settled the eight rule conflicts C1–C8. All decisions went with the
+recommendation; C7 (American Typewriter) turned out to be leftover stray glyphs. The full
+record is `docs/DESIGN_V2_ROLLOUT.md`.
+
+- **Chrome.** `Rail.astro` and `Spine.astro` replace `Header.astro` (deleted). Navigation is
+  data: `navigation.yml` items now carry `section` and `showIn: [rail, footer]`.
+- **Colour.** The palette comes from the brand guide's p. 10. The old token names alias to
+  it. `--brand-ink` stays `#292929` because the install icons are composited on it, and the
+  manifest `background_color` follows the new cream `#FFFAEC`.
+- **Type.** Barlow Condensed 300 and 900 were added to `build-fonts.mjs`.
+- **Brand marks.** Rendered from the owners' logo PDF into `public/brand/`, named only in
+  `src/lib/brand.ts`.
+- **New route.** `/bts/` and `/en/bts/` (PageId `bts`). They have no meta description, by
+  declaration in `page-meta.ts` and `validate-seo.mjs`.
+- **Defect fixed.** `data-motion` was lost on every client-side navigation (§3 of the
+  rollout doc).
+- **Verified.** `npm run verify` is green: routes 14 ok, SEO, analytics, PWA (326 KB of
+  20 MB), and media. The opening, the slide (via `getAnimations()`), both Cinema views,
+  `?view=list`, BTS, the contact sheet and the phone layout were all checked in a real
+  browser.
+- **Waiting on the owners or Tatiana:** see `docs/BLOCKED_TODOS.md`.
+
+## 20. Admin dashboard — plan, decisions, and phase A0 (2026-10-22)
+
+The owners want to change the site themselves (the homepage film today, another tomorrow)
+without Claude Code. The plan, the content inventory and the A1–A6 decisions are in
+`docs/ADMIN_DASHBOARD_PLAN.md`. Nothing of the admin itself is built yet.
+
+**Phase A0 ✅ — content that was code is now data.** Seven files in
+`src/content/page-content/` (`home`, `about`, `services`, `contact`, `thanks`, `portfolio`,
+`bts`), read through one schema in `src/lib/page-content.ts`:
+
+- **Media keys:** the homepage hero video (`home.json` `heroVideo`), the services lead image
+  and collage, the contact banner and the six BTS frames. A key the manifest does not hold
+  fails the build.
+- **Page prose:** every `v()` literal from `homepage.ts`, `static-pages.ts` and
+  `portfolio.ts`, generated from the running modules, so every byte is the same. Those
+  modules still export `HOME`, `ABOUT`, `CONTACT`, … with the same shapes, and no call site
+  changed. Meta-description selections stay `v()` literals in `page-meta.ts`.
+- **Validator:** `validate:data` walks the JSON for `{ text, from, en? }` and still checks
+  50 strings word for word, plus 51 translations and both services-lead spellings. The
+  counts are the same as before.
+
+**Verified, not assumed.**
+
+- All 75 pages are byte-identical except for the hash of the one client bundle.
+- `/servicos/` and `/en/services/` list the same stylesheets in a different order. Vite
+  orders the CSS per graph and was already inconsistent across pages. In a real browser,
+  every element's computed style is identical to the baseline on both pages.
+- `npm run verify` is green.
+
+**One defect, found by that diff.** `portfolio-filter.ts` (browser code) imported
+`FILTER_ALL` from `portfolio.ts`. Once that module read the schema, the client bundle went
+from 14.6 KB to 240 KB, because it shipped zod and the manifest. `FILTER_ALL` is now
+declared in the browser module and re-exported. The bundle is 14.2 KB: 468 B smaller than
+before, because the dead portfolio row data no longer ships either.
+
+**Rule:** a browser module never imports from `homepage.ts`, `static-pages.ts`,
+`portfolio.ts` or `page-content.ts`.
+
+## 21. Admin phase A1 — login and read-only browsing (2026-10-22)
+
+`/admin/` exists on the **dev Worker only**, behind Cloudflare Access (team
+`royal-hall-6f88`, email one-time code, `nextvisionfilmsagency@gmail.com` only). It lists
+everything the owners will be able to change, grouped by the five rail sections plus
+Definições. Each item shows its fields, with Portuguese and English side by side and media
+shown as the picture, next to the real page in a preview frame. Nothing can be edited
+yet; that is A2.
+
+- **Not in production, by construction.** The route is *injected* by `nvf:admin` in
+  `astro.config.mjs`, only under `astro dev` or `CLOUDFLARE_ENV=dev`. An unset variable
+  leaves it out. `validate:routes` reads the server bundle's route manifest and fails a
+  dev build without the route, or any other build with it. A `CLOUDFLARE_ENV=prod` build
+  was checked: no admin file anywhere in `dist/`.
+- **Fails closed.** The Worker verifies the `Cf-Access-Jwt-Assertion` RS256 signature
+  against the team's keys, plus audience, issuer, expiry and email, using WebCrypto with
+  no dependency (`src/lib/admin/access.ts`). `ACCESS_TEAM_DOMAIN` and `ACCESS_AUD` are
+  non-secret `vars` on `env.dev` in `wrangler.jsonc`; unset means every request is
+  refused. `npm run test:access` (now in `verify`) signs real tokens with throwaway keys:
+  22 cases, and only the valid token gets in. It was tested by deleting the audience check,
+  which made it fail. Under workerd, a missing token, a forged `alg: none` token and a deep
+  path each answered `403` with `no-store`, `noindex` and `X-Frame-Options: DENY`.
+- **`astro dev`** skips the check only when the host is `localhost`; `IS_DEV` is false in
+  every build.
+- **The service worker** now leaves `/admin*` alone, so a signed-in page is never cached
+  on a device.
+- **Layout tokens** for the edit bay are in `tokens.space.css` (`--admin-*`). Colours are
+  mixes of brand ink and cream, so no new hue was added. Checked at 1440 px and 375 px:
+  no horizontal scroll, one `<h1>`.
+
+**Measured on the way:** a stopped `wrangler dev` task left its node and workerd processes
+running and holding `dist/` (rule 25 again). Stop `wrangler dev` by its process tree, not
+by the shell that launched it.
+
+## 22. The admin moves to the live site (decision A8, 2026-10-22)
+
+The owners sign in at **`nextvisionfilms.com/admin`**, not on dev. Only the address and
+the carrying Worker change. Saves still commit to `dev`, which stays the preview, and
+Publish still merges `dev → master`.
+
+- **Code.** `nvf:admin` now injects the route only under `astro dev` or
+  `CLOUDFLARE_ENV=prod`. `validate:routes` requires it in a prod build and forbids it in
+  any other, including dev. The Access vars moved to `env.prod` in `wrangler.jsonc`. The
+  admin's preview pane shows `PREVIEW_URL` (`https://dev.nextvisionfilms.com`, in
+  `src/config/site.ts`), where a saved but unpublished change appears, with a second link
+  to the published page.
+- **Verified.** A dev build has no admin, and a prod build has it. The prod build under
+  workerd answers `403` with no token, a forged token or a deep path; `/` is `200` and
+  `/api/contact/` still `405` to a GET. `npm run verify` is green.
+- **Outside the repo, done by Luís:** point the Access app at
+  `nextvisionfilms.com/admin` and `www.nextvisionfilms.com/admin`, and store the GitHub
+  App secrets on `next-vision-films-production` instead of `dev`.
+- **To reach production** the change needs a `dev → master` merge, and `master` is 14+
+  commits behind `dev`, including all of design v2. Merging ships design v2 to the live
+  site as well. That is an owner decision, not a side effect.

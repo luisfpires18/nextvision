@@ -222,7 +222,9 @@ for (const route of routes) {
  * built-side half of the same declaration. A page missing a description without appearing
  * here is a defect, which is the point: silence never looks like an oversight.
  */
-const NO_DESCRIPTION = new Set(['/termos-e-condicoes/']);
+// Design v2 adds /bts/: the live site has no such page, so there is no published sentence
+// to select a description from (src/lib/page-meta.ts records the reason, PAGE_META.bts).
+const NO_DESCRIPTION = new Set(['/termos-e-condicoes/', '/bts/', '/en/bts/']);
 
 for (const route of routes) {
   const html = pages.get(route);

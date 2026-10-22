@@ -54,7 +54,7 @@
   gap: var(--space-6);
   padding-inline: var(--gutter);
   /* Clears the fixed header, so the header sits over the room and never over the film. */
-  padding-block: calc(var(--header-h) + var(--space-8)) var(--space-8);
+  padding-block: var(--space-8);
 }
 .pj-hero__inner { max-inline-size: var(--film-w); margin-inline: auto; inline-size: 100%; }
 
@@ -327,7 +327,7 @@ a.pj-play { text-decoration: none; }
   /* The hero stops being a room and becomes the frame: at 375px, air around the film is
      wasted screen, and the film is the point. The screen leaves the gutter and runs edge
      to edge, so the page opens on the film rather than on a card of it. */
-  .pj-hero { min-block-size: 0; padding-block: calc(var(--header-h) + var(--space-6)) var(--space-7); }
+  .pj-hero { min-block-size: 0; padding-block: var(--space-6) var(--space-7); }
   .pj-hero__inner { max-inline-size: none; }
   .pj-screen {
     margin-inline: calc(var(--gutter) * -1);

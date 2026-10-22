@@ -2,7 +2,7 @@
  * The six remaining Portuguese pages — copy, with provenance.
  *
  * ── The rule ─────────────────────────────────────────────────────────────────
- * Every string below is VERBATIM from the live site, captured in Phase 0.5 and held in
+ * Every published string is VERBATIM from the live site, captured in Phase 0.5 and held in
  * docs/source-archive/pages.json. Nothing here is written, shortened, corrected or
  * translated (CLAUDE.md §2, §8), and `scripts/validate-data.mjs` proves it: each entry
  * declares the page it was published on, and the validator fails the build if the string
@@ -13,6 +13,10 @@
  * `Contacto Directo` heading above a paragraph about the form. They are catalogued as
  * observations in docs/WEBSITE_AUDIT.md §9.24 and are the owners' to change, not ours.
  *
+ * Since Phase A0 the strings themselves live in src/content/page-content/*.json, one file
+ * per page, so they can be changed without touching code. This module composes them and
+ * keeps the notes that explain them.
+ *
  * ── What is NOT here ─────────────────────────────────────────────────────────
  * The four services and the two team members are content-collection entries
  * (src/content/services/, src/content/team/), because those are lists the owners will
@@ -22,9 +26,9 @@
  */
 
 import { HOME, type Provenanced } from './homepage.ts';
+import { PAGE_CONTENT } from './page-content.ts';
 
-const v = (text: string, from: string, en?: string): Provenanced =>
-  (en === undefined ? { text, from } : { text, from, en });
+const { about, services, contact, thanks } = PAGE_CONTENT;
 
 /* ═════════════════════════════════════════════════════════════════ /sobre/ ══ */
 
@@ -46,7 +50,7 @@ export const ABOUT = {
 
   /** The origin story. Two published paragraphs, in their published order. */
   storyA: HOME.aboutBodyFull,
-  storyB: v('Não somos apenas videógrafos, somos contadores de histórias visuais. Gostamos de projetos que têm alma, de marcas que querem fazer a diferença e de pessoas que vivem o que fazem. Desde ficção a moda e identidade, queremos que cada frame tenha um propósito, que cada imagem conte algo mais do que aquilo que se vê.', '/sobre/', 'We are not just videographers, we are visual storytellers. We like projects with soul, brands that want to make a difference and people who live what they do. From fiction to fashion and identity, we want every frame to have a purpose, every image to say something more than what is seen.'),
+  storyB: about.copy.storyB,
 
   /**
    * The closing statement. One paragraph on the live page, separated into four by its own
@@ -54,17 +58,12 @@ export const ABOUT = {
    * the homepage prints the same sentence with `um bom vídeo`. Both are reproduced as
    * published (audit §3.2).
    */
-  closing: [
-    v('O vídeo não é apenas imagem em movimento — é emoção, identidade e impacto!', '/sobre/', 'Video is not just moving image — it is emotion, identity and impact!'),
-    v('Na NVF, transformamos momentos em narrativas visuais que fazem sentido, que criam ligação e que ficam na memória.', '/sobre/', 'At NVF, we turn moments into visual narratives that make sense, that create connection and that stay in the memory.'),
-    v('Cada projeto que fazemos tem uma energia própria, porque acreditamos que um bom produto de audiovisual não se impõe, sente-se.', '/sobre/', 'Every project we make has an energy of its own, because we believe a good audiovisual product is not imposed, it is felt.'),
-    v('Seja para marcas, criadores ou aventureiros, o nosso compromisso é trazer autenticidade, dinamismo e um olhar cinematográfico que eleva cada história.', '/sobre/', 'Whether for brands, creators or adventurers, our commitment is to bring authenticity, dynamism and a cinematic eye that lifts every story.'),
-  ],
+  closing: about.copy.closing,
 
   /** The page's own invitation to the work, and its own button label. */
-  workLineA: v('Fica a Conhecer o', '/sobre/', 'Get to Know'),
-  workLineB: v('Nosso Trabalho', '/sobre/', 'Our Work'),
-  ctaPortfolio: v('Consultar Portfólio', '/sobre/', 'See the Portfolio'),
+  workLineA: about.copy.workLineA,
+  workLineB: about.copy.workLineB,
+  ctaPortfolio: about.copy.ctaPortfolio,
 
   /**
    * The live page's own og:description — a WordPress auto-excerpt, truncated mid-word
@@ -73,8 +72,7 @@ export const ABOUT = {
    * sentences (src/lib/page-meta.ts). Nothing was rewritten to get there — the excerpt
    * was replaced by a SELECTION from the same page's own prose.
    */
-  wordpressExcerpt:
-    'Sobre Nós De uma ideia a um movimento.  A NVF nasceu entre câmaras, roadtrips,  trilhos de montanha, amizades e um eterno contacto com o audiovisual. Criámos este projeto porque acreditamos que o vídeo tem poder — o poder de emocionar, de inspirar e de transformar! Não somos apenas videógrafos, somos contadores de histórias visuais. Gostamos […]',
+  wordpressExcerpt: about.wordpressExcerpt,
 } as const;
 
 /* ══════════════════════════════════════════════════════════════ /servicos/ ══ */
@@ -86,7 +84,7 @@ export const ABOUT = {
  * same three places. It is not a re-decoration of the sentence: the source decided which
  * phrases are marked, and the translation only decides what those phrases are in English.
  */
-export interface LeadSegment { text: string; en: string; mark?: boolean }
+export interface LeadSegment { text: string; en: string; mark?: boolean | undefined }
 
 /**
  * The services lead, in the live page's own emphasis.
@@ -98,19 +96,11 @@ export interface LeadSegment { text: string; en: string; mark?: boolean }
  *
  * The segments concatenate to `HOME.servicesLeadFull` character for character, and
  * `scripts/validate-data.mjs` asserts it — so the highlight can never drift into an edit.
+ *
+ * The source sets a space before its full stop and the English does not reproduce it: a
+ * typo is not a voice (docs/SEO_I18N_ROLLOUT.md §2). Segments: services.json `lead`.
  */
-export const SERVICES_LEAD: LeadSegment[] = [
-  { text: 'O vídeo certo tem o poder de ', en: 'The right video has the power to ' },
-  { text: 'transformar', en: 'transform', mark: true },
-  { text: ' um projeto, uma marca ou uma experiência. Por isso, damos vida a ', en: ' a project, a brand or an experience. So we bring ' },
-  { text: 'ideias', en: 'ideas', mark: true },
-  { text: ' com um toque cinematográfico e uma ', en: ' to life with a cinematic touch and an ' },
-  { text: 'visão autêntica', en: 'authentic vision', mark: true },
-  // The source sets a space before its full stop. The English does not reproduce it:
-  // a typo is not a voice, and carrying one into a language it was never made in would
-  // be inventing a mistake rather than preserving one (docs/SEO_I18N_ROLLOUT.md §2).
-  { text: ' .', en: '.' },
-];
+export const SERVICES_LEAD: LeadSegment[] = services.lead;
 
 export const SERVICES_PAGE = {
   title: HOME.servicesTitle,   // 'Serviços'
@@ -127,13 +117,12 @@ export const SERVICES_PAGE = {
    * (decision A41); a dead newsletter form under `Vamos Conversar!` would be the live
    * site's own confusion, reproduced.
    */
-  closeLineA: v('Dá vida à tua ideia', '/servicos/', 'Bring your idea to life'),
-  closeLineB: v('Vamos Conversar!', '/servicos/', 'Let’s Talk!'),
-  closeBody: v('Diz-nos como te podemos contactar, nós tratamos do resto.', '/servicos/', 'Tell us how we can reach you, we will take care of the rest.'),
+  closeLineA: services.copy.closeLineA,
+  closeLineB: services.copy.closeLineB,
+  closeBody: services.copy.closeBody,
 
   /** See the note on ABOUT.wordpressExcerpt. Retained, not published. */
-  wordpressExcerpt:
-    'Serviços O vídeo certo tem o poder de transformar um projeto, uma marca ou uma experiência. Por isso, damos vida a ideias com um toque cinematográfico e uma visão autêntica. Produção de Vídeo Criamos vídeos que contam histórias, captam emoções e deixam marca. Do conceito à pós-produção, cada detalhe é pensado para um resultado final […]',
+  wordpressExcerpt: services.wordpressExcerpt,
 } as const;
 
 /* ═════════════════════════════════════════════════════════════ /contactos/ ══ */
@@ -145,9 +134,9 @@ export const CONTACT = {
   phoneNote: HOME.phoneNote,  // '*custo para chamada móvel nacional.'
 
   /** The two published <h2> on the lower half of the page, in their published order. */
-  formHeading: v('Formulário', '/contactos/', 'Form'),
-  directHeading: v('Contacto Directo', '/contactos/', 'Direct Contact'),
-  directBody: v('Se preferires contata-nos diretamente através do nosso formulário. Prometemos ser breves a responder!', '/contactos/', 'If you prefer, contact us directly through our form. We promise to be quick to reply!'),
+  formHeading: contact.copy.formHeading,
+  directHeading: contact.copy.directHeading,
+  directBody: contact.copy.directBody,
 
   /**
    * See the note on ABOUT.wordpressExcerpt. Retained, not published — and on this page
@@ -156,8 +145,7 @@ export const CONTACT = {
    * settled. Phase 10 shipped it verbatim as preserved metadata; Phase 11 stops
    * publishing it, so no page offers a disputed address any more, in any element.
    */
-  wordpressExcerpt:
-    'Contactos Pronto para transformar a tua visão em imagens? Queremos ouvir a tua história e ajudá-la a ganhar vida. Tens um projeto em mente? Precisas de um vídeo autêntico para a tua marca ou negócio? Fala connosco e juntos criaremos algo memorável. Envia-nos uma mensagem e responderemos rapidamente. nextvisionfilmsagency@gmail.com (+351) 932 797 025 (+351) 929 […]',
+  wordpressExcerpt: contact.wordpressExcerpt,
 
   /**
    * The anchor the live homepage CTA already targets: `/contactos#contactar`.
@@ -196,15 +184,15 @@ export interface ContactField {
 }
 
 export const CONTACT_FIELDS: ContactField[] = [
-  { name: 'nome', type: 'text', label: v('Nome', '/contactos/', 'Name'), required: false, autocomplete: 'name' },
-  { name: 'email', type: 'email', label: v('Email', '/contactos/', 'Email'), required: true, autocomplete: 'email' },
-  { name: 'telefone', type: 'tel', label: v('Telefone', '/contactos/', 'Phone'), required: false, autocomplete: 'tel' },
-  { name: 'mensagem', type: 'textarea', label: v('Mensagem', '/contactos/', 'Message'), required: false, autocomplete: 'off' },
+  { name: 'nome', type: 'text', label: contact.form.labels.nome, required: false, autocomplete: 'name' },
+  { name: 'email', type: 'email', label: contact.form.labels.email, required: true, autocomplete: 'email' },
+  { name: 'telefone', type: 'tel', label: contact.form.labels.telefone, required: false, autocomplete: 'tel' },
+  { name: 'mensagem', type: 'textarea', label: contact.form.labels.mensagem, required: false, autocomplete: 'off' },
 ];
 
 export const CONTACT_FORM_COPY = {
   /** The live consent label, unchanged. `Política de Privacidade` becomes a real link. */
-  consent: v('Declaro que li e que aceito a Política de Privacidade.', '/contactos/', 'I declare that I have read and accept the Privacy Policy.'),
+  consent: contact.form.consent,
   /**
    * The words inside that label which link to /politica-de-privacidade/.
    *
@@ -212,8 +200,8 @@ export const CONTACT_FORM_COPY = {
    * literal run of that sentence — the phrase is not translated separately from the
    * sentence it sits in, or the split below would find nothing and the link would vanish.
    */
-  consentLink: { pt: 'Política de Privacidade', en: 'Privacy Policy' } as const,
-  submit: v('Enviar', '/contactos/', 'Send'),
+  consentLink: contact.form.consentLink,
+  submit: contact.form.submit,
   /** The live form's hidden text input. Kept: a honeypot only works if it looks real. */
   honeypot: 'empresa',
 } as const;
@@ -228,11 +216,11 @@ export const CONTACT_FORM_COPY = {
  * That inconsistency is the live site's and is preserved (decision D10, audit §3.7).
  */
 export const THANKS = {
-  title: v('Obrigado', '/obrigado/', 'Thank you'),
-  lineA: v('Obrigado! Recebemos a sua mensagem com sucesso.', '/obrigado/', 'Thank you! We have received your message successfully.'),
-  lineB: v('Entraremos em contacto brevemente.', '/obrigado/', 'We will be in touch shortly.'),
+  title: thanks.copy.title,
+  lineA: thanks.copy.lineA,
+  lineB: thanks.copy.lineB,
   /** See the note on ABOUT.wordpressExcerpt. Retained, not published. */
-  wordpressExcerpt: 'Obrigado! Recebemos a sua mensagem com sucesso. Entraremos em contacto brevemente.',
+  wordpressExcerpt: thanks.wordpressExcerpt,
 } as const;
 
 /* ════════════════════════════════════════════════════════════════ legal ══ */

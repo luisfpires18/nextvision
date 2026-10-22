@@ -1,0 +1,59 @@
+{
+  "leadImage": "pages/servicos/lead",
+  "collage": [
+    "projects/nvf-vs-antiqvvm/poster",
+    "projects/nazaryi/poster",
+    "projects/susanarafael/poster"
+  ],
+  "lead": [
+    {
+      "text": "O vídeo certo tem o poder de ",
+      "en": "The right video has the power to "
+    },
+    {
+      "text": "transformar",
+      "en": "transform",
+      "mark": true
+    },
+    {
+      "text": " um projeto, uma marca ou uma experiência. Por isso, damos vida a ",
+      "en": " a project, a brand or an experience. So we bring "
+    },
+    {
+      "text": "ideias",
+      "en": "ideas",
+      "mark": true
+    },
+    {
+      "text": " com um toque cinematográfico e uma ",
+      "en": " to life with a cinematic touch and an "
+    },
+    {
+      "text": "visão autêntica",
+      "en": "authentic vision",
+      "mark": true
+    },
+    {
+      "text": " .",
+      "en": "."
+    }
+  ],
+  "copy": {
+    "closeLineA": {
+      "text": "Dá vida à tua ideia",
+      "from": "/servicos/",
+      "en": "Bring your idea to life"
+    },
+    "closeLineB": {
+      "text": "Vamos Conversar!",
+      "from": "/servicos/",
+      "en": "Let’s Talk!"
+    },
+    "closeBody": {
+      "text": "Diz-nos como te podemos contactar, nós tratamos do resto.",
+      "from": "/servicos/",
+      "en": "Tell us how we can reach you, we will take care of the rest."
+    }
+  },
+  "wordpressExcerpt": "Serviços O vídeo certo tem o poder de transformar um projeto, uma marca ou uma experiência. Por isso, damos vida a ideias com um toque cinematográfico e uma visão autêntica. Produção de Vídeo Criamos vídeos que contam histórias, captam emoções e deixam marca. Do conceito à pós-produção, cada detalhe é pensado para um resultado final […]"
+}

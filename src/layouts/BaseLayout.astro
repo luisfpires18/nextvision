@@ -12,13 +12,16 @@ import { MOTION_BOOTSTRAP } from '../lib/motion/tier.ts';
 import { buildSeo, jsonLdGraph } from '../lib/seo.ts';
 import { DEFAULT_LOCALE, type Locale } from '../config/i18n.ts';
 import { t } from '../i18n/index.ts';
-import Header from '../components/site/Header.astro';
+import Rail from '../components/site/Rail.astro';
+import Spine from '../components/site/Spine.astro';
 import Footer from '../components/site/Footer.astro';
+import BrandMark from '../components/site/BrandMark.astro';
 import Analytics from '../components/site/Analytics.astro';
 import manifestSource from '../../public/manifest.webmanifest?raw';
 import '../styles/global.css';
 import '../styles/site.css';
 import '../styles/pwa.css';
+import '../styles/chrome.css';
 
 /**
  * `| undefined` is explicit on every optional prop because tsconfig runs
@@ -44,12 +47,20 @@ interface Props {
   langAlternate?: Partial<Record<Locale, string>> | undefined;
   /** JSON-LD @graph nodes. */
   schema?: Record<string, unknown>[] | undefined;
+  /**
+   * DESIGN V2. The section this page belongs to — the stripe of the logo it wears. Written
+   * on <html> as `data-section`, which is all the rail, the spine and the slide read.
+   * Pages outside the five sections (legal, errors) leave it unset and wear ink.
+   */
+  section?: 'home' | 'about' | 'commercial' | 'cinema' | 'bts' | 'contact' | undefined;
+  /** The full opening sequence instead of the short hold. Homepage only (decision C5). */
+  intro?: boolean | undefined;
 }
 
 const {
   title, description, ogDescription, locale = DEFAULT_LOCALE, ogImage = null, ogImageAlt,
   ogType = 'website', noindex = false, chrome = true, ground = 'cream', schema = [],
-  langAlternate,
+  langAlternate, section, intro = false,
 } = Astro.props;
 
 const seo = buildSeo({
@@ -78,7 +89,7 @@ const manifest = JSON.parse(manifestSource) as { theme_color: string };
 ---
 
 <!doctype html>
-<html lang={seo.htmlLang} data-header-over={ground === 'dark' ? 'media' : 'cream'}>
+<html lang={seo.htmlLang} data-header-over={ground === 'dark' ? 'media' : 'cream'} data-section={section}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -151,10 +162,22 @@ const manifest = JSON.parse(manifestSource) as { theme_color: string };
 
     {chrome ? (
       <>
-        <div class="loader" data-loader-overlay aria-hidden="true">
-          <div class="loader__bars"><i></i><i></i><i></i><i></i></div>
+        {/* DESIGN V2 — the opening. On the homepage it is Tatiana's sequence: the bar
+            fills through the five stripes, drops onto the monogram, says HELLO, stands up
+            and wipes the cream away. Everywhere else it is only the bar filling. Armed by
+            the bootstrap (first document of a session, `full` tier) and skippable with a
+            click or a key; site-motion.ts hides it. Transform and opacity only. */}
+        <div class="loader" data-loader-overlay data-variant={intro ? 'intro' : 'hold'} aria-hidden="true">
+          {intro && <div class="loader__curtain"><i class="loader__edge"></i></div>}
+          {intro && <div class="loader__mono"><BrandMark mark="monogramColour" /></div>}
+          {intro && <div class="loader__hello"><span>HELLO</span></div>}
+          <div class="loader__bar"><i></i><i></i><i></i><i></i><i></i></div>
         </div>
-        <div class="progress" data-progress aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+        {/* The lights-down state the rail calls for (decision C2). Two SIBLINGS, not a
+            parent and child: a blend mode inside an opacity-faded parent only blends with
+            that parent's own isolated group, never with the page beneath it. */}
+        <div class="dim dim--grey" aria-hidden="true"></div>
+        <div class="dim dim--shade" aria-hidden="true"></div>
 
         {/* The update prompt's three strings come from the i18n dictionary and ride on
             the shell, so the runtime never carries copy and never has to guess a
@@ -167,7 +190,8 @@ const manifest = JSON.parse(manifestSource) as { theme_color: string };
           data-pwa-action={t('pwa.update', locale)}
           data-pwa-dismiss={t('pwa.dismiss', locale)}
         >
-          <Header locale={locale} langAlternate={langAlternate} />
+          <Rail locale={locale} section={section} />
+          <Spine locale={locale} section={section} langAlternate={langAlternate} />
           <main class="site__main" id="main">
             <slot />
           </main>
@@ -177,6 +201,7 @@ const manifest = JSON.parse(manifestSource) as { theme_color: string };
         <script>
           import { initSite } from '../lib/site-motion.ts';
           import { initPortfolio } from '../lib/portfolio-filter.ts';
+          import { initCinema } from '../lib/cinema.ts';
           import { initTransitions } from '../lib/motion/transitions.ts';
 
           // Wired ONCE, to the document, because the router outlives every page. Putting
@@ -193,11 +218,13 @@ const manifest = JSON.parse(manifestSource) as { theme_color: string };
           let live = false;
           let instance: { destroy(): void } | null = null;
           let portfolio: { destroy(): void } | null = null;
+          let cinema: { destroy(): void } | null = null;
           const start = () => {
             if (live) return;
             live = true;
             instance = initSite();
             portfolio = initPortfolio();
+            cinema = initCinema();
           };
 
           /**
@@ -214,6 +241,7 @@ const manifest = JSON.parse(manifestSource) as { theme_color: string };
             live = false;
             instance?.destroy(); instance = null;
             portfolio?.destroy(); portfolio = null;
+            cinema?.destroy(); cinema = null;
           };
 
           // The incoming document is served with the loader markup in its un-hidden
@@ -224,6 +252,12 @@ const manifest = JSON.parse(manifestSource) as { theme_color: string };
             stop();
             const doc = (event as unknown as { newDocument: Document }).newDocument;
             doc.documentElement.removeAttribute('data-loader');
+            // The swap REPLACES <html>'s attributes with the incoming document's, and the
+            // served HTML carries no tier — the bootstrap only runs on a full load. Without
+            // this, `data-motion` vanished after the first client-side navigation, and every
+            // rule keyed on it (the section slide among them) silently stopped applying.
+            const tier = document.documentElement.dataset['motion'];
+            if (tier) doc.documentElement.dataset['motion'] = tier;
             // `[data-loader-overlay]`, NOT `[data-loader]`. The root carries the STATE
             // flag and comes first in document order, so the shorter selector matched
             // <html> and put `hidden` on the whole document (see site-motion.ts).

@@ -2,8 +2,11 @@
 /**
  * scripts/deploy.mjs — the ONE way this project reaches Cloudflare.
  *
- *     node scripts/deploy.mjs staging
- *     node scripts/deploy.mjs production
+ *     node scripts/deploy.mjs dev
+ *     node scripts/deploy.mjs prod
+ *
+ * (The targets were `staging` / `production` until 2026-10-22; the measurements below were
+ * taken under those names and hold unchanged for `dev` / `prod`.)
  *
  * ── Why this script exists at all ─────────────────────────────────────────────
  *

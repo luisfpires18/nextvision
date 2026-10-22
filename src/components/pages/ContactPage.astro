@@ -44,6 +44,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import ContactDetails from '../site/ContactDetails.astro';
 import ContactForm from '../site/ContactForm.astro';
 import { CONTACT } from '../../lib/static-pages.ts';
+import { PAGE_CONTENT } from '../../lib/page-content.ts';
 import { imageProps, getMedia } from '../../lib/media.ts';
 import { organizationSchema, breadcrumbSchema, absoluteUrl } from '../../lib/seo.ts';
 import type { Locale } from '../../config/i18n.ts';
@@ -51,12 +52,13 @@ import { pagePath } from '../../i18n/routes.ts';
 import { say } from '../../lib/homepage.ts';
 import { pageTitle, pageDescription } from '../../lib/page-meta.ts';
 import '../../styles/pages.css';
+import '../../styles/sections.css';
 
 interface Props { locale: Locale }
 const { locale } = Astro.props;
 const settings = await getEntry('settings', 'site');
 
-const bannerKey = 'pages/contactos/banner';
+const bannerKey = PAGE_CONTENT.contact.banner;
 const bannerItem = getMedia(bannerKey);
 const banner = imageProps(bannerKey, { alt: '', sizes: '100vw', priority: true });
 
@@ -79,6 +81,7 @@ const schema = [
 ---
 
 <BaseLayout
+  section="contact"
   title={pageTitle('contact', locale)}
   description={pageDescription('contact', locale) ?? undefined}
   locale={locale}

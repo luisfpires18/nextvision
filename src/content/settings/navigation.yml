@@ -3,30 +3,48 @@
 # Items reference a pageId resolved through src/i18n/routes.ts, and a labelKey
 # resolved through src/i18n/. No hrefs and no labels are hardcoded here, so the
 # menu works identically in every locale.
+#
+# DESIGN V2 (Tatiana). The menu is the rail: one stripe of the logo per section, in the
+# logo's own order. `section` names the stripe; the colour itself lives only in
+# src/styles/tokens.colour.css. The footer repeats the five as plain links, which is also
+# what keeps every destination reachable through a full-size target (WCAG 2.5.8).
 - id: navigation
   items:
-    # Work first: this is a production company, so the portfolio leads the menu.
-    - pageId: portfolio
-      labelKey: nav.portfolio
-      showIn: [header]
+    - pageId: home
+      labelKey: rail.home
+      section: home
+      showIn: [rail, footer]
       order: 0
     - pageId: about
-      labelKey: nav.about
-      showIn: [header]
+      labelKey: rail.about
+      section: about
+      showIn: [rail, footer]
       order: 1
     - pageId: services
-      labelKey: nav.services
-      showIn: [header]
+      labelKey: rail.commercial
+      section: commercial
+      showIn: [rail, footer]
       order: 2
+    - pageId: portfolio
+      labelKey: rail.cinema
+      section: cinema
+      showIn: [rail, footer]
+      order: 3
+    - pageId: bts
+      labelKey: rail.bts
+      section: bts
+      showIn: [rail, footer]
+      order: 4
     - pageId: contact
       labelKey: nav.contact
-      showIn: [header]
-      order: 3
+      section: contact
+      showIn: [footer]
+      order: 5
     - pageId: terms
       labelKey: nav.terms
       showIn: [footer]
-      order: 0
+      order: 6
     - pageId: privacy
       labelKey: nav.privacy
       showIn: [footer]
-      order: 1
+      order: 7

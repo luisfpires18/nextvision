@@ -156,6 +156,16 @@ export const PAGE_META: Record<PageId, PageMeta> = {
       + 'description, exactly as published, and search engines derive their own snippet.',
   },
 
+  bts: {
+    // Design v2. Tatiana's label for the section, in both languages.
+    title: { pt: 'BTS', en: 'BTS' },
+    description: [],
+    noDescriptionBecause:
+      'BTS is a new section of the design v2 identity. The live site has no such page, so '
+      + 'there is no published sentence to select a description from, and writing one would '
+      + 'be new copy that the owners have not reviewed (CLAUDE.md §2.1, Phase 11b).',
+  },
+
   privacy: {
     // Lower case, because the live <title> is lower case. Preserved (CLAUDE.md §2).
     title: { pt: 'política de privacidade', en: null },

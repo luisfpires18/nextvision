@@ -34,9 +34,11 @@
  */
 import { getCollection, getEntry } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import PageHead from '../site/PageHead.astro';
+import BrandMark from '../site/BrandMark.astro';
+import Reel from '../site/Reel.astro';
 import { SERVICES_PAGE, SERVICES_LEAD } from '../../lib/static-pages.ts';
-import { imageProps, getMedia } from '../../lib/media.ts';
+import { PAGE_CONTENT } from '../../lib/page-content.ts';
+import { imageProps } from '../../lib/media.ts';
 import { navHref } from '../../lib/nav.ts';
 import { organizationSchema, breadcrumbSchema, absoluteUrl } from '../../lib/seo.ts';
 import type { Locale } from '../../config/i18n.ts';
@@ -45,6 +47,7 @@ import { t } from '../../i18n/index.ts';
 import { say } from '../../lib/homepage.ts';
 import { pageTitle, pageDescription } from '../../lib/page-meta.ts';
 import '../../styles/pages.css';
+import '../../styles/sections.css';
 
 interface Props { locale: Locale }
 const { locale } = Astro.props;
@@ -57,9 +60,12 @@ const settings = await getEntry('settings', 'site');
  * whole file — so it takes a column and never the page width. Nothing here is upscaled
  * to fill a layout (decision A76).
  */
-const leadKey = 'pages/servicos/lead';
-const leadItem = getMedia(leadKey);
+const leadKey = PAGE_CONTENT.services.leadImage;
 const leadImage = imageProps(leadKey, { alt: '', sizes: '(min-width: 60rem) 39rem, 92vw' });
+
+/** The storyboard's collage: food, sunset, wedding. The middle frame is the large one. */
+const collage = PAGE_CONTENT.services.collage
+  .map((key, i) => imageProps(key, { alt: '', sizes: i === 1 ? '(min-width: 48rem) 34vw, 60vw' : '(min-width: 48rem) 22vw, 40vw' }));
 
 const schema = [
   organizationSchema({
@@ -88,6 +94,7 @@ const schema = [
 ---
 
 <BaseLayout
+  section="commercial"
   title={pageTitle('services', locale)}
   description={pageDescription('services', locale) ?? undefined}
   locale={locale}
@@ -96,68 +103,54 @@ const schema = [
   ogImage={leadImage ? absoluteUrl(leadImage.src) : null}
   schema={schema}
 >
-  {/* ── A · THE LEAD, IN THE PAGE'S OWN EMPHASIS ───────────────────────── */}
-  <PageHead title={say(SERVICES_PAGE.title, locale)} layout="plate">
-    <p class="display sv-lead" style="margin-block-start: var(--space-6)" data-reveal>
-      {/* The three marked phrases are the SOURCE's own emphasis, in both languages —
-          the translation decides what the phrase is, never which phrase is marked. */}
+  {/* ── DESIGN V2 (Tatiana) — Commercial ───────────────────────────────────
+      The colour NVF, a collage of three frames (food, sunset, wedding — the storyboard's
+      own choice, taken from the manifest), and each service set the way the storyboard
+      sets VIDEO PRODUCTION: a black headline over its description. All four services and
+      the lead are the page's published copy, unchanged. The reel rolls in along the foot
+      and comes to rest as LET'S TALK, which is the page's own invitation to /contactos/. */}
+  <section class="cm ground-cream" data-ground="cream">
+    <BrandMark mark="colour" class="cm__mark" />
+    <h1 class="cm__title" id="page-title">{say(SERVICES_PAGE.title, locale)}</h1>
+
+    <div class="cm__collage" aria-hidden="true">
+      {collage.map((img, i) => img && (
+        <picture class={`cm__frame cm__frame--${i + 1}`}>
+          {img.avifSrcset && <source type="image/avif" srcset={img.avifSrcset} sizes={img.sizes} />}
+          <img src={img.src} srcset={img.srcset} sizes={img.sizes} alt="" width={img.width} height={img.height} loading={i === 1 ? 'eager' : 'lazy'} decoding="async" />
+        </picture>
+      ))}
+    </div>
+
+    <p class="cm__lead">
+      {/* The three marked phrases are the SOURCE's own emphasis, in both languages. */}
       {SERVICES_LEAD.map((seg) => {
         const run = locale === 'en' ? seg.en : seg.text;
         return seg.mark ? <span class="sv-mark">{run}</span> : <>{run}</>;
       })}
     </p>
 
-    <Fragment slot="aside">
-      {leadImage && (
-        <div class="sv-plate" style={leadItem?.aspectRatio ? `--ar:${leadItem.aspectRatio}` : undefined}>
-          <picture>
-            {leadImage.avifSrcset && <source type="image/avif" srcset={leadImage.avifSrcset} sizes={leadImage.sizes} />}
-            <img
-              src={leadImage.src}
-              srcset={leadImage.srcset}
-              sizes={leadImage.sizes}
-              alt=""
-              width={leadImage.width}
-              height={leadImage.height}
-              loading="lazy"
-              decoding="async"
-            />
-          </picture>
+    <div class="cm__services">
+      {services.map((s) => (
+        <div class="cm__service">
+          <h2>{s.data.title[locale] ?? s.data.title.pt}</h2>
+          <p>{s.data.description[locale] ?? s.data.description.pt}</p>
         </div>
-      )}
-    </Fragment>
-  </PageHead>
-
-  {/* ── B · THE FOUR SERVICES, IN FULL ─────────────────────────────────── */}
-  <section class="section ground-cream" data-ground="cream" data-header="cream" aria-label={say(SERVICES_PAGE.title, locale)}>
-    <div class="wide">
-      <div class="sv-list">
-        {services.map((s) => (
-          <div class="sv-item" data-reveal>
-            <h2 class="sv-item__title">{s.data.title[locale] ?? s.data.title.pt}</h2>
-            <p class="body sv-item__body">{s.data.description[locale] ?? s.data.description.pt}</p>
-          </div>
-        ))}
-      </div>
+      ))}
     </div>
+
+    <div class="cm__close">
+      <p class="cm__close-a">{say(SERVICES_PAGE.closeLineA, locale)}</p>
+      <h2 class="cm__close-b">{say(SERVICES_PAGE.closeLineB, locale)}</h2>
+      <p>{say(SERVICES_PAGE.closeBody, locale)}</p>
+    </div>
+
+    <svg class="cm__asterisk" viewBox="-12 -12 24 24" aria-hidden="true"><path d="M0-10V10M-10 0H10M-7-7 7 7M-7 7 7-7" /></svg>
   </section>
 
-  {/* ── C · THE CLOSE — the page's own published invitation, on the dark ground
-      the site closes every page with. */}
-  <section class="section ground-dark" data-ground="dark" data-header="dark" aria-labelledby="services-close">
-    <div class="wide contact">
-      <div>
-        <p class="eyebrow">{say(SERVICES_PAGE.closeLineA, locale)}</p>
-        <h2 class="display" id="services-close" data-reveal>{say(SERVICES_PAGE.closeLineB, locale)}</h2>
-        <p class="body dim" style="margin-block-start:var(--space-5)" data-reveal>{say(SERVICES_PAGE.closeBody, locale)}</p>
-        <p class="contact__actions">
-          {/* The published nav label, so the destination is named the way the menu
-              names it rather than with a second word for the same page. */}
-          <a class="ctl" href={navHref('contact', locale)}>
-            <span>{t('nav.contact', locale)}</span>
-          </a>
-        </p>
-      </div>
-    </div>
-  </section>
+  <a class="talk" href={`${navHref('contact', locale)}#contactar`}>
+    <i class="talk__film" aria-hidden="true"></i>
+    <Reel class="talk__reel" text={["LET'S", 'TALK']} />
+    <span class="visually-hidden">{t('ui.letsTalk', locale)}</span>
+  </a>
 </BaseLayout>

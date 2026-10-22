@@ -1,0 +1,55 @@
+#!/bin/sh
+#
+# pre-push — refuse to delete or force-push `dev` and `master`.
+#
+# This exists because GitHub's own branch protection is NOT available here: the
+# repository is private on GitHub Free, and both the branch-protection and the ruleset
+# APIs answer
+#
+#     403  Upgrade to GitHub Pro or make this repository public to enable this feature.
+#
+# So the two rules that matter — no deletion, no force-push — cannot be enforced on the
+# server. This enforces them on the CLIENT instead, which is honest about what it is:
+#
+#   * it protects the machine that has it installed, and nothing else;
+#   * `--no-verify` bypasses it, deliberately, because a hook that cannot be bypassed
+#     locks you out of your own repository;
+#   * it is NOT a substitute for branch protection. It is what is available.
+#
+# Enable it (once per clone):   git config core.hooksPath scripts/hooks
+#
+# Normal pushes to dev are untouched: direct development commits on dev are the intended
+# workflow, and only rewriting or removing history is refused.
+
+protected='dev master'
+zero='0000000000000000000000000000000000000000'
+status=0
+
+while read -r local_ref local_sha remote_ref remote_sha; do
+  branch=${remote_ref#refs/heads/}
+  case " $protected " in
+    *" $branch "*) ;;
+    *) continue ;;
+  esac
+
+  # Deleting the branch: the local side is all zeroes.
+  if [ "$local_sha" = "$zero" ]; then
+    echo "pre-push: refusing to DELETE '$branch'." >&2
+    echo "          It is a permanent branch. See scripts/hooks/pre-push." >&2
+    status=1
+    continue
+  fi
+
+  # A new branch on the remote has nothing to rewrite.
+  [ "$remote_sha" = "$zero" ] && continue
+
+  # Anything that is not a fast-forward rewrites published history.
+  if ! git merge-base --is-ancestor "$remote_sha" "$local_sha" 2>/dev/null; then
+    echo "pre-push: refusing to FORCE-PUSH '$branch' — this is not a fast-forward." >&2
+    echo "          ${remote_sha%"${remote_sha#???????}"}… on the remote is not an ancestor of what you are pushing." >&2
+    echo "          Merge or rebase onto it instead of overwriting it." >&2
+    status=1
+  fi
+done
+
+exit $status

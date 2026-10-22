@@ -69,18 +69,45 @@ The script had always documented the requirement; nothing enforced it, because a
 machine that installed it once never notices again. Both workflows now install it, pinned
 to the versions that produced the QA'd faces.
 
+**Production is live on workers.dev.** PR #1 merged `dev` into `master` as a merge commit,
+and the production workflow ran green in 1m27s: `deploy target: production -> Worker
+"next-vision-films-production"`, version `5793e05f`, at
+`https://next-vision-films-production.next-vision-films.workers.dev`. Smoke-tested: 7 routes
+200, a media rendition 200, a missing route 404, the contact endpoint refusing an
+Origin-less POST with 403, and canonicals still pointing at `www.nextvisionfilms.com` — which
+is what keeps the workers.dev copies from competing with the real site. **`dev` is now the
+GitHub default branch**, so a clone lands there and new branches fork from it.
+
 Not started: DNS cutover, the newsletter endpoint (D18).
 
 ---
 
 ## BLOCKED
 
+- [ ] **Design v2 assets.** VHS spine artwork (spines are drawn from titles until then), the
+      NOWHERE poster and project, Need to Talk, Agente Imobiliário Sem Casa Para Viver, the
+      About team-photo carousel, and a vector export of the logos (C8; PNG masks for now).
+- [ ] **Contact "Company/brand" field.** The honeypot is already named `empresa`; renaming it
+      and adding the field is a contract change on both sides (`src/config/forms.ts`).
+
+- [ ] **Branch protection is impossible on this plan.** Both the branch-protection and the ruleset APIs answer `403 Upgrade to GitHub Pro or make this repository public` for a private repo on GitHub Free, so "no deletion, no force-push" on `dev` and `master` cannot be enforced server-side. `scripts/hooks/pre-push` enforces both on the CLIENT (`git config core.hooksPath scripts/hooks`) and protects only the machine that has it. Exits: GitHub Pro, or making the repository public — which would publish the archived source data and internal documents too.
 - [ ] **Turnstile production keys** — site key + `TURNSTILE_SECRET_KEY`. Unset, `/api/contact/` refuses every submission with `503`. Needs the owners' Cloudflare account.
 - [ ] **Cloudflare Web Analytics site token** — `PUBLIC_ANALYTICS_TOKEN`. Unset, no beacon is emitted at all. Created under **Manage site → JS snippet**; the token, not the snippet, is what we need. (Phase 14)
 - [ ] **Outstanding masters / weak media** — M1–M9 in `docs/SMASH_MEDIA_INVENTORY.md` §6. Longest lead time in the project; nothing is upscaled to hide it.
 - [ ] **English review by an owner or native speaker** — every English string was authored here and has never been read by the company.
 
 ## OWNER DECISION
+
+- [ ] **Design v2 copy (Tatiana's storyboard).** New About lead and paragraphs, and the
+      contact-sheet heading (contains "SCREME", "WOHOLE", "ALREDY"). Not published; the
+      live copy stays until approved. `docs/DESIGN_V2_ROLLOUT.md` §5.
+- [ ] **Founders' roles and contacts in design v2.** The storyboard's "Co-Founder & …" roles
+      differ from the live ones; its e-mails and personal phones wait on D2 and both
+      founders' consent.
+- [ ] **Design v2 mobile layout.** The storyboard is desktop-only; the bottom-rail/top-spine
+      adaptation needs Tatiana's sign-off.
+- [ ] **Design v2 dark-state text (C2 caveat).** The rail's lights-down darkens text with
+      everything else; turning it cream needs a colour transition and a §11 amendment.
 
 - [ ] **D2 — canonical contact email.** Three candidates: `nextvisionfilmsagency@gmail.com`, `hello@nextvisionfilms.com`, `geral@nextvisionfilms.com`. No page publishes any of them.
 - [ ] **D17 — contact recipient + email provider.** Blocks delivery only; the endpoint and the four-adapter seam are built.

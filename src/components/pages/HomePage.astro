@@ -1,68 +1,45 @@
 ---
 /**
- * Homepage — REVIEW B.
+ * Homepage — DESIGN V2 (Tatiana).
  *
- * The approved direction (Contact Sheet system + Projection mode) applied to the real
- * Portuguese route. Still a review artefact: the composition, the curated selection and
- * the hero film may all change on owner feedback. Nothing is propagated site-wide yet.
+ * The storyboard's homepage is one frame: the film, full-bleed, with "We are NVF" over it
+ * and the logo at its foot. Everything else lives in its own section, one stripe of the
+ * rail away, so the page no longer carries the Review B editorial rows, the feature, the
+ * services list or the about excerpt — each of those is now the page it was excerpting.
  *
- * Ground rhythm — three changes before the closing, where Review A had seven:
+ * The opening sequence plays here, and only here (decision C5).
  *
- *     hero            DARK      the work, first and full-bleed
- *     work + feature  CREAM     editorial browsing
- *       └ feature     DARK      the one Projection moment
- *     services/about  CREAM     editorial continuation
- *     contact         DARK      the close
+ * ── The words ────────────────────────────────────────────────────────────────
+ * "We are NVF" is the live site's own <title> suffix (src/lib/brand.ts). The company
+ * statement under it is the live homepage's two published lines, unchanged, and it is
+ * still the page's single <h1> — the wordmark is set as display type above it, so the
+ * heading a reader or a crawler meets is the published sentence, not a slogan.
  *
- * PHASE 11 replaced the metadata. The live page publishes no meta description and a
- * Yoast og:description that is the top of the page with its punctuation removed and a
- * `[…]` on the end. It now carries a real description composed of two whole published
- * sentences, and a <title> that finally contains the company's name
- * (src/lib/page-meta.ts).
+ * ── The film ─────────────────────────────────────────────────────────────────
+ * Tatiana's frame is the night portrait from `ana-reels`; which film plays is `heroVideo`
+ * in src/content/page-content/home.json, so replacing it is a data edit. It is attached by the runtime
+ * exactly like the Review B hero (data-hero, site-motion.ts): nothing is fetched below the
+ * `full` tier, and the poster is the designed state there.
  */
-import { getCollection, getEntry } from 'astro:content';
+import { getEntry } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import WorkRows from '../home/WorkRows.astro';
-import ContactClose from '../site/ContactClose.astro';
-import { curatedProjects } from '../../lib/curated.ts';
+import BrandMark from '../site/BrandMark.astro';
 import { getMedia, imageProps, videoProps } from '../../lib/media.ts';
 import { organizationSchema, websiteSchema, absoluteUrl } from '../../lib/seo.ts';
-import { navHref } from '../../lib/nav.ts';
-import routes from '../../data/routes.json' with { type: 'json' };
-import { t } from '../../i18n/index.ts';
 import { pageTitle, pageDescription } from '../../lib/page-meta.ts';
+import { BRAND_LINES } from '../../lib/brand.ts';
 import type { Locale } from '../../config/i18n.ts';
-import {
-  HOME, heroFacts, say,
-  GROUP_A, GROUP_B, GROUP_A_COUNT, SECTION_ANCHORS,
-} from '../../lib/homepage.ts';
+import { HOME, say } from '../../lib/homepage.ts';
+import { PAGE_CONTENT } from '../../lib/page-content.ts';
 
 interface Props { locale: Locale }
 const { locale } = Astro.props;
-
-/* Services and the team are content entries, shared with /servicos/ and /sobre/, so the
-   three pages cannot disagree about what the company offers or who works there. */
-const services = (await getCollection('services')).sort((a, b) => a.data.order - b.data.order);
-const team = (await getCollection('team')).sort((a, b) => a.data.order - b.data.order);
-
-/* ── content ──────────────────────────────────────────────────────────────── */
-
-const curated = await curatedProjects(locale);
-const feature = curated.find((p) => p.featured) ?? null;
-const editorial = curated.filter((p) => !p.featured);
-const groupA = editorial.slice(0, GROUP_A_COUNT);
-const groupB = editorial.slice(GROUP_A_COUNT);
-
-// The count under the hero is the number of projects the company actually publishes,
-// taken from the preserved route map — not the number curated onto this page, and not a
-// number anyone typed.
-const publishedCount = routes.preserve.filter((r) => r.kind === 'project').length;
 
 const settings = await getEntry('settings', 'site');
 
 /* ── hero media ───────────────────────────────────────────────────────────── */
 
-const heroKey = 'pages/home/hero';
+const heroKey = PAGE_CONTENT.home.heroVideo;
 const heroItem = getMedia(heroKey);
 const hero = videoProps(heroKey);
 /* The LCP image on the site's front page: eager, high priority, and never lazy. */
@@ -72,9 +49,6 @@ const heroLg = hero?.mp4[0]?.src ?? null;
 const heroSm = hero?.mp4[1]?.src ?? heroLg;
 const heroWebmLg = hero?.webm[0]?.src ?? null;
 const heroWebmSm = hero?.webm[1]?.src ?? heroWebmLg;
-// The prototype loop is encoded silent, so no sound control is rendered. A control that
-// controls nothing is worse than no control.
-const heroHasAudio = heroItem?.hasAudio === true;
 
 /* ── SEO ──────────────────────────────────────────────────────────────────── */
 
@@ -89,6 +63,8 @@ const schema = [
 ---
 
 <BaseLayout
+  section="home"
+  intro
   title={pageTitle('home', locale)}
   description={pageDescription('home', locale) ?? undefined}
   locale={locale}
@@ -97,9 +73,8 @@ const schema = [
   ogImageAlt={`${say(HOME.heroLineA, locale)} ${say(HOME.heroLineB, locale)}`}
   schema={schema}
 >
-  {/* ───────────────────────────── A · HERO — film first, branding restrained */}
-  <section class="hero ground-dark" data-hero data-ground="dark" data-header="media">
-    <div class="hero__media" data-media data-header-zone>
+  <section class="hero hero--v2 ground-dark" data-hero data-ground="dark" data-cursor="dark">
+    <div class="hero__media" data-media>
       {heroPosterImg && (
         <picture>
           {heroPosterImg.avifSrcset && <source type="image/avif" srcset={heroPosterImg.avifSrcset} sizes={heroPosterImg.sizes} />}
@@ -133,210 +108,94 @@ const schema = [
       )}
     </div>
 
-    <div class="hero__foot">
-      <div>
-        {/* The live homepage sets these same words at display scale and has no <h1> at
-            all. Here they are the page's single <h1>, at reading weight, so the film
-            stays the loudest thing on screen. Adding the heading changes no words. */}
-        <h1 class="hero__statement">
-          <span>{say(HOME.heroLineA, locale)}</span> <span>{say(HOME.heroLineB, locale)}</span>
-        </h1>
-        <p class="metaline hero__facts">
-          {heroFacts(publishedCount, locale).map((f) => <span>{f}</span>)}
-        </p>
-      </div>
+    <div class="hero__centre">
+      <p class="hero__wordmark" aria-hidden="true">{BRAND_LINES.wordmark}</p>
+      <h1 class="hero__statement">
+        <span>{say(HOME.heroLineA, locale)}</span> <span>{say(HOME.heroLineB, locale)}</span>
+      </h1>
+    </div>
 
-      <div class="hero__controls">
-        {heroHasAudio && (
-          <button
-            class="ctl"
-            type="button"
-            data-sound
-            aria-pressed="false"
-            data-on={t('media.unmute', locale)}
-            data-off={t('media.mute', locale)}
-          ><span>{t('media.unmute', locale)}</span></button>
-        )}
-        <a class="hero__cue" href={`#${SECTION_ANCHORS.work}`}>{t('project.scroll', locale)}</a>
-      </div>
+    <svg class="hero__asterisk" viewBox="-12 -12 24 24" aria-hidden="true">
+      <path d="M0-10V10M-10 0H10M-7-7 7 7M-7 7 7-7" />
+    </svg>
+
+    <div class="hero__marks" aria-hidden="true">
+      <BrandMark mark="monogram" />
+      <BrandMark mark="mono" />
+      <BrandMark mark="stack" />
     </div>
   </section>
-
-  {/* ─────────────────────────── B+C · EDITORIAL INTRO + SELECTED WORK, part 1 */}
-  <section
-    class="section ground-cream"
-    id={SECTION_ANCHORS.work}
-    data-ground="cream"
-    data-header="cream"
-    aria-labelledby="work-h"
-  >
-    <div class="wide">
-      <p class="eyebrow">{t('nav.portfolio', locale)}</p>
-
-      <div class="intro">
-        <h2 class="display" id="work-h" data-reveal>
-          {say(HOME.workLineA, locale)} <b>{say(HOME.workLineB, locale)}</b>
-        </h2>
-        <div class="intro__body" data-reveal>
-          <p class="lead">{say(HOME.workBody, locale)}</p>
-          <p class="body dim">{say(HOME.workBodyB, locale)}</p>
-        </div>
-      </div>
-
-      <div class="work-a">
-        <WorkRows rows={GROUP_A} projects={groupA} locale={locale} />
-      </div>
-    </div>
-  </section>
-
-  {/* ──────────────────────────────────────── D · CINEMATIC FEATURE — the one
-      Projection moment after the hero. Dark, full width, one frame at scale. */}
-  {feature && (
-    <section
-      class="feature ground-dark"
-      data-feature
-      data-ground="dark"
-      data-header="dark"
-      aria-labelledby="feature-h"
-    >
-      <div class="feature__inner">
-        <a class="feature__frame" data-header-zone href={feature.href} aria-label={feature.title} data-frame={feature.slug}>
-          {(feature.heroPosterSrc ?? feature.posterSrc) && (
-            <img
-              src={feature.heroPosterSrc ?? feature.posterSrc!}
-              alt=""
-              width={feature.heroWidth}
-              height={feature.heroHeight}
-              loading="lazy"
-              decoding="async"
-            />
-          )}
-          {feature.heroSrc && (
-            <video
-              data-src-lg={feature.heroSrc}
-              data-src-sm={feature.heroSrcSmall ?? feature.heroSrc}
-              data-src-webm-lg={feature.heroWebm ?? undefined}
-              data-src-webm-sm={feature.heroWebmSmall ?? undefined}
-              poster={feature.heroPosterSrc ?? undefined}
-              width={feature.heroWidth}
-              height={feature.heroHeight}
-              muted
-              loop
-              playsinline
-              preload="none"
-              aria-hidden="true"
-            ></video>
-          )}
-        </a>
-
-        <div class="feature__head">
-          <div>
-            <h2 class="feature__title" id="feature-h">{feature.title}</h2>
-            <p class="metaline" style="margin-block-start:var(--space-4)">
-              <span>{feature.categoryName}</span><span>{feature.date}</span>
-              <span class="item__cue" aria-hidden="true">{t('project.viewProject', locale)}</span>
-            </p>
-          </div>
-          {feature.tagline && <p class="body body--s feature__tag">{feature.tagline}</p>}
-        </div>
-      </div>
-    </section>
-  )}
-
-  {/* ─────────────────────────────────── E · SELECTED WORK, part 2 + the route
-      to everything. The homepage is curated; the library lives at /portfolio/. */}
-  <section class="section ground-cream" data-ground="cream" data-header="cream" aria-label={t('nav.portfolio', locale)}>
-    <div class="wide">
-      <WorkRows rows={GROUP_B} projects={groupB} locale={locale} />
-
-      <p class="work-all">
-        <a class="ctl" href={navHref('portfolio', locale)}>
-          <span>{say(HOME.ctaPortfolio, locale)}</span>
-        </a>
-      </p>
-    </div>
-  </section>
-
-  {/* ─────────────────────────────────────────────── F · SERVICES — an index,
-      not five cards. Four real services, verbatim, on a ruled list. */}
-  <section
-    class="section ground-cream"
-    id={SECTION_ANCHORS.services}
-    data-ground="cream"
-    data-header="cream"
-    aria-labelledby="services-h"
-  >
-    <div class="wide services">
-      <div class="services__lead">
-        <p class="eyebrow">{say(HOME.servicesTitle, locale)}</p>
-        <h2 class="display display--s" id="services-h" data-reveal>{say(HOME.servicesLead, locale)}</h2>
-      </div>
-      <div class="services__list">
-        {services.map((s) => (
-          <div class="service" data-reveal>
-            <h3 class="service__title">{s.data.title[locale] ?? s.data.title.pt}</h3>
-            <p class="body body--s dim">{
-              s.data.excerpt?.[locale] ?? s.data.description[locale]
-              ?? s.data.excerpt?.pt ?? s.data.description.pt
-            }</p>
-          </div>
-        ))}
-      </div>
-    </div>
-  </section>
-
-  {/* ────────────────────────────────────────────────── G · ABOUT — selective.
-      Three published lines and the two real names. Not the whole page. */}
-  <section
-    class="section ground-cream"
-    id={SECTION_ANCHORS.about}
-    data-ground="cream"
-    data-header="cream"
-    aria-labelledby="about-h"
-  >
-    <div class="wide about">
-      <div class="about__text">
-        <p class="eyebrow">{say(HOME.aboutTitle, locale)}</p>
-        <h2 class="display" id="about-h" data-reveal>{say(HOME.aboutLead, locale)}</h2>
-        <p class="lead" data-reveal>{say(HOME.aboutBodyB, locale)}</p>
-      </div>
-      <div class="team">
-        {team.map((m) => (
-          <div class="team__row">
-            <p class="team__name">{m.data.name}</p>
-            <p class="metaline">{m.data.role[locale] ?? m.data.role.pt}</p>
-          </div>
-        ))}
-      </div>
-    </div>
-  </section>
-
-  {/* ─────────────────────────────────────── H · CLOSE — cinematic dark.
-      Shared with every other page; the homepage is the `full` density. */}
-  <ContactClose variant="full" id={SECTION_ANCHORS.contact} locale={locale} />
 </BaseLayout>
 
 <style>
-  /* Layout that exists only on this page. Every value is a token. */
-  .intro { display: grid; gap: var(--space-6); margin-block-end: var(--space-9); }
-  @media (min-width: 60rem) {
-    .intro {
-      grid-template-columns: minmax(0, 6fr) minmax(0, 6fr);
-      gap: var(--space-9);
-      align-items: start;
-    }
+  .hero--v2 { min-block-size: 100svh; display: grid; place-items: center; overflow: hidden; }
+  @media (max-width: 47.99rem) {
+    .hero--v2 { min-block-size: calc(100svh - var(--header-h) - var(--rail-bar)); }
   }
-  .intro__body { display: grid; gap: var(--space-4); }
+  .hero--v2 .hero__media::after { background: var(--scrim-text); }
 
-  .work-a { margin-block-start: var(--space-8); }
-
-  /* Closes the grid it belongs to, rather than floating above the section seam. */
-  .work-all { display: flex; justify-content: flex-end; margin: var(--space-6) 0 0; }
-
-  .contact__phone {
+  .hero__centre { position: relative; z-index: 1; text-align: center; padding-inline: var(--gutter); }
+  .hero__wordmark {
+    margin: 0;
     font-family: var(--font-display);
-    font-weight: 700;
-    font-size: var(--t-service);
-    line-height: 1.1;
+    font-weight: var(--w-display);
+    font-size: var(--t-statement);
+    line-height: var(--lh-poster);
+    color: var(--brand-yellow);
   }
+  /* The published statement, under the wordmark, at reading weight. */
+  .hero--v2 .hero__statement {
+    margin: var(--space-4) 0 0;
+    font-size: var(--t-hero-line);
+    color: var(--ink-on-dark);
+  }
+
+  .hero__asterisk {
+    position: absolute;
+    z-index: 1;
+    inset-inline-end: 9%;
+    inset-block-start: 63%;
+    inline-size: var(--space-5);
+    fill: none;
+    stroke: var(--brand-yellow);
+    stroke-width: 3.4;
+    stroke-linecap: round;
+  }
+
+  /* The marks are rendered by BrandMark, so they carry ITS scope, not this page's: the
+     child selectors below must be :global() or they match nothing (they did, at first —
+     all three lockups showed at once, at their own full size).
+
+     The logo at the foot of the frame cycles through its three lockups — N, NVF, NEXT
+     VISION FILMS — three times, then rests on NVF. A loop that never ends is a frame
+     loop by another name, so it ends. Each lockup holds for a third of the cycle;
+     `backwards` keeps the later ones hidden until their turn. */
+  .hero__marks {
+    position: absolute;
+    z-index: 1;
+    inset-block-end: var(--space-5);
+    inset-inline-start: 50%;
+    inline-size: var(--space-9);
+    block-size: var(--space-7);
+    transform: translateX(-50%);
+    color: var(--ink-on-dark);
+  }
+  .hero__marks > :global(*) {
+    position: absolute;
+    inset: 0;
+    inline-size: 100%;
+    block-size: 100%;
+    aspect-ratio: auto;
+    opacity: 0;
+    animation: nvf-cycle calc(var(--dur-reveal) * 9) linear 3 backwards;
+  }
+  .hero__marks > :global(:nth-child(2)) { opacity: 1; animation-delay: calc(var(--dur-reveal) * 3); }
+  .hero__marks > :global(:nth-child(3)) { animation-delay: calc(var(--dur-reveal) * 6); }
+  @keyframes nvf-cycle {
+    0% { opacity: 0; }
+    3%, 30% { opacity: 1; }
+    33%, 100% { opacity: 0; }
+  }
+  :root[data-motion='minimal'] .hero__marks > :global(*),
+  :root[data-motion='reduced'] .hero__marks > :global(*) { animation: none; }
 </style>

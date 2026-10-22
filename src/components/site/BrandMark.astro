@@ -1,0 +1,24 @@
+---
+/**
+ * A logo, from src/lib/brand.ts. Masks paint in `currentColor`; colour marks are images.
+ * Decorative by default — pass `label` only where the mark is the only name on screen.
+ */
+import { BRAND, type BrandKey } from '../../lib/brand.ts';
+
+interface Props { mark: BrandKey; label?: string | undefined; class?: string | undefined }
+const { mark, label, class: cls } = Astro.props;
+const m = BRAND[mark];
+const ratio = `${m.width} / ${m.height}`;
+---
+
+{m.mask ? (
+  <span
+    class:list={['brand-mark', cls]}
+    style={`--mark:url(${m.src}); --mark-ar:${ratio}`}
+    role={label ? 'img' : undefined}
+    aria-label={label}
+    aria-hidden={label ? undefined : 'true'}
+  ></span>
+) : (
+  <img class:list={['brand-mark', cls]} src={m.src} width={m.width} height={m.height} alt={label ?? ''} decoding="async" />
+)}

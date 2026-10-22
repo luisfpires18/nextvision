@@ -26,6 +26,7 @@
  *   images                 StaleWhileRevalidate  60 entries, 30 days
  *   video                  NetworkOnly         NEVER cached, by extension AND by path
  *   /api/*, cross-origin   NetworkOnly         not ours to cache
+ *   /admin*                NetworkOnly         signed-in and always current; never on a device
  *
  * ── What it will not do ──────────────────────────────────────────────────────
  * It never calls `skipWaiting()` on its own. A new version waits until the reader asks
@@ -122,6 +123,9 @@ self.addEventListener('fetch', (event) => {
    */
   if (url.origin !== self.location.origin) return;
   if (url.pathname.startsWith('/api/')) return;
+  // The admin (prod Worker only): a cached copy would show stale content, and keep a
+  // signed-in page on the device after the session ended.
+  if (url.pathname.startsWith('/admin')) return;
   if (isVideo(url)) return;
 
   if (request.mode === 'navigate') { event.respondWith(document_(request, url)); return; }

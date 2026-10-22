@@ -151,7 +151,8 @@ npm run media:sync             # 5. DRY RUN — see exactly what would upload
 npm run media:sync -- --execute   # 6. upload only what is missing
 ```
 
-Then reference it from content by **key** (`projects/new-film/hero`). No component changes,
+Then reference it from content by **key** (`projects/new-film/hero`) — a project file, or
+`src/content/page-content/*.json` for the homepage film, page images and BTS frames. No component changes,
 no URL is typed anywhere, and no R2 path appears in the repository.
 
 `media:build` is cheap to re-run: every rendition is fingerprinted by source stamp + recipe

@@ -16,7 +16,11 @@ npm **>= 9.6.5**, one lockfile.
 
 ## Getting started
 
+The default branch is **`dev`** — a clone lands there, and that is where work starts.
+`master` is the release branch and only ever receives merges from `dev`.
+
 ```bash
+git config core.hooksPath scripts/hooks   # refuses force-push/deletion of dev and master
 npm install
 npm run fonts:build      # the six WOFF2 faces — generated, not committed
 npm run media:pull       # restore media/dist/ from R2 (needs read-only R2 keys)
@@ -37,9 +41,9 @@ npm run check               # astro check (types + templates)
 npm run verify              # all eleven validators + build — run before committing
 npm run test:forms          # drives the live contact endpoint (needs a running dev server)
 
-npm run deploy              # = deploy:staging
-npm run deploy:staging      # verify -> build -> deploy the staging Worker
-npm run deploy:production   # verify -> build -> deploy the production Worker
+npm run deploy              # = deploy:dev
+npm run deploy:dev          # verify -> build -> deploy the dev Worker
+npm run deploy:prod         # verify -> build -> deploy the prod Worker
 npm run preview:cloudflare  # build -> wrangler dev (the BUILT Worker, under workerd)
 
 npm run media:pull          # restore media/dist/ from R2       (read only)
@@ -56,17 +60,20 @@ Manual deploys are **emergency tooling, not the normal workflow** — normally y
 Two long-lived branches, and one merge commit between them:
 
 ```
-work locally on dev  ->  git push origin dev   ->  CI verify  ->  STAGING Worker
-                                                                        |
-when you decide it is ready:  merge dev -> master (a normal merge commit)
-                                                                        |
-                                git push origin master ->  CI verify ->  PRODUCTION Worker
+dev (default)  ->  git push origin dev      ->  CI verify  ->  STAGING Worker
+                                                                     |
+when you decide it is ready:  PR dev -> master, merged as a merge commit
+                                                                     |
+                              push reaches master ->  CI verify  ->  PRODUCTION Worker
 ```
+
+Direct commits on `dev` are normal; feature branches are optional and merge back into
+`dev`. Nothing is developed on `master`.
 
 | Branch | Workflow | Cloudflare Worker | URL |
 |---|---|---|---|
-| `dev` | `.github/workflows/staging.yml` | `next-vision-films` | `https://next-vision-films.next-vision-films.workers.dev` |
-| `master` | `.github/workflows/production.yml` | `next-vision-films-production` | `https://next-vision-films-production.next-vision-films.workers.dev` |
+| `dev` | `.github/workflows/dev.yml` | `dev` | `https://dev.nextvisionfilms.com` |
+| `master` | `.github/workflows/prod.yml` | `next-vision-films-production` | `https://www.nextvisionfilms.com` (live) |
 
 Both pipelines are live. A failing `npm run verify` stops the deploy. Staging is never deployed from `master` and
 production is never deployed from `dev` — they are two separate workflow files precisely

@@ -109,6 +109,28 @@ export default defineConfig({
     mdx(),
 
     /**
+     * The owners' admin, on the PROD Worker only (docs/ADMIN_DASHBOARD_PLAN.md §3).
+     *
+     * It lives at nextvisionfilms.com/admin (decision A8, 2026-10-22). The dev Worker is the
+     * preview the admin's saves land on, and it carries no admin of its own.
+     *
+     * The route is injected, not a file in src/pages, so any other build does not contain
+     * it at all. It exists in `astro dev` and in a build made with CLOUDFLARE_ENV=prod,
+     * and nowhere else. An unset CLOUDFLARE_ENV is not prod, so a forgotten variable leaves
+     * the admin out rather than in. `validate:routes` checks the built artefact either way.
+     */
+    {
+      name: 'nvf:admin',
+      hooks: {
+        'astro:config:setup': ({ command, injectRoute, logger }) => {
+          if (command !== 'dev' && process.env['CLOUDFLARE_ENV'] !== 'prod') return;
+          injectRoute({ pattern: '/admin/[...path]', entrypoint: './src/admin/AdminRoute.astro', prerender: false });
+          logger.info('/admin/ injected (prod Worker only)');
+        },
+      },
+    },
+
+    /**
      * The English 404, at the path a static host will actually look for.
      *
      * `build.format: 'directory'` writes every route as `<route>/index.html`, and Astro

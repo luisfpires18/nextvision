@@ -190,6 +190,7 @@ Do not fill gaps with plausible-sounding text.
 | `docs/WEBSITE_AUDIT.md` | Complete audit of the existing site (structure, content, media, design, interaction, technical). |
 | `docs/ARCHITECTURE.md` | Technical decisions and rejected alternatives. Framework, content, media, motion, PWA, i18n, SEO, repo. |
 | `docs/IMPLEMENTATION_PLAN.md` | Phased build with review gates. Each phase: objective / included / excluded / verification. |
+| `docs/DESIGN_V2_ROLLOUT.md` | Design v2 (Tatiana). The rail, spine, slide, opening, five sections, BTS, the guide palette, how C1–C8 were resolved, and what waits on the owners. |
 | `docs/DESIGN_REFERENCES.md` | Reference analysis, extracted principles, anti-patterns, candidate visual directions. |
 | `docs/VISUAL_DIRECTIONS.md` | Review A. The three directions, the approved refinement, and why. |
 | `docs/HOMEPAGE_REVIEW.md` | Review B. Homepage structure, the curated selection, the hero comparison, header contrast, motion, payload, open questions. |
@@ -208,6 +209,7 @@ Do not fill gaps with plausible-sounding text.
 | `docs/PWA-ICONS-TODO.md` | Phase 15. The archived vector logo, why the icons are rasterised from the square monogram anyway, and what ships. |
 | `docs/HANDOVER.md` | Step 14. How to run, edit and deploy: git flow, the two Workers, what CI needs, a fresh clone, content, PT/EN, media, R2, and what is deployed but unconfigured. |
 | `docs/STAGING_DEPLOY.md` | Step 12. The Worker, the staging URL, the deploy commands, the environment matrix, what staging refuses to pretend, and the `_redirects` defect only a real deploy could find. |
+| `docs/ADMIN_DASHBOARD_PLAN.md` | PLAN ONLY. Owner admin at `/admin/` on the dev Worker: content inventory, what moves out of components first, Cloudflare Access login, commit-to-dev + publish flow, CI media ingest, admin UI design, phases A0–A5, open decisions. |
 | `docs/content/` | Verbatim content extracts and machine-readable inventories. **Read-only source material — never edited.** |
 
 Read `docs/PROJECT_CONTEXT.md` at the start of every session to pick up where the last
@@ -220,14 +222,24 @@ one left off.
 **Audit ✅ · Architecture ✅ · Phase 0 + 0.5 ✅ · Reviews A, B, C, D, E ✅ ·
 Phase 9 ✅ · Phase 10 ✅ · Phase 11 ✅ · Phase 12 ✅ · Phase 13 ✅ ·
 Phase 14 ✅ · Phase 15 ✅ · Step 12 staging deploy ✅ · Step 13 QA ✅ ·
-Step 14 GitHub + CI/CD + handover ✅ COMPLETE (2026-09-04).**
+Step 14 GitHub + CI/CD + handover ✅ COMPLETE (2026-09-04) ·
+Design v2 (Tatiana) ✅ on dev (2026-10-22).**
+
+**Design v2 replaced the visual layer, and nothing else.** The menu is the rail (five logo
+stripes on the right; a bottom bar on a phone), each page wears its section's colour through
+`<html data-section>`, sections slide in as view transitions on real routes, the homepage
+plays Tatiana's opening once per session, and `/bts/` is new. Every route, string, form
+field and validator contract is unchanged. One pre-existing defect was found: ClientRouter's
+swap dropped `data-motion` after the first navigation, so every `full`-tier rule stopped
+applying; BaseLayout now carries it across. Record: `docs/DESIGN_V2_ROLLOUT.md`.
 
 **The project is on GitHub, with two branches and two Workers.** `luisfpires18/nextvision`,
 private, public history reset to ONE root commit — `Initial Commit` — with `master` and
-`dev` starting at the same SHA. `dev` deploys to **staging** (`next-vision-films`), `master`
-to **production** (`next-vision-films-production`), one verify-gated workflow each, and they
+`dev` starting at the same SHA. The `dev` branch deploys the **`dev`** Worker, `master` the
+**prod** Worker (`next-vision-films-production`, which serves the live domain), one verify-gated workflow each (`dev.yml`, `prod.yml`), and they
 are two separate files precisely so that no condition decides which Worker gets overwritten.
-No custom domain and no DNS: that is Step 15. Record: `docs/HANDOVER.md`.
+The prod Worker now carries the live domains `nextvisionfilms.com` and `www.nextvisionfilms.com`
+(Custom Domains, found bound on 2026-10-22). Record: `docs/HANDOVER.md`.
 
 **Two findings, and neither was visible from reading configuration.** `wrangler deploy
 --env production` against a build made with no `CLOUDFLARE_ENV` exits 0 and deploys to
@@ -237,15 +249,24 @@ build the site at all: `media/dist/` is gitignored and `media:build` needs 646 M
 gitignored sources, so `npm run verify` failed at `validate:media` with 0 of 384 renditions.
 `npm run media:pull` fetches them from R2, read-only and hash-verified.
 
-**The site is deployed.** One Worker, `next-vision-films`, on the COMPANY account
-(`c87adf05…8e39`), serving from Workers Static Assets at
-`https://next-vision-films.next-vision-films.workers.dev`. **No custom domain, no DNS, no
-secret and no owner input were needed** — every unset variable already had a defined, safe
-meaning, which is what made a zero-credential staging deploy possible at all. `npm run
-deploy` is `verify && wrangler deploy`, so nothing reaches the edge that has not passed all
-eleven validators; `npm run preview:cloudflare` runs the BUILT Worker under workerd, which
-is the only local surface where the asset handler, `_headers`, `_redirects` and the 404
-fallthrough behave as they do in production.
+**The site is deployed twice; only prod has a domain (see above).** Both Workers are on
+the COMPANY account (`c87adf05…8e39`), both serve from Workers Static Assets:
+
+| Branch | Worker | URL |
+|---|---|---|
+| `dev` (default) | `dev` | `https://dev.nextvisionfilms.com` (also `dev.next-vision-films.workers.dev`) |
+| `master` | `next-vision-films-production` | `https://www.nextvisionfilms.com` (live; also `nextvisionfilms.com`) |
+
+Renamed 2026-10-22 from `staging` / `production`. The dev Worker was renamed (old `next-vision-films` deleted); the prod Worker keeps its name because the live domains are bound to it. Never rename it.
+
+The staging deploy needed **no custom domain, no DNS, no secret and no owner input** —
+every unset variable already had a defined, safe meaning, which is what made a
+zero-credential deploy possible at all. **Deployment is now CI**: push `dev` for the `dev` Worker,
+merge `dev -> master` for `prod`. `npm run deploy:dev` / `deploy:prod` remain
+as emergency tooling and both run the full `verify` first, so nothing reaches the edge that
+has not passed all eleven validators. `npm run preview:cloudflare` runs the BUILT Worker
+under workerd, which is the only local surface where the asset handler, `_headers`,
+`_redirects` and the 404 fallthrough behave as they do in production.
 
 Staging refuses the contact form with `503 not-configured` and **cannot be configured into
 pretending otherwise**: `IS_DEV` is false in every build, so the development sink cannot
@@ -340,12 +361,22 @@ FULL: 384 delivery objects in `nvf-media`, 102 source files / 645.95 MB in the p
 delivery needs DNS. The empty personal-account buckets are a manual cleanup item. Record:
 `docs/MEDIA_PIPELINE.md` §9.
 
-**Next phases, not started:** GitHub remote and handover (step 14), DNS cutover and a
-custom domain, the NEWSLETTER endpoint (D18). The site IS installable, IS deployed, and
-HAS passed QA on the deployed URL.
+**CI/CD is live, and `dev` is the GitHub default branch.** All four repository secrets are
+set; a push to `dev` runs checkout -> `npm ci` -> fontTools -> `fonts:build` ->
+`media:pull` -> `npm run verify` -> deploy in about 1m15s. PR #1 promoted `dev` to `master`
+and deployed production, which smoke-tests clean. **Branch protection is impossible on this
+plan** — both the branch-protection and the ruleset APIs answer `403 Upgrade to GitHub Pro
+or make this repository public` for a private repo on GitHub Free — so no-deletion and
+no-force-push are enforced client-side by `scripts/hooks/pre-push`
+(`git config core.hooksPath scripts/hooks`), which protects only the machine that has it.
 
-Do not redesign, deploy, touch DNS, make a bucket public, create a database or CMS, or
-create a GitHub repository until the user explicitly says to.
+**Next phases, not started:** Step 15 — DNS cutover, the custom domain and the media
+hostname — and the NEWSLETTER endpoint (D18). The site IS installable, IS deployed to both
+Workers, and HAS passed QA on the deployed URL.
+
+Do not redesign, touch DNS, attach a domain, make a bucket public, or create a database or
+CMS until the user explicitly says to. Deploying is now a push; deploying to PRODUCTION is
+a deliberate `dev -> master` merge and nothing else may trigger it.
 
 Standing rules that outlive this phase:
 
@@ -529,6 +560,15 @@ Standing rules that outlive this phase:
     is written. CI runs it, and a missing mirror fails the build rather than shipping a
     site with no images.
 
+28. **A restore that dies on one bad socket is not a restore** (step 14). The first CI run
+    to fetch the whole mirror got 350 of 384 objects and then failed with a bare
+    `fetch failed` after five minutes — one transient error against R2 took the entire
+    deploy red, and the five minutes says the socket hung rather than refused. `media:pull`
+    now gives each object a 30 s per-attempt timeout and four attempts with backoff. A HASH
+    MISMATCH is deliberately never retried: those bytes were delivered and they were wrong,
+    and asking again would only hide it — the same doctrine as §14 and §16, applied to a
+    download.
+
 ## 10.1 Stack, as actually installed
 
 Astro **7.2.10** · `@astrojs/cloudflare` **14.2.6** · `@astrojs/mdx` 8 · sitemap 3.7.4 ·
@@ -571,7 +611,10 @@ Non-negotiable, because they are easy to lose late:
   it. Every duration, easing, travel distance and stagger lives in
   `src/styles/tokens.motion.css` and is named for its ROLE, never its length; a component
   containing a raw `ms`, `cubic-bezier`, travel or delay is a bug. No scroll-jacking, no
-  custom cursor, no WebGL, no GSAP. Animate only `transform` and `opacity`. Smooth scroll
+  custom cursor, no WebGL, no GSAP. (**Amended 2026-10-22, design v2 decision C1:** the ONE
+  cursor allowed is a native CSS `cursor: url()` image, declared as a token and applied only
+  under `(hover: hover) and (pointer: fine)`, with no script following the pointer.) Animate
+  only `transform` and `opacity`. Smooth scroll
   is desktop-only, dynamically imported, and its frame loop stops when the page is still.
   (`docs/ARCHITECTURE.md` §16, `docs/MOTION_REVIEW.md`.)
 - **PWA** never caches video and stays under 20 MB of device storage. Never auto-reload

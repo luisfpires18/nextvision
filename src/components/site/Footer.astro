@@ -24,6 +24,7 @@ import { navHref, isForeignLanguagePage, localeOfPage } from '../../lib/nav.ts';
 import { LOCALE_TAGS } from '../../config/i18n.ts';
 import { t } from '../../i18n/index.ts';
 import type { UIKey } from '../../i18n/pt.ts';
+import BrandMark from './BrandMark.astro';
 
 interface Props { locale?: Locale }
 const { locale = DEFAULT_LOCALE } = Astro.props;
@@ -32,9 +33,13 @@ const settings = await getEntry('settings', 'site');
 const socials = settings?.data.socials ?? [];
 
 const navigation = await getEntry('navigation', 'navigation');
-const legal = (navigation?.data.items ?? [])
+const footerItems = (navigation?.data.items ?? [])
   .filter((i) => i.showIn.includes('footer'))
   .sort((a, b) => a.order - b.order);
+/* DESIGN V2. The five sections and the contact page, as full-size links — the equivalent
+   that keeps every rail destination reachable through a large target (WCAG 2.5.8). */
+const sections = footerItems.filter((i) => i.section);
+const legal = footerItems.filter((i) => !i.section);
 
 // The wording is the live footer's, unchanged. Only the year follows the build, because
 // a hardcoded one is wrong every January.
@@ -42,6 +47,17 @@ const copyright = copyrightLine(settings?.data.copyright?.[locale] ?? say(HOME.c
 ---
 
 <footer class="site-footer ground-dark">
+  <div class="site-footer__top">
+    <a class="site-footer__mark" href={navHref('home', locale)}>
+      <BrandMark mark="mono" />
+      <span class="visually-hidden">Next Vision Films</span>
+    </a>
+    <nav class="site-footer__sections" aria-label={t('rail.label', locale)}>
+      {sections.map((item) => (
+        <a href={navHref(item.pageId, locale)} data-section={item.section}>{t(item.labelKey as UIKey, locale)}</a>
+      ))}
+    </nav>
+  </div>
   <div class="site-footer__row metaline">
     <span>{copyright}</span>
 
@@ -75,6 +91,36 @@ const copyright = copyrightLine(settings?.data.copyright?.[locale] ?? say(HOME.c
 </footer>
 
 <style>
+  .site-footer__top {
+    display: grid;
+    gap: var(--space-6);
+    padding-block: var(--space-8) var(--space-6);
+    padding-inline: var(--gutter);
+  }
+  @media (min-width: 48rem) {
+    .site-footer__top { grid-template-columns: minmax(0, 5fr) minmax(0, 4fr); align-items: end; }
+  }
+  .site-footer__mark { display: block; inline-size: min(100%, 24rem); color: var(--ink-on-dark); }
+  .site-footer__sections { display: grid; gap: var(--space-1); }
+  .site-footer__sections a {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: var(--t-service);
+    text-transform: uppercase;
+    padding-block: var(--space-1);
+    justify-self: start;
+  }
+  /* Each section's own stripe, as a hairline under the name on hover and focus. */
+  .site-footer__sections a::after {
+    content: '';
+    display: block;
+    block-size: var(--rail-gap);
+    background: var(--sec);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform var(--dur-ui) var(--ease-ui);
+  }
+  .site-footer__sections a:is(:hover, :focus-visible)::after { transform: scaleX(1); }
   .site-footer__social,
   .site-footer__legal { display: flex; flex-wrap: wrap; gap: var(--space-5); }
   /* Quieter than the link it qualifies, and never a separate tab stop. */

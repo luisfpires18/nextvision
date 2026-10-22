@@ -1,0 +1,450 @@
+/**
+ * The five sections — DESIGN V2 (Tatiana).
+ *
+ * About, Commercial, Cinema, BTS, and the contact sheet. Tokens only (CLAUDE.md §4);
+ * transform and opacity only (CLAUDE.md §11). The scroll-linked reel and the team panel
+ * use CSS scroll-driven animation (decision C6): no script runs on scroll, and a browser
+ * without it sees the reel at rest and the panel in place.
+ */
+
+/* ═════════════════════════════════════════════════════════════════ shared ══ */
+.tagline {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: var(--w-display);
+  font-size: var(--t-poster);
+  line-height: var(--lh-poster);
+  text-transform: uppercase;
+  text-align: center;
+}
+.section-asterisk {
+  inline-size: var(--space-5);
+  fill: none;
+  stroke: var(--sec);
+  stroke-width: 3.4;
+  stroke-linecap: round;
+}
+
+/* ══════════════════════════════════════════════════════════════════ ABOUT ══ */
+.ab2 { padding: var(--space-5) var(--gutter) var(--space-9); }
+.ab2__mark { inline-size: min(100%, 115vh, 56rem); color: var(--brand-black); }
+.ab2__eyebrow {
+  margin: var(--space-6) 0 0;
+  font-family: var(--font-display);
+  font-size: var(--t-eyebrow);
+  letter-spacing: var(--tracking-eyebrow);
+  text-transform: uppercase;
+}
+.ab2__lead {
+  margin: var(--space-2) 0 var(--space-7);
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: var(--t-headline);
+  line-height: var(--lh-tight);
+  max-inline-size: 26ch;
+}
+.ab2__cols { position: relative; display: grid; gap: var(--space-7); padding-inline-start: var(--space-6); }
+@media (min-width: 60rem) { .ab2__cols { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
+.ab2__story p, .ab2__close p {
+  margin: 0 0 var(--space-4);
+  font-family: var(--font-display);
+  font-weight: var(--w-label);
+  font-size: var(--t-lead);
+  line-height: var(--lh-lead);
+  max-inline-size: 52ch;
+}
+.ab2__close-title {
+  margin: 0 0 var(--space-4);
+  font-family: var(--font-display);
+  font-weight: var(--w-display);
+  font-size: var(--t-display-s);
+  text-transform: uppercase;
+}
+.ab2__actions { margin-block-start: var(--space-5); }
+.ab2__asterisk { position: absolute; inset-inline-end: 0; inset-block-end: calc(var(--space-7) * -1); }
+.ab2__asterisk, .cm__asterisk { inline-size: var(--space-5); fill: none; stroke: var(--sec); stroke-width: 3.4; stroke-linecap: round; }
+.ab2 .tagline { margin-block-start: var(--space-9); }
+
+/* The founders, on About's own blue. The panel slides in from the left as it reaches
+   the viewport — scroll-driven, `full` tier only. */
+.ab2-team { overflow: clip; }
+.ab2-team__panel {
+  position: relative;
+  background: var(--sec);
+  color: var(--sec-ink);
+  padding: var(--space-6) calc(var(--spine-w) + var(--space-7)) var(--space-9) var(--gutter);
+  --focus-ring: var(--sec-ink);
+}
+.ab2-team__mono { inline-size: var(--space-8); margin-inline: auto; color: var(--sec-ink); }
+.ab2-team__people {
+  display: grid;
+  gap: var(--space-8);
+  margin-block-start: var(--space-7);
+  grid-template-columns: 1fr;
+}
+@media (min-width: 48rem) { .ab2-team__people { grid-template-columns: var(--cols, 1fr 1fr); } }
+.ab2-person__frame { aspect-ratio: var(--ar, auto); max-inline-size: 22rem; overflow: hidden; border-radius: var(--radius-m); }
+.ab2-person__frame img { inline-size: 100%; block-size: 100%; object-fit: cover; }
+.ab2-person__name {
+  margin: var(--space-4) 0 var(--space-1);
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: var(--t-service);
+  line-height: var(--lh-tight);
+}
+.ab2-person__role { margin: 0; font-family: var(--font-display); font-weight: var(--w-label); font-size: var(--t-body-s); }
+.ab2-person__links { list-style: none; margin: var(--space-4) 0 0; padding: 0; display: flex; gap: var(--space-4); font-size: var(--t-body-s); }
+.ab2-person__links a { text-decoration: underline; text-underline-offset: 0.2em; }
+.ab2-team__spine {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-end: 0;
+  inline-size: var(--spine-w);
+  display: grid;
+  place-items: center;
+  border-inline-start: var(--rail-gap) solid var(--ground-cream);
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  font-family: var(--font-display);
+  font-weight: var(--w-label);
+  font-size: var(--t-rail);
+  text-transform: uppercase;
+}
+@media (max-width: 47.99rem) { .ab2-team__spine { display: none; } .ab2-team__panel { padding-inline-end: var(--gutter); } }
+@supports (animation-timeline: view()) {
+  :root[data-motion='full'] .ab2-team__panel {
+    animation: nvf-from-left linear both;
+    animation-timeline: view();
+    animation-range: entry 0% cover 40%;
+  }
+}
+@keyframes nvf-from-left { from { transform: translateX(-100%); } }
+
+/* The reel along the foot of the page, unspooling a line of film as the reader scrolls.
+   Sticky at the end of the content, so it rides the viewport's foot and comes to rest
+   above the footer instead of over it. */
+.spool {
+  position: sticky;
+  z-index: var(--z-overlay);
+  inset-block-end: 0;
+  block-size: var(--reel-m);
+  margin-block-start: calc(var(--reel-m) * -1);
+  pointer-events: none;
+  container-type: inline-size;
+  overflow: clip;
+}
+.spool__film {
+  position: absolute;
+  inset-inline: 0;
+  inset-block-end: var(--space-2);
+  block-size: var(--film-line);
+  background: var(--brand-yellow);
+  transform-origin: left;
+  transform: scaleX(0.08);
+}
+.spool__reel {
+  position: absolute;
+  inset-block-end: 0;
+  inset-inline-start: 0;
+  inline-size: var(--reel-m);
+  transform: translate(-50%, 30%);
+  --reel-hole: var(--ground-cream);
+}
+@supports (animation-timeline: scroll()) {
+  :root[data-motion='full'] .spool__film { animation: nvf-unspool linear both; animation-timeline: scroll(root); }
+  :root[data-motion='full'] .spool__reel { animation: nvf-roll linear both; animation-timeline: scroll(root); }
+}
+@keyframes nvf-unspool { to { transform: scaleX(1); } }
+@keyframes nvf-roll { to { transform: translate(calc(100cqi - 50%), 30%) rotate(var(--reel-turns)); } }
+
+/* ═════════════════════════════════════════════════════════════ COMMERCIAL ══ */
+.cm {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  text-align: center;
+  padding: var(--space-6) var(--gutter) var(--space-8);
+}
+.cm__mark { inline-size: min(70%, 20rem); }
+.cm__title {
+  margin: var(--space-4) 0 0;
+  font-family: var(--font-display);
+  font-size: var(--t-eyebrow);
+  letter-spacing: var(--tracking-eyebrow);
+  text-transform: uppercase;
+}
+.cm__collage {
+  position: relative;
+  inline-size: min(100%, 60rem);
+  aspect-ratio: 15 / 7;
+  margin-block: var(--space-6) var(--space-7);
+}
+.cm__frame img { position: absolute; object-fit: cover; }
+.cm__frame--1 img { inset-inline-start: 0; inset-block-start: 0; inline-size: 32%; block-size: 52%; opacity: 0.55; }
+.cm__frame--3 img { inset-inline-end: 0; inset-block-start: 0; inline-size: 32%; block-size: 52%; opacity: 0.55; }
+.cm__frame--2 img { inset-inline-start: 24%; inset-block-start: 12%; inline-size: 51%; block-size: 86%; z-index: 1; }
+.cm__lead {
+  margin: 0 0 var(--space-8);
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: var(--t-display-s);
+  line-height: 1.25;
+  max-inline-size: 34ch;
+}
+.cm__services { display: grid; gap: var(--space-8); }
+.cm__service h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: var(--w-display);
+  font-size: var(--t-headline);
+  line-height: 1;
+  text-transform: uppercase;
+}
+.cm__service p {
+  margin: var(--space-3) auto 0;
+  font-family: var(--font-display);
+  font-weight: var(--w-label);
+  font-size: var(--t-lead);
+  line-height: var(--lh-lead);
+  max-inline-size: 40ch;
+}
+.cm__close { margin-block-start: var(--space-9); max-inline-size: 44ch; }
+.cm__close-a { margin: 0; font-size: var(--t-eyebrow); letter-spacing: var(--tracking-eyebrow); text-transform: uppercase; }
+.cm__close-b {
+  margin: var(--space-2) 0 var(--space-3);
+  font-family: var(--font-display);
+  font-weight: var(--w-display);
+  font-size: var(--t-display-s);
+  text-transform: uppercase;
+}
+.cm__close p:last-child { margin: 0; font-family: var(--font-display); font-weight: var(--w-label); font-size: var(--t-lead); }
+.cm__asterisk { position: absolute; inset-inline-end: 7%; inset-block-start: 40%; }
+
+/* LET'S TALK: the reel rolls in along the foot on arrival and rests in the corner. */
+.talk {
+  position: sticky;
+  z-index: var(--z-overlay);
+  inset-block-end: 0;
+  display: block;
+  block-size: var(--reel-l);
+  margin-block-start: calc(var(--reel-l) * -1);
+  pointer-events: none;
+  container-type: inline-size;
+  --focus-ring: var(--brand-ink);
+}
+.talk__film {
+  position: absolute;
+  inset-inline: 0;
+  inset-block-end: var(--space-2);
+  block-size: var(--film-line);
+  background: var(--brand-yellow);
+  transform-origin: left;
+}
+.talk__reel {
+  position: absolute;
+  inset-block-end: 0;
+  inset-inline-end: var(--space-4);
+  inline-size: var(--reel-l);
+  pointer-events: auto;
+  transition: transform var(--dur-ui) var(--ease-ui);
+}
+.talk:is(:hover, :focus-visible) .talk__reel { transform: rotate(-12deg); }
+:root[data-motion='full'] .talk__film { animation: nvf-unspool-in var(--dur-reel-roll) var(--ease-cinematic) both; }
+:root[data-motion='full'] .talk__reel { animation: nvf-roll-in var(--dur-reel-roll) var(--ease-cinematic) both; }
+@keyframes nvf-unspool-in { from { transform: scaleX(0); } }
+@keyframes nvf-roll-in { from { transform: translateX(calc(-100cqi + 100% + var(--space-4))) rotate(calc(var(--reel-turns) * -1)); } }
+
+/* ═════════════════════════════════════════════════════════════════ CINEMA ══
+   The tagline, the index header (its <h1> always visible), the view switch, the shelf,
+   and the list. With scripting off both views show; with it, one at a time. */
+.cinema { display: flex; flex-direction: column; padding-block: var(--space-5) var(--space-9); }
+.cinema__list { display: contents; }
+.cinema__tagline { order: 0; padding-inline: var(--gutter); text-align: start; }
+.cinema .pf-head { order: 1; }
+.cinema .shelf-view { order: 2; }
+.cinema .pf-index { order: 3; }
+:root.js .cinema[data-view='shelf'] :is(.pf-index, .pf-filters) { display: none; }
+:root.js .cinema[data-view='list'] .shelf-view { display: none; }
+
+.cinema__views {
+  position: fixed;
+  z-index: var(--z-overlay);
+  inset-block-end: var(--space-4);
+  inset-inline-end: calc(var(--rail-w) + var(--space-4));
+  display: grid;
+  gap: var(--space-2);
+}
+:root:not(.js) .cinema__views { display: none; }
+.cinema__views button {
+  inline-size: var(--space-6);
+  padding: var(--space-1);
+  border: 0;
+  background: var(--ground-cream);
+  color: var(--ink-on-cream);
+  opacity: 0.45;
+}
+.cinema__views button[aria-pressed='true'] { opacity: 1; }
+.cinema__views svg { display: block; fill: currentColor; }
+@media (max-width: 47.99rem) {
+  .cinema__views { inset-block-end: calc(var(--rail-bar) + var(--space-3)); inset-inline-end: var(--space-3); grid-auto-flow: column; }
+}
+
+.shelf-view {
+  display: grid;
+  gap: var(--space-7);
+  align-items: start;
+  padding: var(--space-5) var(--gutter) 0;
+}
+@media (min-width: 60rem) { .shelf-view { grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr); } }
+.shelf { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--space-1); }
+.vhs a {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  inline-size: clamp(2.5rem, 3.6vw, 3.5rem);
+  block-size: clamp(15rem, 42vh, 25rem);
+  padding-block: var(--space-2);
+  background: var(--vhs-shell);
+  color: var(--vhs-ink);
+  border-radius: var(--radius-s);
+  transition: transform var(--dur-ui) var(--ease-ui);
+}
+.vhs:nth-child(5n + 1) a { --vhs-shell: var(--vhs-brown); --vhs-ink: var(--vhs-tan); }
+.vhs:nth-child(5n + 2) a { --vhs-shell: var(--vhs-black); --vhs-ink: var(--vhs-cyan); }
+.vhs:nth-child(5n + 3) a { --vhs-shell: var(--vhs-black); --vhs-ink: var(--brand-cream); }
+.vhs:nth-child(5n + 4) a { --vhs-shell: var(--vhs-grey); --vhs-ink: var(--brand-ink); }
+.vhs:nth-child(5n + 5) a { --vhs-shell: var(--vhs-black); --vhs-ink: var(--brand-yellow); }
+.vhs a:is(:hover, :focus-visible, [aria-current='true']) { transform: translateY(calc(var(--space-3) * -1)); }
+.vhs__tag {
+  padding-inline: var(--space-1);
+  background: var(--brand-cream);
+  color: var(--brand-ink);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--t-metaline);
+}
+.vhs__no { font-family: var(--font-mono); font-size: var(--t-metaline); }
+.vhs__title {
+  flex: 1;
+  min-block-size: 0;
+  overflow: hidden;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--t-project);
+  letter-spacing: var(--tracking-brand);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.vhs__logo { inline-size: 64%; }
+.vhs__fmt { padding-inline: var(--space-1); border: 1px solid currentColor; font-family: var(--font-display); font-weight: 700; font-size: var(--t-metaline); }
+
+.poster { margin: 0; justify-self: center; inline-size: min(100%, 22rem); text-align: center; }
+.poster__frame { display: block; }
+.poster__frame img {
+  inline-size: 100%;
+  aspect-ratio: var(--poster-ratio);
+  object-fit: cover;
+  border: var(--space-1) solid var(--surface-muted);
+}
+.poster figcaption { display: grid; gap: var(--space-1); margin-block-start: var(--space-4); }
+.poster__title {
+  font-family: var(--font-display);
+  font-weight: var(--w-display);
+  font-size: var(--t-display-s);
+  line-height: 1;
+  text-transform: uppercase;
+}
+.poster__meta { font-family: var(--font-display); font-weight: var(--w-label); text-transform: uppercase; }
+.poster__go { justify-self: center; margin-block-start: var(--space-2); text-decoration: underline; text-underline-offset: 0.25em; }
+
+/* The list: the Review C index re-set as rows — thumbnail, title, category, date, and a
+   heavy rule in the project's category colour. Shared by the five category archives. */
+.pf-index .pf-rows { display: grid; gap: 0; }
+.pf-index .pf-row { display: contents; }
+.pf-index .item { border-block-end: var(--rule-heavy) solid var(--cat, currentColor); }
+.pf-index .card {
+  display: grid;
+  grid-template-columns: minmax(7.5rem, 17rem) minmax(0, 1fr);
+  grid-template-rows: auto 1fr;
+  column-gap: var(--space-5);
+  padding-block: var(--space-4);
+}
+.pf-index .frame { grid-row: 1 / 3; aspect-ratio: var(--thumb-ratio); }
+.pf-index .frame img { inline-size: 100%; block-size: 100%; object-fit: cover; }
+.pf-index .item__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: var(--w-display);
+  font-size: var(--t-headline);
+  line-height: 1;
+}
+.pf-index .item__meta {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-1);
+  font-family: var(--font-display);
+  font-size: var(--t-body-s);
+  text-transform: uppercase;
+}
+.pf-index .item__dot { display: none; }
+
+/* ═══════════════════════════════════════════════════════════════════════ BTS ══ */
+[data-section='bts'] .spine { background: var(--brand-cream); color: var(--brand-ink); --reel-disc: var(--brand-ink); --reel-hole: var(--brand-cream); --focus-ring: var(--brand-ink); }
+.bts {
+  display: grid;
+  gap: var(--space-7);
+  padding: var(--space-7) var(--gutter) var(--space-9);
+}
+@media (min-width: 60rem) { .bts { grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.4fr); } }
+.bts__mark { inline-size: min(100%, 24rem); color: var(--ink-on-dark); }
+.bts__title {
+  margin: var(--space-6) 0 0;
+  font-family: var(--font-display);
+  font-weight: var(--w-display);
+  font-size: var(--t-headline);
+  text-transform: uppercase;
+}
+.bts__links { list-style: none; margin: var(--space-5) 0 0; padding: 0; display: grid; gap: var(--space-1); }
+.bts__links a {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: var(--t-service);
+  text-transform: uppercase;
+}
+.bts__links a:is(:hover, :focus-visible) { color: var(--brand-yellow); }
+.bts__grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-2); }
+.bts__grid a { display: block; aspect-ratio: 3 / 4; overflow: hidden; }
+.bts__grid img { inline-size: 100%; block-size: 100%; object-fit: cover; transition: transform var(--dur-reveal) var(--ease-reveal); }
+.bts__grid a:is(:hover, :focus-visible) img { transform: scale(var(--scale-media)); }
+
+/* ═════════════════════════════════════════════════════════ CONTACT SHEET ══
+   The storyboard's numbered sheet, on the real form: each field gets its number and a
+   coloured rule, in the order of the logo's stripes. Markup, names and the contract are
+   untouched (src/config/forms.ts). */
+.form { counter-reset: nvf-field; }
+.form .form__field {
+  counter-increment: nvf-field;
+  padding-block: var(--space-4);
+  border-block-end: var(--rule-heavy) solid var(--rule-c, currentColor);
+}
+.form .form__field:nth-of-type(5n + 1) { --rule-c: var(--brand-green); }
+.form .form__field:nth-of-type(5n + 2) { --rule-c: var(--brand-blue); }
+.form .form__field:nth-of-type(5n + 3) { --rule-c: var(--brand-red); }
+.form .form__field:nth-of-type(5n + 4) { --rule-c: var(--brand-orange); }
+.form .form__field:nth-of-type(5n + 5) { --rule-c: var(--brand-yellow); }
+.form .form__label::before {
+  content: counter(nvf-field) '.';
+  margin-inline-end: var(--space-2);
+  font-family: var(--font-display);
+  font-weight: var(--w-display);
+  font-size: var(--t-display-s);
+}
+
+/* On a phone a sticky reel would sit over the copy the whole way down the page. There it
+   rests at the end of the content instead, and only the commercial reel still rolls in. */
+@media (max-width: 47.99rem) {
+  .spool, .talk { position: relative; margin-block-start: 0; }
+}

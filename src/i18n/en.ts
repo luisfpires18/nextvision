@@ -101,4 +101,20 @@ export const en: Record<UIKey, string> = {
   'pwa.updateAvailable': 'A new version is available',
   'pwa.update': 'Update',
   'pwa.dismiss': 'Dismiss',
+
+  // --- design v2 (Tatiana)
+  'rail.home': 'Homepage',
+  'rail.about': 'About',
+  'rail.commercial': 'Commercial',
+  'rail.cinema': 'Cinema',
+  'rail.bts': 'BTS',
+  'rail.label': 'Sections',
+  'rail.next': 'Next section',
+  'ui.letsTalk': "Let's talk",
+  'cinema.view': 'View',
+  'cinema.shelf': 'Shelf',
+  'cinema.list': 'List',
+  'cinema.watch': 'See the project',
+  'bts.social': 'Social',
+  'intro.skip': 'Skip the opening',
 };

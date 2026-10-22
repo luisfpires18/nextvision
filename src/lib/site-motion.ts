@@ -110,7 +110,20 @@ export function initSite(): Teardown {
      The two are named differently now so the selector cannot be ambiguous again.
      scripts/validate-routes.mjs asserts it against the built HTML. */
   const loader = document.querySelector<HTMLElement>('[data-loader-overlay]');
-  if (loader && root.dataset['loader'] === 'on') {
+  if (loader && root.dataset['loader'] === 'on' && loader.dataset['variant'] === 'intro') {
+    /* DESIGN V2 — the homepage opening (decision C5). It is a sequence, not a mask for
+       loading, so it leaves when its last step (the wipe) ends — and never later than the
+       sum of its own tokens, in case an animation event never arrives. A click or any key
+       skips it outright: an opening the reader cannot dismiss is a gate. */
+    const hide = () => { loader.hidden = true; };
+    const steps = ['--dur-intro-fill', '--dur-intro-drop', '--dur-intro-hello', '--dur-intro-hold',
+      '--dur-intro-stand', '--dur-intro-travel', '--dur-intro-wipe'];
+    const cap = window.setTimeout(hide, steps.reduce((sum, name) => sum + ms(name, 0), 0) + ms('--dur-ui', 220));
+    on(loader, 'animationend', ((e: AnimationEvent) => { if (e.animationName === 'nvf-wipe') hide(); }) as EventListener);
+    on(window, 'pointerdown', hide, { once: true });
+    on(window, 'keydown', hide, { once: true });
+    cleanups.push(() => window.clearTimeout(cap));
+  } else if (loader && root.dataset['loader'] === 'on') {
     const hide = () => { loader.hidden = true; };
     const cap = window.setTimeout(hide, ms('--dur-hold', 900));
     const settle = () => window.setTimeout(hide, ms('--dur-ui', 220));

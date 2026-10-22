@@ -35,8 +35,11 @@ const FACES = [
   { file: 'Barlow/Barlow-Regular.ttf', family: 'Barlow', weight: 400, style: 'normal', out: 'barlow-400' },
   { file: 'Barlow/Barlow-Medium.ttf', family: 'Barlow', weight: 500, style: 'normal', out: 'barlow-500' },
   { file: 'Barlow/Barlow-SemiBold.ttf', family: 'Barlow', weight: 600, style: 'normal', out: 'barlow-600' },
+  // Design v2 (Tatiana): Light carries the rail and spine labels, Black every display line.
+  { file: 'Barlow_Condensed/BarlowCondensed-Light.ttf', family: 'Barlow Condensed', weight: 300, style: 'normal', out: 'barlow-condensed-300' },
   { file: 'Barlow_Condensed/BarlowCondensed-Medium.ttf', family: 'Barlow Condensed', weight: 500, style: 'normal', out: 'barlow-condensed-500' },
   { file: 'Barlow_Condensed/BarlowCondensed-Bold.ttf', family: 'Barlow Condensed', weight: 700, style: 'normal', out: 'barlow-condensed-700' },
+  { file: 'Barlow_Condensed/BarlowCondensed-Black.ttf', family: 'Barlow Condensed', weight: 900, style: 'normal', out: 'barlow-condensed-900' },
   { file: 'Space_Mono/SpaceMono-Regular.ttf', family: 'Space Mono', weight: 400, style: 'normal', out: 'space-mono-400' },
 ];
 

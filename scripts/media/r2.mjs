@@ -108,7 +108,7 @@ function sign({ method, host, uri, query, headers, payloadHash, credentials }) {
   };
 }
 
-async function request(cfg, { method, key = '', query = '', body = null, headers = {} }) {
+async function request(cfg, { method, key = '', query = '', body = null, headers = {}, signal = undefined }) {
   const host = new URL(cfg.endpoint).host;
   const uri = key ? `/${cfg.bucket}${canonicalUri(key)}` : `/${cfg.bucket}`;
   const payloadHash = sha256Hex(body ?? '');
@@ -116,7 +116,7 @@ async function request(cfg, { method, key = '', query = '', body = null, headers
     method, host, uri, query, headers, payloadHash, credentials: cfg.credentials,
   });
   const url = `${cfg.endpoint}${uri}${query ? `?${query}` : ''}`;
-  const response = await fetch(url, { method, headers: signed, body: body ?? undefined });
+  const response = await fetch(url, { method, headers: signed, body: body ?? undefined, signal });
   if (!response.ok) {
     const text = await response.text().catch(() => '');
     // The URL and status only. Never the headers — they carry the signature.
@@ -161,8 +161,8 @@ const decodeXml = (s) => s
  * reproduce the mirror there and it has to be fetched from the bucket that already holds
  * it byte for byte.
  */
-export async function getObject(cfg, key) {
-  const response = await request(cfg, { method: 'GET', key });
+export async function getObject(cfg, key, { signal } = {}) {
+  const response = await request(cfg, { method: 'GET', key, signal });
   return Buffer.from(await response.arrayBuffer());
 }
 
