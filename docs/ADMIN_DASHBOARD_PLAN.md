@@ -130,6 +130,14 @@ auto-redirect to the code screen. Neither value below is a secret:
 - `ACCESS_TEAM_DOMAIN` = `royal-hall-6f88.cloudflareaccess.com`
 - `ACCESS_AUD` = `f1b7ab18b88a7e1085ce1e271598a9d1b31d750c195b39552a3b44d8a6abe722`
 
+**Two hostnames.** The dev Worker also answers on the custom domain `dev.nextvisionfilms.com`,
+which was not recorded anywhere when Access was first set up. The admin there refused every
+request with `403` because Access was not in front of it, so no token reached the Worker.
+That is the fail-closed design working. The app now lists both `/admin` destinations
+(updated by API, 2026-10-22), and its AUD is unchanged. Verified end to end the same day:
+signing in with the emailed code on `dev.nextvisionfilms.com/admin/` reaches "Conteúdo do site". **Any new hostname bound to the dev
+Worker must be added to this app**, or its admin refuses everyone.
+
 Path scoping **does** work on `workers.dev`. Measured: `/admin` and `/admin/` answer `302`
 to the team's login page, and `/servicos/` still answers `200`. The dev preview stays
 public, and no custom domain was needed.
