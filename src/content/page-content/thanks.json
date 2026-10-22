@@ -1,0 +1,20 @@
+{
+  "copy": {
+    "title": {
+      "text": "Obrigado",
+      "from": "/obrigado/",
+      "en": "Thank you"
+    },
+    "lineA": {
+      "text": "Obrigado! Recebemos a sua mensagem com sucesso.",
+      "from": "/obrigado/",
+      "en": "Thank you! We have received your message successfully."
+    },
+    "lineB": {
+      "text": "Entraremos em contacto brevemente.",
+      "from": "/obrigado/",
+      "en": "We will be in touch shortly."
+    }
+  },
+  "wordpressExcerpt": "Obrigado! Recebemos a sua mensagem com sucesso. Entraremos em contacto brevemente."
+}

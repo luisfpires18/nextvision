@@ -1,0 +1,105 @@
+{
+  "heroVideo": "projects/ana-reels/hero",
+  "copy": {
+    "heroLineA": {
+      "text": "Captamos emoções",
+      "from": "/",
+      "en": "We capture emotion"
+    },
+    "heroLineB": {
+      "text": "Contamos Histórias",
+      "from": "/",
+      "en": "We Tell Stories"
+    },
+    "workLineA": {
+      "text": "Fica a Conhecer o",
+      "from": "/",
+      "en": "Get to Know"
+    },
+    "workLineB": {
+      "text": "Nosso Trabalho",
+      "from": "/",
+      "en": "Our Work"
+    },
+    "workBody": {
+      "text": "O vídeo não é apenas imagem em movimento — é emoção, identidade e impacto!",
+      "from": "/",
+      "en": "Video is not just moving image — it is emotion, identity and impact!"
+    },
+    "workBodyB": {
+      "text": "Cada projeto que fazemos tem uma energia própria, porque acreditamos que um bom vídeo não se impõe, sente-se.",
+      "from": "/",
+      "en": "Every project we make has an energy of its own, because we believe a good video is not imposed, it is felt."
+    },
+    "ctaPortfolio": {
+      "text": "Consultar Portfólio",
+      "from": "/",
+      "en": "See the Portfolio"
+    },
+    "servicesTitle": {
+      "text": "Serviços",
+      "from": "/servicos/",
+      "en": "Services"
+    },
+    "servicesLead": {
+      "text": "O vídeo certo tem o poder de transformar um projeto, uma marca ou uma experiência.",
+      "from": "/servicos/",
+      "en": "The right video has the power to transform a project, a brand or an experience."
+    },
+    "servicesLeadFull": {
+      "text": "O vídeo certo tem o poder de transformar um projeto, uma marca ou uma experiência. Por isso, damos vida a ideias com um toque cinematográfico e uma visão autêntica .",
+      "from": "/servicos/",
+      "en": "The right video has the power to transform a project, a brand or an experience. So we bring ideas to life with a cinematic touch and an authentic vision."
+    },
+    "aboutTitle": {
+      "text": "Sobre Nós",
+      "from": "/sobre/",
+      "en": "About Us"
+    },
+    "aboutLead": {
+      "text": "De uma ideia a um movimento.",
+      "from": "/sobre/",
+      "en": "From an idea to a movement."
+    },
+    "aboutBodyB": {
+      "text": "Não somos apenas videógrafos, somos contadores de histórias visuais.",
+      "from": "/sobre/",
+      "en": "We are not just videographers, we are visual storytellers."
+    },
+    "aboutBodyFull": {
+      "text": "A NVF nasceu entre câmaras, roadtrips,  trilhos de montanha, amizades e um eterno contacto com o audiovisual. Criámos este projeto porque acreditamos que o vídeo tem poder — o poder de emocionar, de inspirar e de transformar!",
+      "from": "/sobre/",
+      "en": "NVF was born among cameras, roadtrips, mountain trails, friendships and a lifelong contact with the audiovisual. We created this project because we believe video has power — the power to move, to inspire and to transform!"
+    },
+    "contactTitle": {
+      "text": "Contactos",
+      "from": "/contactos/",
+      "en": "Contact"
+    },
+    "contactLead": {
+      "text": "Pronto para transformar a tua visão em imagens?",
+      "from": "/contactos/",
+      "en": "Ready to turn your vision into images?"
+    },
+    "contactBody": {
+      "text": "Queremos ouvir a tua história e ajudá-la a ganhar vida. Tens um projeto em mente? Precisas de um vídeo autêntico para a tua marca ou negócio? Fala connosco e juntos criaremos algo memorável. Envia-nos uma mensagem e responderemos rapidamente.",
+      "from": "/",
+      "en": "We want to hear your story and help it come to life. Have a project in mind? Do you need an authentic video for your brand or business? Talk to us and together we will create something memorable. Send us a message and we will reply quickly."
+    },
+    "ctaContact": {
+      "text": "Vamos Criar Juntos?",
+      "from": "/",
+      "en": "Shall We Create Together?"
+    },
+    "phoneNote": {
+      "text": "*custo para chamada móvel nacional.",
+      "from": "/contactos/",
+      "en": "*cost of a national mobile call."
+    },
+    "copyright": {
+      "text": "copyright {year} © todos os direitos reservados",
+      "from": "/",
+      "en": "copyright {year} © all rights reserved"
+    }
+  }
+}

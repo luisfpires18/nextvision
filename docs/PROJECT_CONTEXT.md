@@ -1486,3 +1486,41 @@ record is `docs/DESIGN_V2_ROLLOUT.md`.
   `?view=list`, BTS, the contact sheet and the phone layout were all checked in a real
   browser.
 - **Waiting on the owners or Tatiana:** see `docs/BLOCKED_TODOS.md`.
+
+## 20. Admin dashboard — plan, decisions, and phase A0 (2026-10-22)
+
+The owners want to change the site themselves (the homepage film today, another tomorrow)
+without Claude Code. The plan, the content inventory and the A1–A6 decisions are in
+`docs/ADMIN_DASHBOARD_PLAN.md`. Nothing of the admin itself is built yet.
+
+**Phase A0 ✅ — content that was code is now data.** Seven files in
+`src/content/page-content/` (`home`, `about`, `services`, `contact`, `thanks`, `portfolio`,
+`bts`), read through one schema in `src/lib/page-content.ts`:
+
+- **Media keys:** the homepage hero video (`home.json` `heroVideo`), the services lead image
+  and collage, the contact banner and the six BTS frames. A key the manifest does not hold
+  fails the build.
+- **Page prose:** every `v()` literal from `homepage.ts`, `static-pages.ts` and
+  `portfolio.ts`, generated from the running modules, so every byte is the same. Those
+  modules still export `HOME`, `ABOUT`, `CONTACT`, … with the same shapes, and no call site
+  changed. Meta-description selections stay `v()` literals in `page-meta.ts`.
+- **Validator:** `validate:data` walks the JSON for `{ text, from, en? }` and still checks
+  50 strings word for word, plus 51 translations and both services-lead spellings. The
+  counts are the same as before.
+
+**Verified, not assumed.**
+
+- All 75 pages are byte-identical except for the hash of the one client bundle.
+- `/servicos/` and `/en/services/` list the same stylesheets in a different order. Vite
+  orders the CSS per graph and was already inconsistent across pages. In a real browser,
+  every element's computed style is identical to the baseline on both pages.
+- `npm run verify` is green.
+
+**One defect, found by that diff.** `portfolio-filter.ts` (browser code) imported
+`FILTER_ALL` from `portfolio.ts`. Once that module read the schema, the client bundle went
+from 14.6 KB to 240 KB, because it shipped zod and the manifest. `FILTER_ALL` is now
+declared in the browser module and re-exported. The bundle is 14.2 KB: 468 B smaller than
+before, because the dead portfolio row data no longer ships either.
+
+**Rule:** a browser module never imports from `homepage.ts`, `static-pages.ts`,
+`portfolio.ts` or `page-content.ts`.

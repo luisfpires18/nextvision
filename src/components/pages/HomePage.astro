@@ -16,7 +16,8 @@
  * heading a reader or a crawler meets is the published sentence, not a slogan.
  *
  * ── The film ─────────────────────────────────────────────────────────────────
- * Tatiana's frame is the night portrait from `ana-reels`. It is attached by the runtime
+ * Tatiana's frame is the night portrait from `ana-reels`; which film plays is `heroVideo`
+ * in src/content/page-content/home.json, so replacing it is a data edit. It is attached by the runtime
  * exactly like the Review B hero (data-hero, site-motion.ts): nothing is fetched below the
  * `full` tier, and the poster is the designed state there.
  */
@@ -29,6 +30,7 @@ import { pageTitle, pageDescription } from '../../lib/page-meta.ts';
 import { BRAND_LINES } from '../../lib/brand.ts';
 import type { Locale } from '../../config/i18n.ts';
 import { HOME, say } from '../../lib/homepage.ts';
+import { PAGE_CONTENT } from '../../lib/page-content.ts';
 
 interface Props { locale: Locale }
 const { locale } = Astro.props;
@@ -37,7 +39,7 @@ const settings = await getEntry('settings', 'site');
 
 /* ── hero media ───────────────────────────────────────────────────────────── */
 
-const heroKey = 'projects/ana-reels/hero';
+const heroKey = PAGE_CONTENT.home.heroVideo;
 const heroItem = getMedia(heroKey);
 const hero = videoProps(heroKey);
 /* The LCP image on the site's front page: eager, high priority, and never lazy. */

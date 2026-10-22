@@ -15,6 +15,7 @@ import { getEntry } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import BrandMark from '../site/BrandMark.astro';
 import { imageProps } from '../../lib/media.ts';
+import { PAGE_CONTENT } from '../../lib/page-content.ts';
 import { organizationSchema, breadcrumbSchema } from '../../lib/seo.ts';
 import { pagePath } from '../../i18n/routes.ts';
 import { pageTitle } from '../../lib/page-meta.ts';
@@ -29,11 +30,7 @@ const settings = await getEntry('settings', 'site');
 const socials = settings?.data.socials ?? [];
 const instagram = socials.find((s) => s.platform === 'instagram') ?? null;
 
-const FRAMES = [
-  'projects/helder-praia/still-01', 'projects/the-end/still-01', 'projects/ana-reels/still-01',
-  'projects/leonor/still-02', 'projects/nvf-vs-antiqvvm/still-01', 'projects/helder-museu/still-01',
-];
-const frames = FRAMES.map((key) => imageProps(key, { alt: '', sizes: '(min-width: 48rem) 18vw, 30vw' }));
+const frames = PAGE_CONTENT.bts.frames.map((key) => imageProps(key, { alt: '', sizes: '(min-width: 48rem) 18vw, 30vw' }));
 
 const schema = [
   organizationSchema({

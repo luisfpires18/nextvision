@@ -2,7 +2,7 @@
  * Homepage content and composition — Review B.
  *
  * ── Copy ─────────────────────────────────────────────────────────────────────
- * Every string below is VERBATIM from the live site, captured in Phase 0.5 and held in
+ * Every published string is VERBATIM from the live site, captured in Phase 0.5 and held in
  * docs/source-archive/pages.json. Nothing is written, shortened or corrected, and the
  * Portuguese is never rewritten (CLAUDE.md §2, §8). Source-page provenance is recorded
  * per entry, because
@@ -32,6 +32,7 @@
 
 import { DEFAULT_LOCALE, type Locale } from '../config/i18n.ts';
 import type { PageId } from '../i18n/routes.ts';
+import { PAGE_CONTENT } from './page-content.ts';
 
 /* ═══════════════════════════════════════════════════════════════════ copy ══ */
 
@@ -58,11 +59,8 @@ export interface Provenanced {
    * `npm run validate:i18n` fails the build if a string reachable from an English route
    * is still missing one, so the gap can be temporary but never silent.
    */
-  en?: string;
+  en?: string | undefined;
 }
-
-const v = (text: string, from: string, en?: string): Provenanced =>
-  (en === undefined ? { text, from } : { text, from, en });
 
 /**
  * Read a provenanced string in a locale.
@@ -82,60 +80,18 @@ export function say(p: Provenanced, locale: Locale = DEFAULT_LOCALE): string {
   return p.text;
 }
 
-export const HOME = {
-  /** Hero. Two <h2> lines on the live homepage; here they are the page's single <h1>. */
-  heroLineA: v('Captamos emoções', '/', 'We capture emotion'),
-  heroLineB: v('Contamos Histórias', '/', 'We Tell Stories'),
-
-  /** Editorial intro. The live homepage prints these as two stacked <h2> lines. */
-  workLineA: v('Fica a Conhecer o', '/', 'Get to Know'),
-  workLineB: v('Nosso Trabalho', '/', 'Our Work'),
-  workBody: v('O vídeo não é apenas imagem em movimento — é emoção, identidade e impacto!', '/', 'Video is not just moving image — it is emotion, identity and impact!'),
-  workBodyB: v('Cada projeto que fazemos tem uma energia própria, porque acreditamos que um bom vídeo não se impõe, sente-se.', '/', 'Every project we make has an energy of its own, because we believe a good video is not imposed, it is felt.'),
-
-  /** Live homepage button, used here as the route to the full portfolio. */
-  ctaPortfolio: v('Consultar Portfólio', '/', 'See the Portfolio'),
-
-  /**
-   * Services.
-   *
-   * The homepage shows the FIRST published sentence of the lead; `servicesLeadFull` keeps
-   * the whole thing for the Services page. This is selection, not editing — the sentence
-   * is unchanged, and the source's own space before the full stop survives in the full
-   * version.
-   */
-  servicesTitle: v('Serviços', '/servicos/', 'Services'),
-  servicesLead: v('O vídeo certo tem o poder de transformar um projeto, uma marca ou uma experiência.', '/servicos/', 'The right video has the power to transform a project, a brand or an experience.'),
-  servicesLeadFull: v('O vídeo certo tem o poder de transformar um projeto, uma marca ou uma experiência. Por isso, damos vida a ideias com um toque cinematográfico e uma visão autêntica .', '/servicos/', 'The right video has the power to transform a project, a brand or an experience. So we bring ideas to life with a cinematic touch and an authentic vision.'),
-
-  /**
-   * About.
-   *
-   * The homepage carries the heading, ONE supporting sentence and the two names. The
-   * origin story below it is the About page's material, not the homepage's — it is kept
-   * here so that page has it, and is deliberately not rendered on `/`.
-   */
-  aboutTitle: v('Sobre Nós', '/sobre/', 'About Us'),
-  aboutLead: v('De uma ideia a um movimento.', '/sobre/', 'From an idea to a movement.'),
-  aboutBodyB: v('Não somos apenas videógrafos, somos contadores de histórias visuais.', '/sobre/', 'We are not just videographers, we are visual storytellers.'),
-  /** NOT on the homepage. Source spacing preserved, including "roadtrips,  trilhos". */
-  aboutBodyFull: v('A NVF nasceu entre câmaras, roadtrips,  trilhos de montanha, amizades e um eterno contacto com o audiovisual. Criámos este projeto porque acreditamos que o vídeo tem poder — o poder de emocionar, de inspirar e de transformar!', '/sobre/', 'NVF was born among cameras, roadtrips, mountain trails, friendships and a lifelong contact with the audiovisual. We created this project because we believe video has power — the power to move, to inspire and to transform!'),
-
-  /** Contact. The heading is the live /contactos/ <h2>; the paragraph and the button
-   *  are both already on the live homepage. */
-  contactTitle: v('Contactos', '/contactos/', 'Contact'),
-  contactLead: v('Pronto para transformar a tua visão em imagens?', '/contactos/', 'Ready to turn your vision into images?'),
-  contactBody: v('Queremos ouvir a tua história e ajudá-la a ganhar vida. Tens um projeto em mente? Precisas de um vídeo autêntico para a tua marca ou negócio? Fala connosco e juntos criaremos algo memorável. Envia-nos uma mensagem e responderemos rapidamente.', '/', 'We want to hear your story and help it come to life. Have a project in mind? Do you need an authentic video for your brand or business? Talk to us and together we will create something memorable. Send us a message and we will reply quickly.'),
-  ctaContact: v('Vamos Criar Juntos?', '/', 'Shall We Create Together?'),
-  phoneNote: v('*custo para chamada móvel nacional.', '/contactos/', '*cost of a national mobile call.'),
-
-  /**
-   * Footer. The live footer reads "copyright 2025 © todos os direitos reservados"; only
-   * the year is substituted, and only because a hardcoded year goes stale on 1 January.
-   * Every other character is the published string.
-   */
-  copyright: v('copyright {year} © todos os direitos reservados', '/', 'copyright {year} © all rights reserved'),
-} as const;
+/**
+ * The homepage's published strings. They live in src/content/page-content/home.json since
+ * Phase A0 — the string, the page it was published on, and its English — and are read
+ * through the schema in src/lib/page-content.ts. Notes on individual strings:
+ *
+ *   heroLineA/B       two <h2> lines on the live homepage; here they are the single <h1>
+ *   servicesLead      the FIRST sentence of servicesLeadFull — selection, not editing
+ *   aboutBodyFull     the About page's material, not rendered on `/`; source spacing kept
+ *   contactTitle      the live /contactos/ <h2>
+ *   copyright         only {year} is substituted, because a hardcoded year goes stale
+ */
+export const HOME = PAGE_CONTENT.home.copy;
 
 /** Fill the copyright year from the build. No other token exists in the string. */
 export const copyrightLine = (template: string, year = new Date().getFullYear()): string =>

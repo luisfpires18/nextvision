@@ -1,0 +1,47 @@
+{
+  "copy": {
+    "storyB": {
+      "text": "Não somos apenas videógrafos, somos contadores de histórias visuais. Gostamos de projetos que têm alma, de marcas que querem fazer a diferença e de pessoas que vivem o que fazem. Desde ficção a moda e identidade, queremos que cada frame tenha um propósito, que cada imagem conte algo mais do que aquilo que se vê.",
+      "from": "/sobre/",
+      "en": "We are not just videographers, we are visual storytellers. We like projects with soul, brands that want to make a difference and people who live what they do. From fiction to fashion and identity, we want every frame to have a purpose, every image to say something more than what is seen."
+    },
+    "closing": [
+      {
+        "text": "O vídeo não é apenas imagem em movimento — é emoção, identidade e impacto!",
+        "from": "/sobre/",
+        "en": "Video is not just moving image — it is emotion, identity and impact!"
+      },
+      {
+        "text": "Na NVF, transformamos momentos em narrativas visuais que fazem sentido, que criam ligação e que ficam na memória.",
+        "from": "/sobre/",
+        "en": "At NVF, we turn moments into visual narratives that make sense, that create connection and that stay in the memory."
+      },
+      {
+        "text": "Cada projeto que fazemos tem uma energia própria, porque acreditamos que um bom produto de audiovisual não se impõe, sente-se.",
+        "from": "/sobre/",
+        "en": "Every project we make has an energy of its own, because we believe a good audiovisual product is not imposed, it is felt."
+      },
+      {
+        "text": "Seja para marcas, criadores ou aventureiros, o nosso compromisso é trazer autenticidade, dinamismo e um olhar cinematográfico que eleva cada história.",
+        "from": "/sobre/",
+        "en": "Whether for brands, creators or adventurers, our commitment is to bring authenticity, dynamism and a cinematic eye that lifts every story."
+      }
+    ],
+    "workLineA": {
+      "text": "Fica a Conhecer o",
+      "from": "/sobre/",
+      "en": "Get to Know"
+    },
+    "workLineB": {
+      "text": "Nosso Trabalho",
+      "from": "/sobre/",
+      "en": "Our Work"
+    },
+    "ctaPortfolio": {
+      "text": "Consultar Portfólio",
+      "from": "/sobre/",
+      "en": "See the Portfolio"
+    }
+  },
+  "wordpressExcerpt": "Sobre Nós De uma ideia a um movimento.  A NVF nasceu entre câmaras, roadtrips,  trilhos de montanha, amizades e um eterno contacto com o audiovisual. Criámos este projeto porque acreditamos que o vídeo tem poder — o poder de emocionar, de inspirar e de transformar! Não somos apenas videógrafos, somos contadores de histórias visuais. Gostamos […]"
+}

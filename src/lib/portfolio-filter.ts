@@ -26,7 +26,12 @@
  * still the browser's.
  */
 
-import { FILTER_ALL } from './portfolio.ts';
+/**
+ * The "all" filter. Declared HERE, in the browser module, and re-exported by
+ * src/lib/portfolio.ts — never imported from it, because that module loads the
+ * page-content schema and would drag zod and the media manifest into the client bundle.
+ */
+export const FILTER_ALL = 'todos';
 
 interface Teardown { destroy(): void }
 

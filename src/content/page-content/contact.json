@@ -1,0 +1,59 @@
+{
+  "banner": "pages/contactos/banner",
+  "copy": {
+    "formHeading": {
+      "text": "Formulário",
+      "from": "/contactos/",
+      "en": "Form"
+    },
+    "directHeading": {
+      "text": "Contacto Directo",
+      "from": "/contactos/",
+      "en": "Direct Contact"
+    },
+    "directBody": {
+      "text": "Se preferires contata-nos diretamente através do nosso formulário. Prometemos ser breves a responder!",
+      "from": "/contactos/",
+      "en": "If you prefer, contact us directly through our form. We promise to be quick to reply!"
+    }
+  },
+  "form": {
+    "labels": {
+      "nome": {
+        "text": "Nome",
+        "from": "/contactos/",
+        "en": "Name"
+      },
+      "email": {
+        "text": "Email",
+        "from": "/contactos/",
+        "en": "Email"
+      },
+      "telefone": {
+        "text": "Telefone",
+        "from": "/contactos/",
+        "en": "Phone"
+      },
+      "mensagem": {
+        "text": "Mensagem",
+        "from": "/contactos/",
+        "en": "Message"
+      }
+    },
+    "consent": {
+      "text": "Declaro que li e que aceito a Política de Privacidade.",
+      "from": "/contactos/",
+      "en": "I declare that I have read and accept the Privacy Policy."
+    },
+    "consentLink": {
+      "pt": "Política de Privacidade",
+      "en": "Privacy Policy"
+    },
+    "submit": {
+      "text": "Enviar",
+      "from": "/contactos/",
+      "en": "Send"
+    }
+  },
+  "wordpressExcerpt": "Contactos Pronto para transformar a tua visão em imagens? Queremos ouvir a tua história e ajudá-la a ganhar vida. Tens um projeto em mente? Precisas de um vídeo autêntico para a tua marca ou negócio? Fala connosco e juntos criaremos algo memorável. Envia-nos uma mensagem e responderemos rapidamente. nextvisionfilmsagency@gmail.com (+351) 932 797 025 (+351) 929 […]"
+}

@@ -37,6 +37,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import BrandMark from '../site/BrandMark.astro';
 import Reel from '../site/Reel.astro';
 import { SERVICES_PAGE, SERVICES_LEAD } from '../../lib/static-pages.ts';
+import { PAGE_CONTENT } from '../../lib/page-content.ts';
 import { imageProps } from '../../lib/media.ts';
 import { navHref } from '../../lib/nav.ts';
 import { organizationSchema, breadcrumbSchema, absoluteUrl } from '../../lib/seo.ts';
@@ -59,11 +60,11 @@ const settings = await getEntry('settings', 'site');
  * whole file — so it takes a column and never the page width. Nothing here is upscaled
  * to fill a layout (decision A76).
  */
-const leadKey = 'pages/servicos/lead';
+const leadKey = PAGE_CONTENT.services.leadImage;
 const leadImage = imageProps(leadKey, { alt: '', sizes: '(min-width: 60rem) 39rem, 92vw' });
 
 /** The storyboard's collage: food, sunset, wedding. The middle frame is the large one. */
-const collage = ['projects/nvf-vs-antiqvvm/poster', 'projects/nazaryi/poster', 'projects/susanarafael/poster']
+const collage = PAGE_CONTENT.services.collage
   .map((key, i) => imageProps(key, { alt: '', sizes: i === 1 ? '(min-width: 48rem) 34vw, 60vw' : '(min-width: 48rem) 22vw, 40vw' }));
 
 const schema = [

@@ -101,6 +101,48 @@ try {
   errors.push(`media-source-map: ${e.message}`);
 }
 
+/* ------------------------------------------------- page content (Phase A0)
+   Page prose lives in src/content/page-content/*.json since Phase A0, as `{ text, from,
+   en? }` objects. This walks those files and returns every one of them, with the JSON
+   path it sits at, so the checks below read the same strings the site renders. Meta
+   description selections are still `v()` literals in src/lib/page-meta.ts and are read
+   from there. */
+const PAGE_CONTENT_DIR = 'src/content/page-content';
+const pageContentFiles = () => fs.readdirSync(path.join(ROOT, PAGE_CONTENT_DIR))
+  .filter((f) => f.endsWith('.json'))
+  .map((f) => `${PAGE_CONTENT_DIR}/${f}`);
+
+function provenancedStrings() {
+  const out = [];
+  const walk = (node, file, at) => {
+    if (Array.isArray(node)) node.forEach((n, i) => walk(n, file, `${at}[${i}]`));
+    else if (node && typeof node === 'object') {
+      if (typeof node.text === 'string' && typeof node.from === 'string') {
+        out.push({ file, at, text: node.text, from: node.from, en: node.en });
+      } else for (const [k, v] of Object.entries(node)) walk(v, file, at ? `${at}.${k}` : k);
+    }
+  };
+  for (const file of pageContentFiles()) walk(read(file), file, '');
+
+  // v('text', '/from/') — and optionally v('text', '/from/', 'english'). Portuguese copy
+  // carries no straight apostrophes, so a single-quoted literal is unambiguous here.
+  const re = /\bv\(\s*'((?:[^'\\]|\\.)*)'\s*,\s*'([^']*)'\s*([,)])/g;
+  for (const file of ['src/lib/page-meta.ts']) {
+    const src = fs.readFileSync(path.join(ROOT, file), 'utf8');
+    let m;
+    while ((m = re.exec(src)) !== null) {
+      out.push({ file, at: '', text: m[1].replace(/\\'/g, "'"), from: m[2], en: m[3] === ',' ? m[3] : undefined });
+    }
+  }
+  return out;
+}
+
+const servicesLead = () => {
+  const lead = read(`${PAGE_CONTENT_DIR}/services.json`).lead;
+  const full = read(`${PAGE_CONTENT_DIR}/home.json`).copy.servicesLeadFull;
+  return { lead, full };
+};
+
 /* ------------------------------------------------------- published copy
    CLAUDE.md 2 forbids inventing, rewriting, shortening or summarising published copy.
    Every string this site prints as content therefore declares WHERE IT WAS PUBLISHED —
@@ -148,30 +190,13 @@ try {
     return archive.pages.filter((p) => re.test(p.path));
   };
 
-  const SOURCES = [
-    'src/lib/homepage.ts', 'src/lib/portfolio.ts', 'src/lib/static-pages.ts',
-    // Phase 11. Meta descriptions are SELECTIONS of published sentences, so they are
-    // checked against the archive exactly like the copy they are selected from — that is
-    // the whole mechanism that stops a description drifting into authorship.
-    'src/lib/page-meta.ts',
-  ];
+  const strings = provenancedStrings();
+  const SOURCES = [...new Set(['src/lib/page-meta.ts', ...strings.map((x) => x.file)])];
   let checked = 0;
   const perFile = new Map();
 
-  for (const file of SOURCES) {
-    perFile.set(file, 0);
-    const src = fs.readFileSync(path.join(ROOT, file), 'utf8');
-    // v('text', '/from/') — and since Phase 11, optionally v('text', '/from/', 'english').
-    // Only the first two arguments are checked here: the third is an authored translation
-    // with no archive to check it against, and it is checked for COMPLETENESS instead,
-    // in the i18n section below. The match therefore stops at a comma or a closing paren.
-    // Portuguese copy carries no straight apostrophes, so a single-quoted literal is
-    // unambiguous here.
-    const re = /\bv\(\s*'((?:[^'\\]|\\.)*)'\s*,\s*'([^']*)'\s*[,)]/g;
-    let m;
-    while ((m = re.exec(src)) !== null) {
-      const raw = m[1].replace(/\\'/g, "'");
-      const from = m[2];
+  for (const file of SOURCES) perFile.set(file, 0);
+  for (const { file, at, text: raw, from } of strings) {
       // The copyright line is the one string with a substitution in it, and it is checked
       // separately below against the exact published wording.
       if (raw.includes('{year}')) continue;
@@ -180,20 +205,19 @@ try {
       let found;
       if (from.includes('{')) {
         const pages = patternPages(from);
-        if (!pages.length) { errors.push(`copy: unknown source pattern — ${file} -> ${from}`); continue; }
+        if (!pages.length) { errors.push(`copy: unknown source pattern — ${file} ${at} -> ${from}`); continue; }
         found = pages.some((p) => corpus(p).includes(needle));
       } else {
         const haystack = textOf(from);
-        if (haystack === null) { errors.push(`copy: unknown source page — ${file} -> ${from}`); continue; }
+        if (haystack === null) { errors.push(`copy: unknown source page — ${file} ${at} -> ${from}`); continue; }
         found = haystack.includes(needle);
       }
 
       if (!found) {
-        errors.push(`copy: ${file} claims this was published on ${from}, and it was not:\n        "${raw.slice(0, 120)}${raw.length > 120 ? '...' : ''}"`);
+        errors.push(`copy: ${file} ${at} claims this was published on ${from}, and it was not:\n        "${raw.slice(0, 120)}${raw.length > 120 ? '...' : ''}"`);
       }
       checked += 1;
       perFile.set(file, perFile.get(file) + 1);
-    }
   }
 
   /* No magic total. What matters is that the scan still SEES each file: a renamed helper,
@@ -203,8 +227,7 @@ try {
   if (blind.length) errors.push(`copy: found no provenanced strings in ${blind.join(', ')} — has the v() helper been renamed or the copy moved?`);
   else ok.push(`copy: ${checked} published strings across ${SOURCES.length} files verified against the archive, word for word`);
 
-  const home = fs.readFileSync(path.join(ROOT, 'src/lib/homepage.ts'), 'utf8');
-  if (!home.includes('copyright {year} \u00a9 todos os direitos reservados')) {
+  if (read(`${PAGE_CONTENT_DIR}/home.json`).copy.copyright.text !== 'copyright {year} \u00a9 todos os direitos reservados') {
     errors.push('copy: the copyright template no longer matches the published wording');
   }
 } catch (e) {
@@ -217,16 +240,9 @@ try {
    concatenate to the published sentence: an emphasis that quietly became an edit is
    exactly the failure the marking makes easy. */
 try {
-  const src = fs.readFileSync(path.join(ROOT, 'src/lib/static-pages.ts'), 'utf8');
-  const from = src.indexOf('export const SERVICES_LEAD');
-  const block = src.slice(from, src.indexOf('];', from));
-  const joined = [...block.matchAll(/text:\s*'((?:[^'\\]|\\.)*)'/g)].map((m) => m[1]).join('');
-
-  const home = fs.readFileSync(path.join(ROOT, 'src/lib/homepage.ts'), 'utf8');
-  // The FIELD, not the first mention of its name — which is in the comment above it.
-  const at = home.indexOf('servicesLeadFull:');
-  const open = home.indexOf("'", at);
-  const full = home.slice(open + 1, home.indexOf("',", open + 1));
+  const { lead, full: published } = servicesLead();
+  const joined = lead.map((x) => x.text).join('');
+  const full = published.text;
 
   if (!joined) errors.push('copy: SERVICES_LEAD has no segments');
   else if (joined !== full) {
@@ -313,24 +329,13 @@ try {
 
 /* ----------------------------------------------- page prose, both locales */
 try {
-  const FILES = [
-    'src/lib/homepage.ts', 'src/lib/portfolio.ts',
-    'src/lib/static-pages.ts', 'src/lib/page-meta.ts',
-  ];
-  /* The same shape as the provenance scan above, except this one looks at what comes
-     AFTER the source path: a comma means an English translation follows, a closing paren
-     means none does. */
-  const re = /\bv\(\s*'((?:[^'\\]|\\.)*)'\s*,\s*'([^']*)'\s*([,)])/g;
-
+  /* The same strings as the provenance scan above. In the page-content files a string
+     without `en` has no translation; in page-meta.ts, a `v()` with no third argument. */
   let translated = 0;
   const missing = [];
-  for (const file of FILES) {
-    const src = fs.readFileSync(path.join(ROOT, file), 'utf8');
-    let m;
-    while ((m = re.exec(src)) !== null) {
-      if (m[3] === ',') translated += 1;
-      else missing.push(`${file}: "${m[1].slice(0, 60)}"`);
-    }
+  for (const { file, at, text, en } of provenancedStrings()) {
+    if (en !== undefined) translated += 1;
+    else missing.push(`${file} ${at}: "${text.slice(0, 60)}"`);
   }
   if (missing.length) {
     errors.push(`i18n: ${missing.length} published string(s) reachable from an English route have no translation:\n        ${missing.join('\n        ')}`);
@@ -347,16 +352,9 @@ try {
    the RELATIONSHIP: its segments must still spell its own full string. A highlight that
    quietly became an edit in one language and not the other is exactly what this catches. */
 try {
-  const sp = fs.readFileSync(path.join(ROOT, 'src/lib/static-pages.ts'), 'utf8');
-  const from = sp.indexOf('export const SERVICES_LEAD');
-  const block = sp.slice(from, sp.indexOf('];', from));
-  const joined = [...block.matchAll(/en:\s*'((?:[^'\\]|\\.)*)'/g)].map((x) => x[1]).join('');
-
-  const home = fs.readFileSync(path.join(ROOT, 'src/lib/homepage.ts'), 'utf8');
-  const at = home.indexOf('servicesLeadFull:');
-  const call = home.slice(at, home.indexOf('),', at) + 1);
-  const args = [...call.matchAll(/'((?:[^'\\]|\\.)*)'/g)].map((x) => x[1]);
-  const full = args[2];
+  const { lead, full: published } = servicesLead();
+  const joined = lead.map((x) => x.en).join('');
+  const full = published.en;
 
   if (!joined) errors.push('copy: SERVICES_LEAD has no English segments');
   else if (!full) errors.push('copy: servicesLeadFull has no English translation to check against');
