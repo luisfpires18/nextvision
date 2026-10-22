@@ -191,32 +191,75 @@ silently and break saving.
 - **Concurrency:** each save commits against the file's current SHA; a conflict tells the
   owner someone else changed it and reloads.
 
-### 4.1 Media ingest — the real engineering
+### 4.1 Media ingest (A4) — revised 2026-10-22, after A1–A3 shipped
 
 Today `media:build` runs on Luís's machine against 646 MB of local sources, with a
-hand-written `recipe.mjs` entry per asset. To make "upload a new video" work:
+hand-written `recipe.mjs` entry per asset. Two facts learned while building A1–A3 change
+the original sketch:
 
-1. **Upload** — browser → Worker → R2 **multipart** into `nvf-source-archive/incoming/`.
-   (Worker request bodies cap at 100 MB, so multipart chunks; the R2 binding needs no new
-   S3 credentials.) The source is backed up the moment it lands, which is rule 4 for free.
-2. **Choose the window** — the timecode is a judgement about the footage
-   (`MEDIA_PIPELINE.md` §5). The admin plays the uploaded file in the browser and the owner
-   marks **loop start / end** and the **poster frame** on a scrubber, plus a one-line note
-   of what the window avoids. That note is what the recipe already records.
-3. **Recipes become data** — move `scripts/media/recipe.mjs` entries to `media/recipes.json`
-   so a bot can add one without editing JavaScript.
-4. **`media-ingest.yml`** (new workflow, `workflow_dispatch`): install ffmpeg, pull that one
-   source from R2, `media:inspect` (refuse below the hero floor with the measured reason),
-   `media:build --only <key>` (already merges into the manifest), `media:verify`,
-   `media:sync --execute` (add-only, no `--delete`), commit `media-manifest.json` +
-   `recipes.json` + the content change to `dev`. That commit triggers the normal deploy.
-5. **Images** follow the same path with no window step.
-6. **Long-form films stay on YouTube/Vimeo** — the admin takes a pasted link and extracts the
-   11-char id, which the schema already validates.
+- **The admin runs on the LIVE Worker, so its media list is the live one.** A file
+  processed into `dev` cannot be shown or picked there until it is published, and its
+  renditions are not on the live Worker either. So v1 does not upload into a library and
+  then pick from it. Each media field gets **"Carregar novo…"**: the owner uploads FOR
+  that slot (the homepage film, a BTS frame), and processing puts the file and the field
+  change into `dev` together. The preview then shows it, and Publicar releases it like any
+  other save.
+- **CI must commit as the App.** A push made with GitHub's own Actions token does not
+  trigger other workflows, so the preview would never rebuild. The publish rule also only
+  trusts the App. So the ingest workflow mints an App token (`actions/create-github-app-token`)
+  and commits as `nvf-admin-luisfpires18[bot]`.
 
-Blocking prerequisite: **delivery from R2 needs a media hostname** (`PUBLIC_MEDIA_BASE_URL`,
-Step 15, DNS). Until then the CI build ships media from the local mirror pulled by
-`media:pull`, which still works — new media just has to be in R2 before the build pulls it.
+The flow:
+
+```
+admin (live)                         R2 (private)                GitHub (dev)                 CI
+────────────                         ────────────                ────────────                 ──
+choose file → plays LOCALLY in the browser: mark loop start/end + cover frame (no upload yet)
+"Carregar" → multipart upload ─────▶ nvf-source-archive/uploads/<date>/<id>/<name>
+           → POST /admin/api/media ─────────────────────────────▶ commit (App): media/uploads.json
+                                                                  += { key, field, window… }
+                                                                        │ push to dev (paths filter)
+                                                                        ▼
+                                                     media-ingest.yml: ffmpeg · pull that source ·
+                                                     media:build --only <key> · media:verify ·
+                                                     media:sync --execute (add-only) ·
+                                                     commit (App token): manifest + field + status
+                                                                        │ push
+                                                                        ▼
+                                                     dev.yml builds the preview WITH the new media
+```
+
+1. **Upload**: browser → Worker → R2 **multipart** into the private `nvf-source-archive`
+   (50 MB parts; a Worker request body caps at 100 MB). Max 2 GB (A5). The source is backed
+   up the moment it lands, which satisfies rule 4. The prod Worker gets an `r2_buckets`
+   binding to that bucket, and the code writes only under `uploads/`.
+2. **Window**: chosen on the LOCAL file before uploading (`URL.createObjectURL`, a
+   `<video>` and a canvas filmstrip). That's instant, needs no round trip, and the upload
+   happens once.
+3. **Owner recipes are data**: `media/uploads.json`, a list the App appends to and
+   `media-build` reads alongside `recipe.mjs`. The hand-written recipes stay as they are.
+   Each entry records the window, the cover time and the owner's note on what the window
+   avoids.
+4. **`media-ingest.yml`**, on push to `dev` touching `media/uploads.json`. It refuses below
+   the hero floor (`media:inspect`) and records the measured reason in the entry, which the
+   admin shows. It uploads renditions add-only, never `--delete`.
+5. **Images** take the same path with no window.
+6. **Publish rule**: allowed files grow to include `src/data/media-manifest.json` and
+   `media/uploads.json`. Allowed authors stay the App only.
+7. **Long-form films stay on YouTube/Vimeo**: a pasted link, from which the 11-char id is
+   extracted.
+
+Delivery is unchanged: the build still ships media from the mirror that `media:pull`
+fetches from `nvf-media`, so new renditions only need to be in that bucket before the
+preview builds. A media hostname (Step 15) is not needed.
+
+**Prerequisites (Luís, outside the repo):**
+- **An R2 API token for CI** with Object Read & Write on `nvf-media` and Object Read on
+  `nvf-source-archive`. The token CI has today was made for `media:pull`, and its scope is
+  unknown.
+- **The App's credentials as GitHub Actions secrets** (`NVF_ADMIN_APP_ID`,
+  `NVF_ADMIN_APP_PRIVATE_KEY`, a NEW private key). An App may hold several keys, so the
+  Worker's key stays valid.
 
 ---
 
