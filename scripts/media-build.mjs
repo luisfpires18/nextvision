@@ -23,7 +23,7 @@ import path from 'node:path';
 
 import * as R from './media/recipe.mjs';
 import {
-  MIRROR, CACHE_FILE, MANIFEST_FILE, ENCODER,
+  MIRROR, CACHE_FILE, MANIFEST_FILE, ENCODER, INCOMING,
   ffmpeg, probeSize, resolveSource, filterFor, findSmash,
   emit, fingerprint, sourceStamp, readJson, writeJson, mirrorPath, human,
 } from './media/lib.mjs';
@@ -193,6 +193,7 @@ async function buildClip(smash, spec) {
     // A 1080p card loop clears the hero floor at the width the page renders, and is still
     // not a master. Only the files that genuinely fall short carry the flag.
     masterRequired: spec.masterRequired ?? true,
+    ...(spec.provenance === 'owner' ? { sourceQuality: 'owner-upload' } : {}),
     source: { ...await sourceStamp(src), naturalWidth: natural.width, naturalHeight: natural.height },
     recipe: { start: spec.start, duration: spec.duration, crop: spec.crop, posterAt: spec.posterAt },
     notes: `${path.basename(String(spec.file))} @ ${spec.start}s +${spec.duration}s${spec.crop ? `, crop ${spec.crop}` : ''}. ${spec.note ?? 'Replaced by an owner master when one is supplied (request M1).'}`,
@@ -325,6 +326,49 @@ async function buildPageImages() {
   }
 }
 
+/**
+ * 7/7 — files the owners uploaded from the admin (phase A4, src/data/media-uploads.json).
+ *
+ * Their sources live only in the private bucket; `scripts/media-ingest.mjs` downloads the
+ * one being processed into media/incoming/<id>/ first. When a source is NOT on disk — a
+ * full local rebuild on a machine that never downloaded it — the asset already in the
+ * manifest is CARRIED OVER unchanged. Without that, a full rebuild would replace the
+ * manifest and silently delete every owner film from the site.
+ */
+const OWNER_VIDEO_WIDTHS = [1280, 720];
+
+async function buildOwnerUploads(previous) {
+  const doc = await readJson(path.join(ROOT, 'src', 'data', 'media-uploads.json'), { uploads: [] });
+  for (const u of doc.uploads) {
+    if (u.status === 'failed' || !wanted(u.key)) continue;
+    const src = path.join(INCOMING, u.id, path.basename(u.source));
+    if (!existsSync(src)) {
+      for (const k of [u.key, `${u.key}/poster`]) if (previous[k]) items[k] = previous[k];
+      if (previous[u.key]) log(`  ${u.key.padEnd(44)} carried over (source not on this machine)`);
+      else if (u.status === 'ready') log(`  !! ${u.key}: marked ready but neither its source nor a manifest entry is here`);
+      continue;
+    }
+    const note = `Uploaded in the admin by ${u.by}, ${u.at.slice(0, 10)}: ${u.name}.${u.note ? ` Window avoids: ${u.note}.` : ''}`;
+    if (u.kind === 'video') {
+      await buildClip(null, {
+        key: u.key, file: src, resolved: true, start: u.start, duration: u.duration, crop: null,
+        widths: OWNER_VIDEO_WIDTHS, posterAt: u.posterAt, provenance: 'owner', masterRequired: false, note,
+      });
+    } else {
+      const { renditions, natural } = await stillRenditions(u.key, src, null, R.STILL_WIDTHS);
+      record(u.key, 'image', renditions, {
+        provenance: 'owner',
+        sourceQuality: 'owner-upload',
+        altStatus: 'todo',
+        alt: null,
+        source: { ...await sourceStamp(src), naturalWidth: natural.width, naturalHeight: natural.height },
+        recipe: { crop: null },
+        notes: note,
+      });
+    }
+  }
+}
+
 /* ════════════════════════════════════════════════════════════════════ main ══ */
 
 async function main() {
@@ -366,13 +410,18 @@ async function main() {
   log('\n6/6  The static pages and the team portraits');
   await buildPageImages();
 
+  const before = (await readJson(MANIFEST_FILE, { items: {} })).items;
+  log('\n7/7  Uploaded by the owners in the admin');
+  await buildOwnerUploads(before);
+
   await writeJson(CACHE_FILE, CACHE);
 
   /**
    * `--only` builds a subset, so it MERGES into the manifest rather than replacing it.
-   * A full run replaces, which is how a removed recipe entry leaves the manifest.
+   * A full run replaces, which is how a removed recipe entry leaves the manifest. (Owner
+   * uploads are the exception, carried over above whenever their source is not on disk.)
    */
-  const previous = ONLY ? (await readJson(MANIFEST_FILE, { items: {} })).items : {};
+  const previous = ONLY ? before : {};
   const merged = { ...previous, ...items };
   const totalBytes = Object.values(merged).reduce((n, it) => n + (it.bytes ?? 0), 0);
 

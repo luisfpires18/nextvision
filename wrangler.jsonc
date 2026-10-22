@@ -90,7 +90,13 @@
       "vars": {
         "ACCESS_TEAM_DOMAIN": "royal-hall-6f88.cloudflareaccess.com",
         "ACCESS_AUD": "f1b7ab18b88a7e1085ce1e271598a9d1b31d750c195b39552a3b44d8a6abe722"
-      }
+      },
+      // A4: the admin uploads owners' originals into the PRIVATE source bucket, under
+      // `uploads/` only (src/lib/admin/uploads.ts refuses any other key). The site never
+      // reads it and it has no public URL. dev has no binding, as it has no admin.
+      "r2_buckets": [
+        { "binding": "SOURCES", "bucket_name": "nvf-source-archive" }
+      ]
     }
   }
 

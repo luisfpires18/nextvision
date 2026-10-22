@@ -19,6 +19,7 @@ import { SCREENS, pageFilePath } from '../src/lib/admin/fields.ts';
 import { applyEdits, expandFields, fieldName, serialise, EditError } from '../src/lib/admin/edit.ts';
 import { readFile, commitFiles, latestRun, gitBlobSha, resetGitHubToken, GitHubError, branchHead, compare, openPullRequest, mergePullRequest } from '../src/lib/admin/github.ts';
 import { assess, ADMIN_BOT as BOT_IN_SRC } from '../src/lib/admin/publish.ts';
+import { planUpload, appendUpload, safeName, kindOf, uploadKey, isUploadKey, UPLOADS_PATH } from '../src/lib/admin/uploads.ts';
 import { createMockGitHub, gitBlobSha as nodeBlobSha, ADMIN_BOT } from './lib/mock-github.mjs';
 
 assert.equal(BOT_IN_SRC, ADMIN_BOT, 'the fake GitHub names the App exactly as the publish rule expects');
@@ -271,6 +272,74 @@ await check('a developer commit on dev shows up as blocking in a real comparison
   const a = assess(await compare(cfg, 'master', 'dev', opts));
   assert.equal(a.blocked.length, 1);
 });
+
+/* ── new media from the owners (A4) ─────────────────────────────────────── */
+
+{
+  const homeFields = expandFields(SCREENS.home, docsFor('home'));
+  const btsFields = expandFields(SCREENS.bts, docsFor('bts'));
+  const src = 'uploads/2026-10-22/abc12345/clip.mp4';
+  const film = { screen: 'home', target: 'home:heroVideo', source: src, name: 'Clip Final.MOV', start: 10, end: 18, posterAt: 12 };
+  const plan = (fields, req) => planUpload(fields, req, 'abc12345', 'o@x', '2026-10-22T18:00:00Z');
+
+  await check('a film for the homepage becomes a pending owner/<id>/hero entry with its window', () => {
+    const e = plan(homeFields, film);
+    assert.equal(e.key, 'owner/abc12345/hero');
+    assert.equal(e.kind, 'video');
+    assert.deepEqual([e.start, e.duration, e.posterAt, e.status], [10, 8, 12, 'pending']);
+    assert.deepEqual(e.target, { screen: 'home', file: 'home', path: 'heroVideo', label: 'Vídeo da página inicial' });
+  });
+  await check('a still for a BTS frame becomes owner/<id>/image, with no window', () => {
+    const e = plan(btsFields, { screen: 'bts', target: 'bts:frames.2', source: src.replace('clip.mp4', 'f.jpg'), name: 'frame.JPG' });
+    assert.equal(e.key, 'owner/abc12345/image');
+    assert.equal(e.start, undefined);
+  });
+  await check('the wrong kind for the field is refused, in words', () => {
+    assert.throws(() => plan(homeFields, { ...film, name: 'photo.jpg' }), /precisa de um vídeo/);
+    assert.throws(() => plan(btsFields, { screen: 'bts', target: 'bts:frames.0', source: src, name: 'clip.mp4' }), /precisa de uma imagem/);
+  });
+  await check('a text field, an unknown field and a locked field take no file', () => {
+    assert.throws(() => plan(homeFields, { ...film, target: 'home:copy.heroLineA' }), /não aceita ficheiros/);
+    assert.throws(() => plan(homeFields, { ...film, target: 'home:nope' }), /não aceita ficheiros/);
+  });
+  await check('the window must be 2-30 s, marked, and hold its cover', () => {
+    assert.throws(() => plan(homeFields, { ...film, end: 11 }), /pelo menos 2/);
+    assert.throws(() => plan(homeFields, { ...film, end: 45 }), /no máximo 30/);
+    assert.throws(() => plan(homeFields, { ...film, posterAt: 20 }), /dentro do excerto/);
+    assert.throws(() => plan(homeFields, { ...film, start: undefined }), /Marque/);
+    assert.throws(() => plan(homeFields, { ...film, start: -1 }), /Marque/);
+  });
+  await check('a source outside uploads/ (or one that walks) is refused', () => {
+    for (const bad of ['archive/smash/x.mp4', 'uploads/../archive/x.mp4', 'uploads/2026-10-22/abc12345/../../x', '']) {
+      assert.throws(() => plan(homeFields, { ...film, source: bad }), /não foi encontrado/, bad);
+    }
+  });
+  await check('an unsupported file type is refused', () => {
+    assert.throws(() => plan(homeFields, { ...film, name: 'clip.avi' }), /não é aceite/);
+  });
+  await check('file names are made safe and keys are recognised', () => {
+    assert.equal(safeName('../../Vídeo Final (2).MOV'), 'Video-Final-2-.MOV');
+    assert.equal(kindOf('a.Mp4'), 'video');
+    assert.equal(kindOf('a.tiff'), 'image');
+    assert.equal(kindOf('a.exe'), null);
+    assert.ok(isUploadKey(uploadKey('2026-10-22', 'abc12345', 'Vídeo Final.mov')));
+  });
+  await check('the same request id twice is refused', () => {
+    const e = plan(homeFields, film);
+    const doc = appendUpload({ uploads: [] }, e);
+    assert.throws(() => appendUpload(doc, e), /já foi feito/);
+  });
+  await check('the empty uploads file on disk is the shape the code expects', () => {
+    assert.deepEqual(JSON.parse(fs.readFileSync(UPLOADS_PATH, 'utf8')), { uploads: [] });
+  });
+  await check('processed media and its request are publishable owner content', () => {
+    const a = assess({
+      commits: [ownerCommit('a', 'content(home): Vídeo da página inicial (novo ficheiro)')],
+      files: ['src/data/media-uploads.json', 'src/data/media-manifest.json', 'src/content/page-content/home.json'],
+    });
+    assert.deepEqual(a.blocked, []);
+  });
+}
 
 console.log(failed ? `\n${failed} failed, ${passed} passed` : `\nall ${passed} checks passed — saves are one commit or none, only what the screen offers, and only owner content is ever published`);
 process.exit(failed ? 1 : 0);

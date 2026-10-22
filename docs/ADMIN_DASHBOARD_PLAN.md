@@ -216,7 +216,7 @@ admin (live)                         R2 (private)                GitHub (dev)   
 ────────────                         ────────────                ────────────                 ──
 choose file → plays LOCALLY in the browser: mark loop start/end + cover frame (no upload yet)
 "Carregar" → multipart upload ─────▶ nvf-source-archive/uploads/<date>/<id>/<name>
-           → POST /admin/api/media ─────────────────────────────▶ commit (App): media/uploads.json
+           → POST /admin/api/media ─────────────────────────────▶ commit (App): src/data/media-uploads.json
                                                                   += { key, field, window… }
                                                                         │ push to dev (paths filter)
                                                                         ▼
@@ -236,16 +236,16 @@ choose file → plays LOCALLY in the browser: mark loop start/end + cover frame 
 2. **Window**: chosen on the LOCAL file before uploading (`URL.createObjectURL`, a
    `<video>` and a canvas filmstrip). That's instant, needs no round trip, and the upload
    happens once.
-3. **Owner recipes are data**: `media/uploads.json`, a list the App appends to and
-   `media-build` reads alongside `recipe.mjs`. The hand-written recipes stay as they are.
+3. **Owner recipes are data**: `src/data/media-uploads.json` (not under `media/`, which is
+   gitignored whole), a list the App appends to and `media-build` reads alongside `recipe.mjs`. The hand-written recipes stay as they are.
    Each entry records the window, the cover time and the owner's note on what the window
    avoids.
-4. **`media-ingest.yml`**, on push to `dev` touching `media/uploads.json`. It refuses below
+4. **`media-ingest.yml`**, on push to `dev` touching `src/data/media-uploads.json`. It refuses below
    the hero floor (`media:inspect`) and records the measured reason in the entry, which the
    admin shows. It uploads renditions add-only, never `--delete`.
 5. **Images** take the same path with no window.
 6. **Publish rule**: allowed files grow to include `src/data/media-manifest.json` and
-   `media/uploads.json`. Allowed authors stay the App only.
+   `src/data/media-uploads.json`. Allowed authors stay the App only.
 7. **Long-form films stay on YouTube/Vimeo**: a pasted link, from which the 11-char id is
    extracted.
 
@@ -358,7 +358,7 @@ Each phase ships on its own and is useful without the next.
 | A1 ✅ | Access + shell | `/admin/` on dev Worker only, Cloudflare Access, JWT check, read-only browse of all content. Done 2026-10-22; `PROJECT_CONTEXT.md` §21 | S |
 | A2 ◐ | Text & settings editing — **slice 1 done 2026-10-22** (the seven page screens: texts and media picks; `PROJECT_CONTEXT.md` §23). Collections (projects, services, team, settings) still to come | Forms for every §2.1 collection, schema validation server-side, commit via GitHub App, build status | M |
 | A3 ✅ | Publish | `dev → master` PR/merge button, with the list of what is waiting to go live, refused unless everything waiting is owner content. No undo (A9). Done 2026-10-22; `PROJECT_CONTEXT.md` §24 | S |
-| A4 | Media ingest | R2 multipart upload, `recipes.json`, `media-ingest.yml`, video window picker, image upload | L |
+| A4 ◐ | Media ingest — **built 2026-10-22, not yet live** (`PROJECT_CONTEXT.md` §25) | R2 multipart upload, `recipes.json`, `media-ingest.yml`, video window picker, image upload | L |
 | A5 | Ordering & blocks | Drag-to-order homepage/portfolio, project page block editor (the 9 closed types) | M |
 
 **Smallest useful slice for "change the video tomorrow":** A0 + A1 + A3 + the video path

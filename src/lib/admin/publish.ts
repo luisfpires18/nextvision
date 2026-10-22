@@ -17,7 +17,11 @@ import { SCREEN_LABELS, type PageFileName } from './fields.ts';
 
 /** The admin's GitHub App, as GitHub names it on the commits it makes. */
 export const ADMIN_BOT = 'nvf-admin-luisfpires18[bot]';
-const CONTENT_FILE = /^src\/content\/page-content\/[a-z-]+\.json$/;
+/**
+ * What an owner action may change: page content, and — since A4 — the uploads list and
+ * the media manifest that processing an upload writes. Nothing else, ever.
+ */
+const CONTENT_FILE = /^(src\/content\/page-content\/[a-z-]+\.json|src\/data\/media-uploads\.json|src\/data\/media-manifest\.json)$/;
 
 export interface Waiting {
   commits: { sha: string; author: string | null; message: string; date: string }[];

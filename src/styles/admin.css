@@ -199,6 +199,50 @@
 .ed-message[data-tone='ok'] { color: var(--a-text); }
 .ed-message[data-tone='error'] { color: var(--a-text); padding-inline-start: var(--space-3); border-inline-start: var(--rule-heavy) solid var(--brand-red); }
 
+/* ── new media (A4) ──────────────────────────────────────────────────────── */
+.ed-request { clear: both; margin-block-start: var(--space-3); padding: var(--space-2) var(--space-3); font-size: var(--t-meta); background: var(--a-raise); border-inline-start: var(--rule-heavy) solid var(--brand-yellow); }
+.ed-request[data-status='failed'] { border-inline-start-color: var(--brand-red); }
+.ed-upload { clear: both; margin-block-start: var(--space-3); }
+.ed-upload summary { cursor: pointer; color: var(--a-text); text-decoration: underline; }
+.ed-upload[open] { padding: var(--space-4); background: var(--a-raise); }
+.ed-upload[open] summary { margin-block-end: var(--space-3); }
+.ed-upload__file { display: grid; gap: var(--space-1); margin-block-end: var(--space-3); }
+.ed-upload__file input { font: inherit; color: var(--a-text); }
+.ed-upload__file input[type='text'] {
+  padding: var(--space-2) var(--space-3);
+  border: var(--admin-hairline) solid var(--a-dim);
+  border-radius: var(--radius-s);
+  background: var(--a-ground);
+  color: var(--a-text);
+}
+.ed-window { display: grid; gap: var(--space-3); }
+.ed-window[hidden] { display: none; }
+.ed-window video { inline-size: 100%; max-block-size: var(--admin-viewer-h); background: var(--brand-black); }
+.ed-marks { display: grid; grid-template-columns: auto 1fr; gap: var(--space-2) var(--space-3); align-items: end; }
+.ed-marks button {
+  padding: var(--space-2) var(--space-3);
+  border: var(--admin-hairline) solid var(--a-dim);
+  border-radius: var(--radius-s);
+  background: var(--a-panel);
+  color: var(--a-text);
+  font: inherit;
+  cursor: pointer;
+}
+.ed-marks label { display: grid; gap: var(--space-1); }
+.ed-marks input {
+  inline-size: 100%;
+  box-sizing: border-box;
+  padding: var(--space-2) var(--space-3);
+  border: var(--admin-hairline) solid var(--a-dim);
+  border-radius: var(--radius-s);
+  background: var(--a-ground);
+  color: var(--a-text);
+  font: inherit;
+}
+.ed-upload__go { display: flex; gap: var(--space-4); align-items: center; margin-block: var(--space-3); }
+.ed-upload__go progress { flex: 1; accent-color: var(--brand-yellow); }
+.ed-upload__go progress[hidden] { display: none; }
+
 /* ── publish (A3) ────────────────────────────────────────────────────────── */
 .admin-publish-link {
   display: block;

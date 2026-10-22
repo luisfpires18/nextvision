@@ -9,8 +9,9 @@
 import type { APIRoute } from 'astro';
 import { adminIdentity } from '../../lib/admin/guard.ts';
 import { githubConfig, BUILD_WORKFLOW, LIVE_BRANCH, LIVE_WORKFLOW, SAVE_BRANCH } from '../../lib/admin/repo.ts';
-import { compare, latestRun } from '../../lib/admin/github.ts';
+import { branchHead, compare, latestRun, readFile } from '../../lib/admin/github.ts';
 import { assess } from '../../lib/admin/publish.ts';
+import { UPLOADS_PATH, type UploadsDoc } from '../../lib/admin/uploads.ts';
 
 export const prerender = false;
 
@@ -28,6 +29,20 @@ export const GET: APIRoute = async ({ request, url }) => {
 
   const live = url.searchParams.get('alvo') === 'site';
   try {
+    // An upload being processed (A4): its entry as it is on `dev` now, and — once it is
+    // ready — the commit whose preview build will show it.
+    const upload = url.searchParams.get('carregamento');
+    if (upload) {
+      const doc = JSON.parse((await readFile(cfg, UPLOADS_PATH)).text) as UploadsDoc;
+      const entry = doc.uploads.find((u) => u.id === upload);
+      if (!entry) return answer(404, { configured: true, error: 'Pedido desconhecido.' });
+      return answer(200, {
+        configured: true,
+        status: entry.status,
+        error: entry.error ?? null,
+        head: entry.status === 'ready' ? await branchHead(cfg, SAVE_BRANCH) : null,
+      });
+    }
     // Asked once per page load by the status bar: how much is saved but not yet live.
     if (url.searchParams.has('pendentes')) {
       const waiting = assess(await compare(cfg, LIVE_BRANCH, SAVE_BRANCH));

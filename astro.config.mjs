@@ -127,6 +127,9 @@ export default defineConfig({
           injectRoute({ pattern: '/admin/api/guardar', entrypoint: './src/admin/api/save.ts', prerender: false });
           injectRoute({ pattern: '/admin/api/estado', entrypoint: './src/admin/api/status.ts', prerender: false });
           injectRoute({ pattern: '/admin/api/publicar', entrypoint: './src/admin/api/publish.ts', prerender: false });
+          injectRoute({ pattern: '/admin/api/carregar', entrypoint: './src/admin/api/upload.ts', prerender: false });
+          injectRoute({ pattern: '/admin/api/carregar/parte', entrypoint: './src/admin/api/upload-part.ts', prerender: false });
+          injectRoute({ pattern: '/admin/api/media', entrypoint: './src/admin/api/media.ts', prerender: false });
           injectRoute({ pattern: '/admin/[...path]', entrypoint: './src/admin/AdminRoute.astro', prerender: false });
           logger.info('/admin/ injected (prod Worker only)');
         },
