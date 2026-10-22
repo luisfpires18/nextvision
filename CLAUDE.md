@@ -190,6 +190,7 @@ Do not fill gaps with plausible-sounding text.
 | `docs/WEBSITE_AUDIT.md` | Complete audit of the existing site (structure, content, media, design, interaction, technical). |
 | `docs/ARCHITECTURE.md` | Technical decisions and rejected alternatives. Framework, content, media, motion, PWA, i18n, SEO, repo. |
 | `docs/IMPLEMENTATION_PLAN.md` | Phased build with review gates. Each phase: objective / included / excluded / verification. |
+| `docs/DESIGN_V2_ROLLOUT.md` | Design v2 (Tatiana). The rail, spine, slide, opening, five sections, BTS, the guide palette, how C1–C8 were resolved, and what waits on the owners. |
 | `docs/DESIGN_REFERENCES.md` | Reference analysis, extracted principles, anti-patterns, candidate visual directions. |
 | `docs/VISUAL_DIRECTIONS.md` | Review A. The three directions, the approved refinement, and why. |
 | `docs/HOMEPAGE_REVIEW.md` | Review B. Homepage structure, the curated selection, the hero comparison, header contrast, motion, payload, open questions. |
@@ -220,7 +221,16 @@ one left off.
 **Audit ✅ · Architecture ✅ · Phase 0 + 0.5 ✅ · Reviews A, B, C, D, E ✅ ·
 Phase 9 ✅ · Phase 10 ✅ · Phase 11 ✅ · Phase 12 ✅ · Phase 13 ✅ ·
 Phase 14 ✅ · Phase 15 ✅ · Step 12 staging deploy ✅ · Step 13 QA ✅ ·
-Step 14 GitHub + CI/CD + handover ✅ COMPLETE (2026-09-04).**
+Step 14 GitHub + CI/CD + handover ✅ COMPLETE (2026-09-04) ·
+Design v2 (Tatiana) ✅ on staging (2026-10-22).**
+
+**Design v2 replaced the visual layer, and nothing else.** The menu is the rail (five logo
+stripes on the right; a bottom bar on a phone), each page wears its section's colour through
+`<html data-section>`, sections slide in as view transitions on real routes, the homepage
+plays Tatiana's opening once per session, and `/bts/` is new. Every route, string, form
+field and validator contract is unchanged. One pre-existing defect was found: ClientRouter's
+swap dropped `data-motion` after the first navigation, so every `full`-tier rule stopped
+applying; BaseLayout now carries it across. Record: `docs/DESIGN_V2_ROLLOUT.md`.
 
 **The project is on GitHub, with two branches and two Workers.** `luisfpires18/nextvision`,
 private, public history reset to ONE root commit — `Initial Commit` — with `master` and
@@ -597,7 +607,10 @@ Non-negotiable, because they are easy to lose late:
   it. Every duration, easing, travel distance and stagger lives in
   `src/styles/tokens.motion.css` and is named for its ROLE, never its length; a component
   containing a raw `ms`, `cubic-bezier`, travel or delay is a bug. No scroll-jacking, no
-  custom cursor, no WebGL, no GSAP. Animate only `transform` and `opacity`. Smooth scroll
+  custom cursor, no WebGL, no GSAP. (**Amended 2026-10-22, design v2 decision C1:** the ONE
+  cursor allowed is a native CSS `cursor: url()` image, declared as a token and applied only
+  under `(hover: hover) and (pointer: fine)`, with no script following the pointer.) Animate
+  only `transform` and `opacity`. Smooth scroll
   is desktop-only, dynamically imported, and its frame loop stops when the page is still.
   (`docs/ARCHITECTURE.md` §16, `docs/MOTION_REVIEW.md`.)
 - **PWA** never caches video and stays under 20 MB of device storage. Never auto-reload

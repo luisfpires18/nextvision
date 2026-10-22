@@ -1460,3 +1460,29 @@ Production smoke test: 7 routes 200, a media rendition 200, a missing route 404,
 endpoint refusing an Origin-less POST with 403, and canonicals still pointing at
 `https://www.nextvisionfilms.com/` — which is what keeps both workers.dev copies from
 competing with the live site. No domain, no DNS, no bucket made public.
+
+
+## 19. Design v2 — Tatiana's identity (2026-10-22) ✅ ON STAGING
+
+Built on `feat/design-v2` from Tatiana's storyboard and recording, after the user approved a
+standalone prototype and settled the eight rule conflicts C1–C8. All decisions went with the
+recommendation; C7 (American Typewriter) turned out to be leftover stray glyphs. The full
+record is `docs/DESIGN_V2_ROLLOUT.md`.
+
+- **Chrome.** `Rail.astro` and `Spine.astro` replace `Header.astro` (deleted). Navigation is
+  data: `navigation.yml` items now carry `section` and `showIn: [rail, footer]`.
+- **Colour.** The palette comes from the brand guide's p. 10. The old token names alias to
+  it. `--brand-ink` stays `#292929` because the install icons are composited on it, and the
+  manifest `background_color` follows the new cream `#FFFAEC`.
+- **Type.** Barlow Condensed 300 and 900 were added to `build-fonts.mjs`.
+- **Brand marks.** Rendered from the owners' logo PDF into `public/brand/`, named only in
+  `src/lib/brand.ts`.
+- **New route.** `/bts/` and `/en/bts/` (PageId `bts`). They have no meta description, by
+  declaration in `page-meta.ts` and `validate-seo.mjs`.
+- **Defect fixed.** `data-motion` was lost on every client-side navigation (§3 of the
+  rollout doc).
+- **Verified.** `npm run verify` is green: routes 14 ok, SEO, analytics, PWA (326 KB of
+  20 MB), and media. The opening, the slide (via `getAnimations()`), both Cinema views,
+  `?view=list`, BTS, the contact sheet and the phone layout were all checked in a real
+  browser.
+- **Waiting on the owners or Tatiana:** see `docs/BLOCKED_TODOS.md`.
