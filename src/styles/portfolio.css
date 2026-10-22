@@ -17,7 +17,7 @@
 /* ═════════════════════════════════════════════════════════════════ masthead ══ */
 
 .pf-head {
-  padding-block: calc(var(--header-h) + var(--space-9)) var(--space-7);
+  padding-block: var(--space-9) var(--space-7);
   padding-inline: var(--gutter);
 }
 .pf-head__inner { max-inline-size: var(--w-wide); margin-inline: auto; }

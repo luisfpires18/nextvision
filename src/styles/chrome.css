@@ -25,6 +25,7 @@
 /* ═══════════════════════════════════════════════════════════════════ marks ══ */
 .brand-mark { display: block; inline-size: 100%; block-size: auto; }
 span.brand-mark {
+  aspect-ratio: var(--mark-ar);
   background: currentColor;
   -webkit-mask: var(--mark) center / contain no-repeat;
   mask: var(--mark) center / contain no-repeat;

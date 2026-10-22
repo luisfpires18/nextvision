@@ -14,7 +14,7 @@ const ratio = `${m.width} / ${m.height}`;
 {m.mask ? (
   <span
     class:list={['brand-mark', cls]}
-    style={`--mark:url(${m.src}); aspect-ratio:${ratio}`}
+    style={`--mark:url(${m.src}); --mark-ar:${ratio}`}
     role={label ? 'img' : undefined}
     aria-label={label}
     aria-hidden={label ? undefined : 'true'}

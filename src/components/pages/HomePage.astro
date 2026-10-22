@@ -160,7 +160,11 @@ const schema = [
     stroke-linecap: round;
   }
 
-  /* The logo at the foot of the frame cycles through its three lockups — N, NVF, NEXT
+  /* The marks are rendered by BrandMark, so they carry ITS scope, not this page's: the
+     child selectors below must be :global() or they match nothing (they did, at first —
+     all three lockups showed at once, at their own full size).
+
+     The logo at the foot of the frame cycles through its three lockups — N, NVF, NEXT
      VISION FILMS — three times, then rests on NVF. A loop that never ends is a frame
      loop by another name, so it ends. Each lockup holds for a third of the cycle;
      `backwards` keeps the later ones hidden until their turn. */
@@ -174,20 +178,22 @@ const schema = [
     transform: translateX(-50%);
     color: var(--ink-on-dark);
   }
-  .hero__marks > * {
+  .hero__marks > :global(*) {
     position: absolute;
     inset: 0;
+    inline-size: 100%;
     block-size: 100%;
+    aspect-ratio: auto;
     opacity: 0;
     animation: nvf-cycle calc(var(--dur-reveal) * 9) linear 3 backwards;
   }
-  .hero__marks > :nth-child(2) { opacity: 1; animation-delay: calc(var(--dur-reveal) * 3); }
-  .hero__marks > :nth-child(3) { animation-delay: calc(var(--dur-reveal) * 6); }
+  .hero__marks > :global(:nth-child(2)) { opacity: 1; animation-delay: calc(var(--dur-reveal) * 3); }
+  .hero__marks > :global(:nth-child(3)) { animation-delay: calc(var(--dur-reveal) * 6); }
   @keyframes nvf-cycle {
     0% { opacity: 0; }
     3%, 30% { opacity: 1; }
     33%, 100% { opacity: 0; }
   }
-  :root[data-motion='minimal'] .hero__marks > *,
-  :root[data-motion='reduced'] .hero__marks > * { animation: none; }
+  :root[data-motion='minimal'] .hero__marks > :global(*),
+  :root[data-motion='reduced'] .hero__marks > :global(*) { animation: none; }
 </style>

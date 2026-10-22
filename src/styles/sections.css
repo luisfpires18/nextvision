@@ -442,3 +442,9 @@
   font-weight: var(--w-display);
   font-size: var(--t-display-s);
 }
+
+/* On a phone a sticky reel would sit over the copy the whole way down the page. There it
+   rests at the end of the content instead, and only the commercial reel still rolls in. */
+@media (max-width: 47.99rem) {
+  .spool, .talk { position: relative; margin-block-start: 0; }
+}
