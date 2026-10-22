@@ -109,6 +109,10 @@ export const AREAS: AdminArea[] = [
           })),
       },
       {
+        id: 'ordem', label: 'Ordem',
+        load: async () => [{ id: 'portfolio', label: 'Ordem do portfólio', data: null, viewPath: pagePath('portfolio') }],
+      },
+      {
         id: 'categorias', label: 'Categorias',
         load: async () => (await getCollection('categories')).sort(byOrder).map((e) => ({
           id: e.id, label: e.data.name.pt, meta: e.data.hidden ? 'escondida' : undefined, data: e.data,

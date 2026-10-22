@@ -22,11 +22,13 @@ import type { APIRoute } from 'astro';
 import { z } from 'astro/zod';
 import { answer, guardJson } from '../../lib/admin/http.ts';
 import { githubConfig } from '../../lib/admin/repo.ts';
-import { readFile, commitFiles, GitHubError } from '../../lib/admin/github.ts';
+import { readFile, commitFiles, listFiles, GitHubError } from '../../lib/admin/github.ts';
 import { SCREENS, SCREEN_LABELS, pageFilePath, type PageFileName } from '../../lib/admin/fields.ts';
 import { applyEdits, expandFields, liveValue, serialise, EditError, type Field } from '../../lib/admin/edit.ts';
 import { PAGE_SCHEMAS } from '../../lib/page-content.ts';
-import { PROJECT_FILE, SLUG, applyProjectEdits, projectData, projectFilePath, projectValue } from '../../lib/admin/projects.ts';
+import {
+  ORDER_DRAFT, PROJECT_FILE, SLUG, applyOrder, applyProjectEdits, portfolioSequence, projectData, projectFilePath, projectValue, PROJECTS_DIR,
+} from '../../lib/admin/projects.ts';
 import { projectContext } from '../../lib/admin/project-context.ts';
 
 export const prerender = false;
@@ -51,8 +53,10 @@ export const POST: APIRoute = async ({ request }) => {
   // are stored differently, and land together in one commit.
   const projectDrafts = new Map<string, Record<string, { from: string; to: string }>>();
   const pageDrafts: typeof drafts = {};
+  const orderDraft = drafts[ORDER_DRAFT];
   for (const [name, d] of Object.entries(drafts)) {
     const [file = '', field = ''] = name.split(':');
+    if (name === ORDER_DRAFT) continue;
     if (file.startsWith(`${PROJECT_FILE}/`)) {
       const slug = file.slice(PROJECT_FILE.length + 1);
       if (!SLUG.test(slug)) return answer(400, { error: 'Pedido inválido.' });
@@ -88,15 +92,23 @@ export const POST: APIRoute = async ({ request }) => {
       .map(([name]) => fields.get(name.split('#')[0] ?? '')?.label ?? name))];
 
     // Projects: read each file once, check each draft against its live value, apply.
-    const projectWrites: { path: string; text: string }[] = [];
-    const projectChanged: string[] = [];
-    const ctx = await projectContext();
-    for (const [slug, pd] of projectDrafts) {
-      const path = projectFilePath(slug);
-      const file = await readFile(cfg, path).catch((e: unknown) => {
+    // The portfolio order touches every project, so with an order draft all are read.
+    const projects = new Map<string, { text: string; sha: string; original: string }>();
+    const load = async (slug: string) => {
+      const known = projects.get(slug);
+      if (known) return known;
+      const file = await readFile(cfg, projectFilePath(slug)).catch((e: unknown) => {
         if (e instanceof GitHubError && e.status === 404) throw new EditError('Este projeto já não existe.');
         throw e;
       });
+      const entry = { ...file, original: file.text };
+      projects.set(slug, entry);
+      return entry;
+    };
+    const projectChanged: string[] = [];
+    const ctx = await projectContext();
+    for (const [slug, pd] of projectDrafts) {
+      const file = await load(slug);
       const data = projectData(file.text);
       const name = `Projeto «${projectValue(data, 'title.pt')}»`;
       for (const [field, d] of Object.entries(pd)) {
@@ -105,10 +117,25 @@ export const POST: APIRoute = async ({ request }) => {
       }
       if (stale.length) continue;
       const applied = applyProjectEdits(file.text, Object.fromEntries(Object.entries(pd).map(([f, d]) => [f, d.to])), ctx);
-      if (!applied.changed.length) continue;
-      projectWrites.push({ path, text: applied.text });
-      current[path] = file.sha;
+      file.text = applied.text;
       projectChanged.push(...applied.changed.map((c) => `${name} — ${c}`));
+    }
+    if (orderDraft && !stale.length) {
+      const slugs = (await listFiles(cfg, PROJECTS_DIR)).filter((p) => p.endsWith('.mdx')).map((p) => p.slice(PROJECTS_DIR.length + 1, -'.mdx'.length));
+      for (const slug of slugs) await load(slug);
+      const all = slugs.map((slug) => ({ slug, text: projects.get(slug)!.original }));
+      if (portfolioSequence(all).join(',') !== orderDraft.from) stale.push('Ordem do portfólio');
+      else {
+        const moved = applyOrder(slugs.map((slug) => ({ slug, text: projects.get(slug)!.text })), orderDraft.to);
+        for (const m of moved) projects.get(m.slug)!.text = m.text;
+        if (moved.length) projectChanged.push('Ordem do portfólio — Ordem');
+      }
+    }
+    const projectWrites: { path: string; text: string }[] = [];
+    for (const [slug, f] of projects) {
+      if (f.text === f.original) continue;
+      projectWrites.push({ path: projectFilePath(slug), text: f.text });
+      current[projectFilePath(slug)] = f.sha;
     }
 
     if (stale.length) {

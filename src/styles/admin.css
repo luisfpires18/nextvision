@@ -329,3 +329,25 @@ button.admin-publish-link { border: 0; font: inherit; font-weight: 600; text-ali
   .f-row, .f-pair { grid-template-columns: 1fr; gap: var(--space-1); }
   .admin-status { grid-column: 1; flex-wrap: wrap; padding-block: var(--space-2); }
 }
+
+/* ── the portfolio order ─────────────────────────────────────────────────── */
+.ed-order { clear: both; display: grid; gap: var(--space-1); margin: 0; padding: 0; list-style: none; }
+.ed-order li {
+  display: flex; gap: var(--space-3); align-items: center;
+  padding: var(--space-1) var(--space-2);
+  border: var(--admin-hairline) solid var(--a-dim);
+  border-radius: var(--radius-s);
+  background: var(--a-ground);
+  cursor: grab;
+}
+.ed-order li[data-dragging] { opacity: 0.4; }
+.ed-order img { inline-size: var(--admin-thumb-s); block-size: auto; aspect-ratio: var(--thumb-ratio); object-fit: cover; flex: none; background: var(--a-raise); }
+.ed-order__grip { color: var(--a-dim); }
+.ed-order__title { flex: 1; min-inline-size: 0; overflow-wrap: anywhere; }
+.ed-order__moves { display: flex; gap: var(--space-1); flex: none; }
+.ed-order__moves button {
+  min-inline-size: var(--space-6); min-block-size: var(--space-6);
+  border: var(--admin-hairline) solid var(--a-dim); border-radius: var(--radius-s);
+  background: none; color: var(--a-text); font: inherit; cursor: pointer;
+}
+.ed-order li:first-child [data-move='-1'], .ed-order li:last-child [data-move='1'] { visibility: hidden; }

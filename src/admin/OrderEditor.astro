@@ -1,0 +1,39 @@
+---
+/**
+ * The portfolio's order: every project, first to last, as the site shows them.
+ *
+ * Drag a row, or use its arrows (keyboard and touch, where dragging is not available).
+ * The whole order is ONE draft (`ordem:portfolio`), held in the hidden input like any
+ * other field, so Publicar sends it with every other draft (admin-client.ts).
+ */
+import { ORDER_DRAFT } from '../lib/admin/projects.ts';
+import { thumb } from './media-options.ts';
+
+interface Props {
+  projects: { slug: string; title: string; poster: string; hidden: boolean }[];
+}
+const { projects } = Astro.props;
+const order = projects.map((p) => p.slug).join(',');
+---
+
+<form class="admin-editor" data-editor novalidate>
+  <fieldset class="ed-field" data-field>
+    <legend>Ordem do portfólio</legend>
+    <p class="ed-note">Arraste um projeto para o mover, ou use as setas. A mesma ordem vale para as páginas de cada categoria e para os projetos relacionados.</p>
+    <input type="hidden" name={ORDER_DRAFT} value={order} data-original={order} data-label="Portfólio — Ordem" data-order />
+    <ol class="ed-order" data-order-list>
+      {projects.map((p) => (
+        <li draggable="true" data-slug={p.slug}>
+          <span class="ed-order__grip" aria-hidden="true">⠿</span>
+          <img src={p.poster ? thumb(p.poster) : ''} alt="" width="96" height="54" loading="lazy" />
+          <span class="ed-order__title">{p.title}{p.hidden ? <span class="admin-meta"> escondido</span> : null}</span>
+          <span class="ed-order__moves">
+            <button type="button" data-move="-1" aria-label={`Subir «${p.title}»`}>↑</button>
+            <button type="button" data-move="1" aria-label={`Descer «${p.title}»`}>↓</button>
+          </span>
+        </li>
+      ))}
+    </ol>
+  </fieldset>
+  <p class="ed-message" role="status" aria-live="polite" data-message></p>
+</form>

@@ -24,7 +24,8 @@ import { EditError } from './edit.ts';
 
 export const PROJECT_FILE = 'projeto';
 export const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
-export const projectFilePath = (slug: string): string => `src/content/projects/${slug}.mdx`;
+export const PROJECTS_DIR = 'src/content/projects';
+export const projectFilePath = (slug: string): string => `${PROJECTS_DIR}/${slug}.mdx`;
 export const projectDraftFile = (slug: string): string => `${PROJECT_FILE}/${slug}`;
 
 export type ProjectKind = 'title' | 'tagline' | 'year' | 'category' | 'film' | 'visibility' | 'image' | 'video';
@@ -203,3 +204,45 @@ export const roundTrips = (text: string): boolean => {
   const { front } = splitMdx(text);
   return write(parse(front)) === front;
 };
+
+/* ── the portfolio order ─────────────────────────────────────────────────── */
+
+/**
+ * The order of the portfolio, as ONE draft: every project slug, comma-separated, first to
+ * last. It decides `portfolioOrder` in every project file, which also orders the category
+ * pages and the related projects. `homepageOrder` is not offered: the current homepage
+ * shows no project grid, so changing it would change nothing anyone can see.
+ */
+export const ORDER_DRAFT = 'ordem:portfolio';
+
+export interface ProjectFile { slug: string; text: string }
+
+/** The portfolio as the site sorts it: by `portfolioOrder`, unordered last, then by title. */
+export function portfolioSequence(projects: ProjectFile[]): string[] {
+  const rank = (p: ProjectFile) => {
+    const d = projectData(p.text);
+    return { slug: p.slug, order: typeof d['portfolioOrder'] === 'number' ? d['portfolioOrder'] : Number.MAX_SAFE_INTEGER, title: projectValue(d, 'title.pt') };
+  };
+  return projects.map(rank)
+    .sort((a, b) => a.order - b.order || a.title.localeCompare(b.title, 'pt'))
+    .map((r) => r.slug);
+}
+
+/** Number the projects 1…n in the given order. Returns only the files that change. */
+export function applyOrder(projects: ProjectFile[], order: string): ProjectFile[] {
+  const slugs = order.split(',').filter(Boolean);
+  const known = new Set(projects.map((p) => p.slug));
+  if (slugs.length !== known.size || new Set(slugs).size !== slugs.length || slugs.some((s) => !known.has(s))) {
+    throw new EditError('A ordem do portfólio não corresponde aos projetos que existem agora. Recarregue a página e volte a ordenar.');
+  }
+  const out: ProjectFile[] = [];
+  for (const p of projects) {
+    const position = slugs.indexOf(p.slug) + 1;
+    const { front, rest } = splitMdx(p.text);
+    const doc = parse(front);
+    if (doc.get('portfolioOrder') === position) continue;
+    doc.set('portfolioOrder', position);
+    out.push({ slug: p.slug, text: `---\n${write(doc)}---\n${rest}` });
+  }
+  return out;
+}

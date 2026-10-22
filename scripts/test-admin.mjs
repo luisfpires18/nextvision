@@ -19,7 +19,7 @@ import { SCREENS, pageFilePath } from '../src/lib/admin/fields.ts';
 import { applyEdits, expandFields, fieldName, liveValue, serialise, EditError } from '../src/lib/admin/edit.ts';
 import { readFile, commitFiles, latestRun, gitBlobSha, resetGitHubToken, GitHubError } from '../src/lib/admin/github.ts';
 import { planUpload, appendUpload, safeName, kindOf, uploadKey, isUploadKey, UPLOADS_PATH } from '../src/lib/admin/uploads.ts';
-import { applyProjectEdits, projectData, projectValue, fieldsFor, roundTrips, youtubeId } from '../src/lib/admin/projects.ts';
+import { applyProjectEdits, applyOrder, portfolioSequence, projectData, projectValue, fieldsFor, roundTrips, youtubeId } from '../src/lib/admin/projects.ts';
 import { createMockGitHub, gitBlobSha as nodeBlobSha } from './lib/mock-github.mjs';
 
 let failed = 0;
@@ -173,6 +173,27 @@ await check('every offered field exists in its file', () => {
     const same = applyProjectEdits(leonor, { year: '2025' }, ctx);
     assert.equal(same.text, leonor);
     assert.deepEqual(same.changed, []);
+  });
+  const all = fs.readdirSync(dir).map((f) => ({ slug: f.replace(/\.mdx$/, ''), text: fs.readFileSync(`${dir}/${f}`, 'utf8') }));
+  await check('the portfolio order reads as the site sorts it', () => {
+    const seq = portfolioSequence(all);
+    assert.equal(seq.length, 20);
+    assert.equal(seq[1], 'leonor', 'leonor is portfolioOrder 2');
+  });
+  await check('a new order renumbers only the projects that move, one line each', () => {
+    const seq = portfolioSequence(all);
+    const swapped = [seq[1], seq[0], ...seq.slice(2)];
+    const moved = applyOrder(all, swapped.join(','));
+    assert.deepEqual(moved.map((m) => m.slug).sort(), [seq[0], seq[1]].sort());
+    for (const m of moved) assert.equal(differing(all.find((a) => a.slug === m.slug).text, m.text), 1);
+    assert.deepEqual(portfolioSequence(all.map((a) => moved.find((m) => m.slug === a.slug) ?? a)), swapped);
+    assert.deepEqual(applyOrder(all, seq.join(',')), []);
+  });
+  await check('an order that misses, repeats or invents a project is refused', () => {
+    const seq = portfolioSequence(all);
+    assert.throws(() => applyOrder(all, seq.slice(1).join(',')), /ordem/);
+    assert.throws(() => applyOrder(all, [seq[0], ...seq.slice(0, -1)].join(',')), /ordem/);
+    assert.throws(() => applyOrder(all, [...seq.slice(1), 'nao-existe'].join(',')), /ordem/);
   });
   await check('the film field is offered only for a YouTube film', () => {
     assert.ok(fieldsFor({ film: { provider: 'youtube' } }).some((f) => f.kind === 'film'));

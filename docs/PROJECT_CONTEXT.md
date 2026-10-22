@@ -1864,3 +1864,26 @@ manifest. New projects and the portfolio order come next.
 `npm run test:admin`: 40 checks (was 32). The mock GitHub now serves the project files.
 Clicked through locally: a project edit published as one commit that changed exactly the
 two edited lines.
+
+## 28. Admin: the portfolio order (2026-10-22)
+
+**Cinema → Ordem → Ordem do portfólio** lists every project, as the site sorts it. A row
+can be dragged, or moved with its ↑/↓ buttons, which are the keyboard and touch
+equivalent: HTML drag-and-drop does not work on phones. The whole order is ONE draft,
+`ordem:portfolio`: every slug, first to last. It publishes through the same Publicar.
+`applyOrder` (src/lib/admin/projects.ts) numbers the projects 1…n and rewrites only the
+files whose number changes, one line each. An order that misses, repeats or invents a
+project is refused. If anyone published a different order in the meantime, it is a 409.
+
+**`homepageOrder` is not offered.** No page of the current design reads it (only the
+retired Review B homepage grid did), so editing it would change nothing anyone can see.
+
+**The GitHub client checks a commit's files with ONE tree listing** instead of one read per
+file. An order change can touch all twenty projects, and a Worker has a budget of
+subrequests per request: twenty reads plus twenty checks came close to the free plan's 50.
+`listFiles` uses the same listing to find the projects that exist on `master`. The mock
+models `GET /git/trees/:ref`.
+
+`npm run test:admin`: 43 checks. Clicked through locally: one ↑ press survived a reload as
+a draft (1), and published as one commit that changed exactly two lines in two files. The
+screen measures 375 px on a phone.

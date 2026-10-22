@@ -132,6 +132,20 @@ async function json<T>(res: Response, what: string): Promise<T> {
  * fast-forward-only update, so a save that raced another one is refused (409) instead of
  * overwriting it. A screen that touches two files can never land half-saved.
  */
+/** Every file in a tree (a commit's, or a branch's), path → blob SHA. */
+async function treeBlobs(cfg: GitHubConfig, tree: string, opts: Opts): Promise<Map<string, string>> {
+  const body = await json<{ tree: { path: string; type: string; sha: string }[]; truncated?: boolean }>(
+    await call(cfg, `/repos/${cfg.repo}/git/trees/${encodeURIComponent(tree)}?recursive=1`, {}, opts), 'could not list the files');
+  if (body.truncated) throw new GitHubError(502, 'the file list came back truncated');
+  return new Map(body.tree.filter((e) => e.type === 'blob').map((e) => [e.path, e.sha]));
+}
+
+/** The paths under `dir/` on the save branch now, sorted. */
+export async function listFiles(cfg: GitHubConfig, dir: string, opts: Opts = {}): Promise<string[]> {
+  const blobs = await treeBlobs(cfg, cfg.branch, opts);
+  return [...blobs.keys()].filter((p) => p.startsWith(`${dir}/`) && !p.slice(dir.length + 1).includes('/')).sort();
+}
+
 export async function commitFiles(
   cfg: GitHubConfig,
   files: { path: string; text: string }[],
@@ -144,14 +158,15 @@ export async function commitFiles(
     await call(cfg, `${repo}/git/ref/heads/${encodeURIComponent(cfg.branch)}`, {}, opts), 'could not read the branch');
   const head = ref.object.sha;
 
-  for (const f of files) {
-    const res = await call(cfg, `${contentsPath(cfg, f.path)}?ref=${head}`, {}, opts);
-    const now = await json<{ sha: string }>(res, `could not read ${f.path}`);
-    if (now.sha !== expected[f.path]) throw new GitHubError(409, `${f.path} changed since it was opened`);
-  }
-
   const parent = await json<{ tree: { sha: string } }>(
     await call(cfg, `${repo}/git/commits/${head}`, {}, opts), 'could not read the head commit');
+  // One tree listing checks every file, so a commit of twenty files costs one call, not
+  // twenty (a Worker has a budget of subrequests per request).
+  const blobs = await treeBlobs(cfg, parent.tree.sha, opts);
+  for (const f of files) {
+    if (blobs.get(f.path) !== expected[f.path]) throw new GitHubError(409, `${f.path} changed since it was opened`);
+  }
+
   const post = (path: string, body: unknown) =>
     call(cfg, `${repo}${path}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }, opts);
 

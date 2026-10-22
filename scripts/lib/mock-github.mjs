@@ -127,6 +127,12 @@ export function createMockGitHub({ repo, branch, live = 'master', files, appId, 
       const c = commits.get(m[1]);
       return c ? json(200, { sha: m[1], tree: { sha: c.tree } }) : json(404, { message: 'Not Found' });
     }
+    if (method === 'GET' && (m = rest.match(/^\/git\/trees\/(.+)$/))) {
+      const ref = decodeURIComponent(m[1]);
+      const tree = trees.get(ref) ?? treeAt(ref);
+      if (!tree) return json(404, { message: 'Not Found' });
+      return json(200, { tree: [...tree].map(([p, text]) => ({ path: p, type: 'blob', sha: gitBlobSha(text) })), truncated: false });
+    }
     if (method === 'POST' && rest === '/git/trees') {
       const base = trees.get(body.base_tree);
       if (!base) return json(422, { message: 'base_tree not found' });

@@ -199,7 +199,7 @@ if (dialog) {
         name.textContent = d.label.split(' — ').slice(1).join(' — ');
         const change = document.createElement('span');
         change.className = 'pub-fields';
-        change.textContent = `${short(d.from)} → ${short(d.to)}`;
+        change.textContent = d.label.endsWith('— Ordem') ? 'nova ordem' : `${short(d.from)} → ${short(d.to)}`;
         li.append(name, change);
         ul.append(li);
       }
@@ -430,3 +430,56 @@ document.addEventListener('click', (e) => {
   try { localStorage.setItem(DISMISSED_KEY, JSON.stringify([...dismissed(), b.dataset['dismiss']!].slice(-50))); } catch { /* closes for this visit only */ }
   b.closest('[data-request]')?.remove();
 });
+
+/* ── the portfolio order: drag, or the arrows ───────────────────────────── */
+
+const orderInput = document.querySelector<HTMLInputElement>('[data-order]');
+const orderList = document.querySelector<HTMLOListElement>('[data-order-list]');
+if (orderInput && orderList) {
+  const rows = () => [...orderList.querySelectorAll<HTMLLIElement>('li[data-slug]')];
+  // A restored draft holds an order the list does not show yet.
+  const bySlug = new Map(rows().map((li) => [li.dataset['slug']!, li]));
+  for (const slug of orderInput.value.split(',')) {
+    const li = bySlug.get(slug);
+    if (li) orderList.append(li);
+  }
+  const commit = () => {
+    orderInput.value = rows().map((li) => li.dataset['slug']).join(',');
+    orderInput.dispatchEvent(new Event('input', { bubbles: true }));
+  };
+
+  orderList.addEventListener('click', (e) => {
+    const b = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-move]');
+    const li = b?.closest('li');
+    if (!b || !li) return;
+    const up = b.dataset['move'] === '-1';
+    const other = up ? li.previousElementSibling : li.nextElementSibling;
+    if (!other) return;
+    if (up) other.before(li); else other.after(li);
+    b.focus();
+    commit();
+  });
+
+  let dragging: HTMLLIElement | null = null;
+  orderList.addEventListener('dragstart', (e) => {
+    dragging = (e.target as HTMLElement).closest('li');
+    if (!dragging) return;
+    dragging.dataset['dragging'] = '';
+    e.dataTransfer?.setData('text/plain', dragging.dataset['slug'] ?? '');
+  });
+  orderList.addEventListener('dragover', (e) => {
+    if (!dragging) return;
+    e.preventDefault();
+    const over = (e.target as HTMLElement).closest('li');
+    if (!over || over === dragging) return;
+    const box = over.getBoundingClientRect();
+    if (e.clientY > box.top + box.height / 2) over.after(dragging); else over.before(dragging);
+  });
+  orderList.addEventListener('drop', (e) => e.preventDefault());
+  orderList.addEventListener('dragend', () => {
+    if (!dragging) return;
+    delete dragging.dataset['dragging'];
+    dragging = null;
+    commit();
+  });
+}
