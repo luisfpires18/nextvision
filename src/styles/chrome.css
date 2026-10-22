@@ -174,8 +174,10 @@ span.brand-mark {
 
 /* ════════════════════════════════════════════════════════════ lights down ══
    Hovering or focusing the rail desaturates and darkens the page behind it (decision C2).
+   The class is NOT `.dim`: that is the dimmed-text utility in site.css, and sharing it
+   pinned every `.body.dim` paragraph to the viewport as a full-screen fixed layer.
    Two fixed layers above the page and below the chrome, each faded by opacity alone. */
-.dim {
+.lights {
   position: fixed;
   inset: 0;
   z-index: var(--z-dim);
@@ -183,11 +185,11 @@ span.brand-mark {
   opacity: 0;
   transition: opacity var(--dur-dim) var(--ease-cinematic);
 }
-.dim--grey { background: var(--dim-desaturate); mix-blend-mode: saturation; }
-.dim--shade { background: var(--dim-shade); }
-:root:has(.rail:focus-visible, .rail :focus-visible) .dim { opacity: 1; }
+.lights--grey { background: var(--dim-desaturate); mix-blend-mode: saturation; }
+.lights--shade { background: var(--dim-shade); }
+:root:has(.rail:focus-visible, .rail :focus-visible) .lights { opacity: 1; }
 @media (hover: hover) {
-  :root:has(.rail:hover) .dim { opacity: 1; }
+  :root:has(.rail:hover) .lights { opacity: 1; }
 }
 
 /* ══════════════════════════════════════════════════════════════════ cursor ══
