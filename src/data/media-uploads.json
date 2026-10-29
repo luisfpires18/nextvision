@@ -19,6 +19,64 @@
       "duration": 8,
       "posterAt": 1,
       "error": "O ficheiro tem 640 px de largura; este lugar precisa de pelo menos 1280 px para não perder qualidade. Use uma versão maior."
+    },
+    {
+      "id": "d9fa7f0bdade",
+      "key": "owner/d9fa7f0bdade/image",
+      "kind": "image",
+      "source": "uploads/2026-10-27/d9fa7f0bdade/Cartaz_Agente_Imobiliario_Topo.png",
+      "name": "Cartaz_Agente_Imobiliario_Topo.png",
+      "target": {
+        "screen": "novo-projeto",
+        "file": "projeto/agente-imobiliario-sem-casa-para-viver",
+        "path": "poster.key",
+        "label": "Novo projeto «Agente Imobiliário sem Casa para Viver» — Capa"
+      },
+      "by": "nextvisionfilmsagency@gmail.com",
+      "at": "2026-10-27T21:29:49.297Z",
+      "status": "pending",
+      "create": {
+        "slug": "agente-imobiliario-sem-casa-para-viver",
+        "project": {
+          "title": "Agente Imobiliário sem Casa para Viver",
+          "sourceLocale": "pt",
+          "taglinePt": "Vencedor do Prémio do Público nos Sophia 2026 para Melhor Curta-Metragem de Ficção, este mockumentary realizado, escrito e protagonizado por Filipe Amorim é um retrato em forma de sátira à precariedade e desigualdade vivida em Portugal, onde o direito à habitação se tornou um luxo possível apenas para alguns.\n\n\nO preço médio das casas em Portugal disparou 106% nos últimos dez anos e a crescente valorização do metro quadrado levou a uma crise imobiliária sem precedentes. Atraídos pela vida luxuosa dos agentes imobiliários bem-sucedidos, muitos jovens envergam no mercado imobiliário na esperança de estabilidade financeira. Sérgio Pinto é um agente imobiliário que não consegue pagar a renda da sua própria casa.",
+          "taglineEn": "Winner of the Audience Award for Best Fiction Short Film at the 2026 Sophia Awards, this mockumentary, directed, written by and starring Filipe Amorim, offers a satirical portrait of precarious living conditions and inequality in Portugal, where the right to housing has become a luxury only a few can afford.\n\nThe average price of homes in Portugal has soared by 106% over the past ten years, and the rising price per square metre has fuelled an unprecedented housing crisis. Drawn to the lavish lifestyles of successful estate agents, many young people enter the property market in the hope of finding financial stability. Sérgio Pinto is an estate agent who cannot afford the rent on his own home.",
+          "year": "2026",
+          "category": "ficcao",
+          "film": "https://www.youtube.com/watch?v=8T54ioXq7og",
+          "hidden": true
+        }
+      }
+    },
+    {
+      "id": "8c96d7c297a4",
+      "key": "owner/8c96d7c297a4/image",
+      "kind": "image",
+      "source": "uploads/2026-10-27/8c96d7c297a4/Cartaz_Agente_Imobiliario_Topo.png",
+      "name": "Cartaz_Agente_Imobiliario_Topo.png",
+      "target": {
+        "screen": "novo-projeto",
+        "file": "projeto/agente-imobiliario-sem-casa-para-viver",
+        "path": "poster.key",
+        "label": "Novo projeto «Agente Imobiliário sem Casa para Viver» — Capa"
+      },
+      "by": "nextvisionfilmsagency@gmail.com",
+      "at": "2026-10-27T21:47:36.417Z",
+      "status": "pending",
+      "create": {
+        "slug": "agente-imobiliario-sem-casa-para-viver",
+        "project": {
+          "title": "Agente Imobiliário sem Casa para Viver",
+          "sourceLocale": "pt",
+          "taglinePt": "Vencedor do Prémio do Público nos Sophia 2026 para Melhor Curta-Metragem de Ficção, este mockumentary realizado, escrito e protagonizado por Filipe Amorim é um retrato em forma de sátira à precariedade e desigualdade vivida em Portugal, onde o direito à habitação se tornou um luxo possível apenas para alguns.\n\n\nO preço médio das casas em Portugal disparou 106% nos últimos dez anos e a crescente valorização do metro quadrado levou a uma crise imobiliária sem precedentes. Atraídos pela vida luxuosa dos agentes imobiliários bem-sucedidos, muitos jovens envergam no mercado imobiliário na esperança de estabilidade financeira. Sérgio Pinto é um agente imobiliário que não consegue pagar a renda da sua própria casa.",
+          "taglineEn": "Winner of the Audience Award for Best Fiction Short Film at the 2026 Sophia Awards, this mockumentary, written and directed by Filipe Amorim, who also stars in the film, offers a satirical portrait of economic insecurity and inequality in Portugal, where the right to housing has become a luxury only a few can afford.\n\nAverage house prices in Portugal have soared by 106% over the past decade, and the rising price per square metre has led to an unprecedented housing crisis. Drawn to the lavish lifestyles of successful estate agents, many young people enter the property market in the hope of finding financial stability. Sérgio Pinto is an estate agent who cannot afford the rent on his own home.",
+          "year": "2024",
+          "category": "ficcao",
+          "film": "https://youtu.be/8T54ioXq7og?si=raE6IRYmLEYHUWHV",
+          "hidden": false
+        }
+      }
     }
   ]
 }
