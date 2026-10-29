@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-03T18:51:23.212Z",
+  "generatedAt": "2026-10-29T17:48:16.875Z",
   "generatedBy": "scripts/media-build.mjs",
   "note": "Production media. Keys are storage-agnostic and carry NO URL: src/lib/media.ts joins a rendition path to PUBLIC_MEDIA_BASE_URL, which is the local mirror in development and the R2 delivery host in production. Rendition names are content-addressed, so a name that matches is bytes that match — that is what makes the cache immutable and the sync a set difference. Regenerate with `npm run media:build`.",
   "encoder": {
@@ -6240,6 +6240,140 @@
         "crop": null
       },
       "notes": "From source-archive/wordpress/media/2025/04/banner-contactos-2-e1744213581116.jpg (source 1640px). The /contactos/ banner and og:image. 1640x644 - the one page image wide enough to be a plate."
+    },
+    "owner/d9fa7f0bdade/image": {
+      "key": "owner/d9fa7f0bdade/image",
+      "kind": "image",
+      "storage": "r2",
+      "contentType": "image/webp",
+      "width": 960,
+      "height": 1434,
+      "aspectRatio": 0.6695,
+      "formats": [
+        "webp",
+        "avif"
+      ],
+      "renditions": [
+        {
+          "format": "webp",
+          "path": "owner/d9fa7f0bdade/image/560.555f4cac.webp",
+          "sha256": "555f4caca7dcc2253fd13ee5beb3eba8ca70a03e39f365360bd6380424b297db",
+          "width": 560,
+          "height": 836,
+          "bytes": 43214,
+          "contentType": "image/webp"
+        },
+        {
+          "format": "avif",
+          "path": "owner/d9fa7f0bdade/image/560.7a7e87d8.avif",
+          "sha256": "7a7e87d87dfcdc0a5ea26898d229e6c4663828075752c20db339a7eccba0566c",
+          "width": 560,
+          "height": 836,
+          "bytes": 24994,
+          "contentType": "image/avif"
+        },
+        {
+          "format": "webp",
+          "path": "owner/d9fa7f0bdade/image/960.e0d330e5.webp",
+          "sha256": "e0d330e5e9cffd79626b333f79443b73ca6ac272d9d8e48ef15a840514a4489b",
+          "width": 960,
+          "height": 1434,
+          "bytes": 97244,
+          "contentType": "image/webp"
+        },
+        {
+          "format": "avif",
+          "path": "owner/d9fa7f0bdade/image/960.2242dec5.avif",
+          "sha256": "2242dec52fe9be8600399c345bb8808976a7bd6a574182d45211bdf7a31fa981",
+          "width": 960,
+          "height": 1434,
+          "bytes": 53895,
+          "contentType": "image/avif"
+        }
+      ],
+      "bytes": 219347,
+      "provenance": "owner",
+      "sourceQuality": "owner-upload",
+      "altStatus": "todo",
+      "alt": null,
+      "source": {
+        "file": "media/incoming/d9fa7f0bdade/Cartaz_Agente_Imobiliario_Topo.png",
+        "size": 3509198,
+        "mtimeMs": 1793296091469,
+        "naturalWidth": 1372,
+        "naturalHeight": 2048
+      },
+      "recipe": {
+        "crop": null
+      },
+      "notes": "Uploaded in the admin by nextvisionfilmsagency@gmail.com, 2026-10-27: Cartaz_Agente_Imobiliario_Topo.png."
+    },
+    "owner/8c96d7c297a4/image": {
+      "key": "owner/8c96d7c297a4/image",
+      "kind": "image",
+      "storage": "r2",
+      "contentType": "image/webp",
+      "width": 960,
+      "height": 1434,
+      "aspectRatio": 0.6695,
+      "formats": [
+        "webp",
+        "avif"
+      ],
+      "renditions": [
+        {
+          "format": "webp",
+          "path": "owner/8c96d7c297a4/image/560.555f4cac.webp",
+          "sha256": "555f4caca7dcc2253fd13ee5beb3eba8ca70a03e39f365360bd6380424b297db",
+          "width": 560,
+          "height": 836,
+          "bytes": 43214,
+          "contentType": "image/webp"
+        },
+        {
+          "format": "avif",
+          "path": "owner/8c96d7c297a4/image/560.7a7e87d8.avif",
+          "sha256": "7a7e87d87dfcdc0a5ea26898d229e6c4663828075752c20db339a7eccba0566c",
+          "width": 560,
+          "height": 836,
+          "bytes": 24994,
+          "contentType": "image/avif"
+        },
+        {
+          "format": "webp",
+          "path": "owner/8c96d7c297a4/image/960.e0d330e5.webp",
+          "sha256": "e0d330e5e9cffd79626b333f79443b73ca6ac272d9d8e48ef15a840514a4489b",
+          "width": 960,
+          "height": 1434,
+          "bytes": 97244,
+          "contentType": "image/webp"
+        },
+        {
+          "format": "avif",
+          "path": "owner/8c96d7c297a4/image/960.2242dec5.avif",
+          "sha256": "2242dec52fe9be8600399c345bb8808976a7bd6a574182d45211bdf7a31fa981",
+          "width": 960,
+          "height": 1434,
+          "bytes": 53895,
+          "contentType": "image/avif"
+        }
+      ],
+      "bytes": 219347,
+      "provenance": "owner",
+      "sourceQuality": "owner-upload",
+      "altStatus": "todo",
+      "alt": null,
+      "source": {
+        "file": "media/incoming/8c96d7c297a4/Cartaz_Agente_Imobiliario_Topo.png",
+        "size": 3509198,
+        "mtimeMs": 1793296094784,
+        "naturalWidth": 1372,
+        "naturalHeight": 2048
+      },
+      "recipe": {
+        "crop": null
+      },
+      "notes": "Uploaded in the admin by nextvisionfilmsagency@gmail.com, 2026-10-27: Cartaz_Agente_Imobiliario_Topo.png."
     }
   }
 }
