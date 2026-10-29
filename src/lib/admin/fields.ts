@@ -8,7 +8,9 @@
  *
  * What is NOT here is deliberate:
  *   - strings the current design does not render (home.json workLineA/B, workBodyB,
- *     ctaPortfolio, servicesLead, aboutBodyB; portfolio.json `more`) — editing them would
+ *     ctaPortfolio, servicesLead, aboutBodyB; about.json closing, workLineA/B — the
+ *     About closing block the owners removed on 2026-10-29; portfolio.json `more`) —
+ *     editing them would
  *     change nothing anyone can see;
  *   - the WordPress excerpts, which are an archive record and not published.
  * And what is LOCKED says why, in the owners' words.
@@ -45,10 +47,6 @@ export const SCREENS: Record<PageFileName, FieldDef[]> = {
     { file: 'home', path: 'copy.aboutLead', label: 'Título da página', kind: 'text', note: 'Também é usado na descrição para pesquisa.' },
     { file: 'home', path: 'copy.aboutBodyFull', label: 'História, 1.º parágrafo', kind: 'text' },
     { file: 'about', path: 'copy.storyB', label: 'História, 2.º parágrafo', kind: 'text' },
-    { file: 'about', path: 'copy.closing.*', label: 'Fecho, parágrafo', kind: 'text' },
-    { file: 'about', path: 'copy.workLineA', label: 'Convite ao portfólio, 1.ª linha', kind: 'text' },
-    { file: 'about', path: 'copy.workLineB', label: 'Convite ao portfólio, 2.ª linha', kind: 'text' },
-    { file: 'about', path: 'copy.ctaPortfolio', label: 'Botão do portfólio', kind: 'text' },
   ],
   services: [
     { file: 'home', path: 'copy.servicesTitle', label: 'Título da página', kind: 'text' },
@@ -75,6 +73,7 @@ export const SCREENS: Record<PageFileName, FieldDef[]> = {
     { file: 'thanks', path: 'copy.title', label: 'Título', kind: 'text' },
     { file: 'thanks', path: 'copy.lineA', label: 'Mensagem, 1.ª linha', kind: 'text' },
     { file: 'thanks', path: 'copy.lineB', label: 'Mensagem, 2.ª linha', kind: 'text' },
+    { file: 'about', path: 'copy.ctaPortfolio', label: 'Botão do portfólio', kind: 'text' },
   ],
   portfolio: [
     { file: 'portfolio', path: 'copy.title', label: 'Título', kind: 'text' },

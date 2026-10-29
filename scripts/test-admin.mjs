@@ -104,8 +104,6 @@ await check('drafts from several pages and files apply in one go', () => {
   assert.equal(next.bts.frames[0], docs.bts.frames[1]);
 });
 await check('lists expand to one field per item', () => {
-  const about = expandFields(SCREENS.about, docsFor('about'));
-  assert.equal(about.filter((f) => f.key.startsWith('copy.closing.')).length, read('about').copy.closing.length);
   const bts = expandFields(SCREENS.bts, docsFor('bts'));
   assert.deepEqual(bts.map((f) => f.key), read('bts').frames.map((_, i) => `frames.${i}`));
 });

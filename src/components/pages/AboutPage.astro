@@ -35,7 +35,6 @@ import { BRAND_LINES } from '../../lib/brand.ts';
 import { t } from '../../i18n/index.ts';
 import { ABOUT } from '../../lib/static-pages.ts';
 import { imageProps, getMedia } from '../../lib/media.ts';
-import { navHref } from '../../lib/nav.ts';
 import { organizationSchema, breadcrumbSchema, absoluteUrl } from '../../lib/seo.ts';
 import type { Locale } from '../../config/i18n.ts';
 import { pagePath } from '../../i18n/routes.ts';
@@ -143,21 +142,11 @@ const schema = [
     <p class="ab2__eyebrow">{say(ABOUT.eyebrow, locale)}</p>
     <h1 class="ab2__lead" id="page-title">{say(ABOUT.lead, locale)}</h1>
 
-    <div class="ab2__cols">
-      <div class="ab2__story">
-        <p>{say(ABOUT.storyA, locale)}</p>
-        <p>{say(ABOUT.storyB, locale)}</p>
-      </div>
-      <div class="ab2__close">
-        <h2 class="ab2__close-title">
-          {say(ABOUT.workLineA, locale)} {say(ABOUT.workLineB, locale)}
-        </h2>
-        {ABOUT.closing.map((line) => <p>{say(line, locale)}</p>)}
-        <p class="ab2__actions">
-          <a class="ctl" href={navHref('portfolio', locale)}><span>{say(ABOUT.ctaPortfolio, locale)}</span></a>
-        </p>
-      </div>
-      <svg class="ab2__asterisk" viewBox="-12 -12 24 24" aria-hidden="true"><path d="M0-10V10M-10 0H10M-7-7 7 7M-7 7 7-7" /></svg>
+    {/* The "Fica a conhecer o nosso trabalho" closing block was removed at the owners'
+        request (2026-10-29); its copy stays in about.json, unrendered. */}
+    <div class="ab2__story">
+      <p>{say(ABOUT.storyA, locale)}</p>
+      <p>{say(ABOUT.storyB, locale)}</p>
     </div>
 
     <p class="tagline" aria-hidden="true">{BRAND_LINES.tagline}</p>

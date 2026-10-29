@@ -17,52 +17,37 @@
   text-transform: uppercase;
   text-align: center;
 }
-.section-asterisk {
-  inline-size: var(--space-5);
-  fill: none;
-  stroke: var(--sec);
-  stroke-width: 3.4;
-  stroke-linecap: round;
-}
 
 /* ══════════════════════════════════════════════════════════════════ ABOUT ══ */
 .ab2 { padding: var(--space-5) var(--gutter) var(--space-9); }
 .ab2__mark { inline-size: min(100%, 115vh, 56rem); color: var(--brand-black); }
+/* The eyebrow, title and story are centred, the story one column (owners, 2026-10-29). */
 .ab2__eyebrow {
   margin: var(--space-6) 0 0;
   font-family: var(--font-display);
-  font-size: var(--t-eyebrow);
+  font-size: var(--t-body-s);
   letter-spacing: var(--tracking-eyebrow);
   text-transform: uppercase;
+  text-align: center;
 }
 .ab2__lead {
-  margin: var(--space-2) 0 var(--space-7);
+  margin: var(--space-2) auto var(--space-7);
   font-family: var(--font-display);
   font-weight: 500;
   font-size: var(--t-headline);
   line-height: var(--lh-tight);
   max-inline-size: 26ch;
+  text-align: center;
 }
-.ab2__cols { position: relative; display: grid; gap: var(--space-7); padding-inline-start: var(--space-6); }
-@media (min-width: 60rem) { .ab2__cols { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
-.ab2__story p, .ab2__close p {
-  margin: 0 0 var(--space-4);
+.ab2__story { text-align: center; }
+.ab2__story p {
+  margin: 0 auto var(--space-4);
   font-family: var(--font-display);
   font-weight: var(--w-label);
   font-size: var(--t-lead);
   line-height: var(--lh-lead);
   max-inline-size: 52ch;
 }
-.ab2__close-title {
-  margin: 0 0 var(--space-4);
-  font-family: var(--font-display);
-  font-weight: var(--w-display);
-  font-size: var(--t-display-s);
-  text-transform: uppercase;
-}
-.ab2__actions { margin-block-start: var(--space-5); }
-.ab2__asterisk { position: absolute; inset-inline-end: 0; inset-block-end: calc(var(--space-7) * -1); }
-.ab2__asterisk, .cm__asterisk { inline-size: var(--space-5); fill: none; stroke: var(--sec); stroke-width: 3.4; stroke-linecap: round; }
 .ab2 .tagline { margin-block-start: var(--space-9); }
 
 /* The founders, on About's own blue. The panel slides in from the left as it reaches
@@ -121,8 +106,10 @@
 @keyframes nvf-from-left { from { transform: translateX(-100%); } }
 
 /* The reel along the foot of the page, unspooling a line of film as the reader scrolls.
-   Sticky at the end of the content, so it rides the viewport's foot and comes to rest
-   above the footer instead of over it. */
+   The line slides in rather than grows, on the reel's own timeline, so its tip is always
+   the reel's centre: the film leaves the reel, as the owners asked (2026-10-29). Sticky
+   at the end of the content, so it rides the viewport's foot and comes to rest above the
+   footer instead of over it. */
 .spool {
   position: sticky;
   z-index: var(--z-overlay);
@@ -139,8 +126,7 @@
   inset-block-end: var(--space-2);
   block-size: var(--film-line);
   background: var(--brand-yellow);
-  transform-origin: left;
-  transform: scaleX(0.08);
+  transform: translateX(-100%);
 }
 .spool__reel {
   position: absolute;
@@ -154,7 +140,7 @@
   :root[data-motion='full'] .spool__film { animation: nvf-unspool linear both; animation-timeline: scroll(root); }
   :root[data-motion='full'] .spool__reel { animation: nvf-roll linear both; animation-timeline: scroll(root); }
 }
-@keyframes nvf-unspool { to { transform: scaleX(1); } }
+@keyframes nvf-unspool { to { transform: translateX(0); } }
 @keyframes nvf-roll { to { transform: translate(calc(100cqi - 50%), 30%) rotate(var(--reel-turns)); } }
 
 /* ═════════════════════════════════════════════════════════════ COMMERCIAL ══ */
@@ -218,7 +204,6 @@
   text-transform: uppercase;
 }
 .cm__close p:last-child { margin: 0; font-family: var(--font-display); font-weight: var(--w-label); font-size: var(--t-lead); }
-.cm__asterisk { position: absolute; inset-inline-end: 7%; inset-block-start: 40%; }
 
 /* LET'S TALK: the reel rolls in along the foot on arrival and rests in the corner. */
 .talk {
@@ -234,11 +219,11 @@
 }
 .talk__film {
   position: absolute;
-  inset-inline: 0;
+  inset-inline-start: 0;
   inset-block-end: var(--space-2);
   block-size: var(--film-line);
+  inset-inline-end: calc(var(--space-4) + var(--reel-l) / 2);
   background: var(--brand-yellow);
-  transform-origin: left;
 }
 .talk__reel {
   position: absolute;
@@ -251,7 +236,9 @@
 .talk:is(:hover, :focus-visible) .talk__reel { transform: rotate(-12deg); }
 :root[data-motion='full'] .talk__film { animation: nvf-unspool-in var(--dur-reel-roll) var(--ease-cinematic) both; }
 :root[data-motion='full'] .talk__reel { animation: nvf-roll-in var(--dur-reel-roll) var(--ease-cinematic) both; }
-@keyframes nvf-unspool-in { from { transform: scaleX(0); } }
+/* The film ends at the reel's centre and travels the reel's own distance, so it is the
+   reel that draws it in. */
+@keyframes nvf-unspool-in { from { transform: translateX(calc(-100cqi + var(--reel-l) + var(--space-4))); } }
 @keyframes nvf-roll-in { from { transform: translateX(calc(-100cqi + 100% + var(--space-4))) rotate(calc(var(--reel-turns) * -1)); } }
 
 /* ═════════════════════════════════════════════════════════════════ CINEMA ══
