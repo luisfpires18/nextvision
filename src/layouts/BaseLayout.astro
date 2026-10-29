@@ -55,12 +55,18 @@ interface Props {
   section?: 'home' | 'about' | 'commercial' | 'cinema' | 'bts' | 'contact' | undefined;
   /** The full opening sequence instead of the short hold. Homepage only (decision C5). */
   intro?: boolean | undefined;
+  /**
+   * The faces this page paints above the fold, by file stem in /__generated/fonts/. The
+   * default pair is what most pages render first; a page whose first screen is set in
+   * other weights names its own. Measured with `document.fonts`, never guessed (rule 24).
+   */
+  preloadFonts?: string[] | undefined;
 }
 
 const {
   title, description, ogDescription, locale = DEFAULT_LOCALE, ogImage = null, ogImageAlt,
   ogType = 'website', noindex = false, chrome = true, ground = 'cream', schema = [],
-  langAlternate, section, intro = false,
+  langAlternate, section, intro = false, preloadFonts = ['barlow-400', 'barlow-condensed-700'],
 } = Astro.props;
 
 const seo = buildSeo({
@@ -138,9 +144,10 @@ const manifest = JSON.parse(manifestSource) as { theme_color: string };
         so out loud ("preloaded using link preload but not used"); step 13 measured it
         against the live staging URL, where `document.fonts` reported Barlow 500 as
         `unloaded` on a fully painted page. Check both names against the weights the
-        tokens resolve to before changing either. */}
-    <link rel="preload" as="font" type="font/woff2" href="/__generated/fonts/barlow-400.woff2" crossorigin />
-    <link rel="preload" as="font" type="font/woff2" href="/__generated/fonts/barlow-condensed-700.woff2" crossorigin />
+        tokens resolve to before changing either. The homepage passes its own pair. */}
+    {preloadFonts.map((face) => (
+      <link rel="preload" as="font" type="font/woff2" href={`/__generated/fonts/${face}.woff2`} crossorigin />
+    ))}
 
     {schema.length > 0 && (
       <script type="application/ld+json" is:inline set:html={jsonLdGraph(schema)} />

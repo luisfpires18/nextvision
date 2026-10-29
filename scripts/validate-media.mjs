@@ -45,7 +45,7 @@ const FORBIDDEN_IN_SOURCE = [
  */
 const GENERATED_ALLOWED = [
   'src/styles/fonts.css',        // @font-face sources
-  'src/layouts/BaseLayout.astro', // the two preloaded faces
+  'src/layouts/BaseLayout.astro', // the preloaded faces (pages pass stems, never paths)
   'src/pwa/service-worker.js',   // precaches those faces, and only those
   'src/lib/concept-data.ts',     // /__concepts/* prototypes, noindex and disposable
 ];

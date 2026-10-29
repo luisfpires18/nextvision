@@ -37,6 +37,11 @@ const { locale } = Astro.props;
 
 const settings = await getEntry('settings', 'site');
 
+/* Measured in a real browser (docs/PERFORMANCE_AUDIT.md): the first screen is the
+   wordmark in Condensed 900 and the statement in Barlow 500. Barlow 400 sets only
+   visually-hidden text here, and Condensed 700 only the 'PT' of the language switch. */
+const HOME_FACES = ['barlow-condensed-900', 'barlow-500'];
+
 /* ── hero media ───────────────────────────────────────────────────────────── */
 
 const heroKey = PAGE_CONTENT.home.heroVideo;
@@ -65,6 +70,7 @@ const schema = [
 <BaseLayout
   section="home"
   intro
+  preloadFonts={HOME_FACES}
   title={pageTitle('home', locale)}
   description={pageDescription('home', locale) ?? undefined}
   locale={locale}
