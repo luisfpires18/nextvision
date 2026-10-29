@@ -2058,3 +2058,36 @@ could NOT remove, and now can:
 The softer option is named next to the delete: «No site → Escondido» keeps the project.
 `npm run test:admin`: 62 checks, including a removal that is exactly one commit touching
 exactly the project file and the removal list, and a stale removal that deletes nothing.
+
+## 33. Performance audit (2026-10-29)
+
+Lighthouse (PageSpeed Insights, mobile) on production: `/` 95 / LCP 2.6 s / CLS 0,
+`/portfolio/` 94 / A11y 92 / CLS 0.14. The site was already fast; the audit found ten
+measured defects plus two missing header classes, all fixed on `claude/perf-audit-006eb2`,
+one commit each. Full record, with the font measurements and what was verified locally:
+`docs/PERFORMANCE_AUDIT.md`.
+
+- `public/_headers` (new): `/__media/*` immutable, fonts and brand PNGs finite TTLs, HSTS,
+  `nosniff`, `Referrer-Policy`, `Permissions-Policy`, `X-Frame-Options: DENY`.
+  `validate:media` asserts the immutable `/__media/*` rule in the built file.
+- No `poster` on videos that sit over a `<picture>` (six 1400w WebPs on `/portfolio/`).
+- The shelf poster is the eager, high-priority, AVIF LCP image; the hidden list no longer
+  claims priority; list `sizes` is `17rem`.
+- Brand `<img>` reserves its box from `--mark-ar` (the CLS culprit Lighthouse named).
+- `BaseLayout` `preloadFonts` prop; the homepage and the portfolio preload the faces they
+  were measured to paint first.
+- The service worker precaches what the shells reference: 24 entries / 333 KB → 18 / 199 KB.
+- `class="js"` and the cinema view are set on the incoming document before a swap, so the
+  transition snapshot shows one view.
+- Dead header/progress/menu/feature/sound code removed from `site-motion.ts`.
+- `a.poster__frame` named by the film title; the spine's other-language link lifted from
+  3.11:1 to full ink.
+- The contact form wires on every visit (a second visit in a session had no Turnstile and
+  no fetch), and Turnstile now loads on first interaction. The error page's retry no longer
+  gets two listeners.
+- `npm run brand:build`: marks at twice their largest rendered width (homepage sign
+  112 KB → 11 KB, footer mono 49 KB → 27 KB).
+
+**Not yet measured:** the after-deploy PageSpeed numbers and the edge headers, which need
+the branch on `dev` (rule 20). Tier 3 items (the curtain, CSP, the 5.6 MB media prune) are
+in `docs/BLOCKED_TODOS.md`. New standing rule: CLAUDE.md §10 rule 29.

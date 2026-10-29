@@ -206,6 +206,7 @@ Do not fill gaps with plausible-sounding text.
 | `docs/SOURCE_ARCHIVE.md` | What was preserved from the live WordPress site, and what could not be. |
 | `docs/MEDIA_SOURCE_MAP.md` | Per project: WordPress vs YouTube vs Smash, and the preferred source per role. |
 | `docs/ROUTE_MIGRATION.md` | Every old URL and what happens to it. |
+| `docs/PERFORMANCE_AUDIT.md` | The 2026-10-29 performance audit: Lighthouse baseline, every finding and its fix, the font measurements, what was verified locally, and the after-deploy numbers still to fill. |
 | `docs/PWA-ICONS-TODO.md` | Phase 15. The archived vector logo, why the icons are rasterised from the square monogram anyway, and what ships. |
 | `docs/HANDOVER.md` | Step 14. How to run, edit and deploy: git flow, the two Workers, what CI needs, a fresh clone, content, PT/EN, media, R2, and what is deployed but unconfigured. |
 | `docs/STAGING_DEPLOY.md` | Step 12. The Worker, the staging URL, the deploy commands, the environment matrix, what staging refuses to pretend, and the `_redirects` defect only a real deploy could find. |
@@ -568,6 +569,16 @@ Standing rules that outlive this phase:
     MISMATCH is deliberately never retried: those bytes were delivered and they were wrong,
     and asking again would only hide it — the same doctrine as §14 and §16, applied to a
     download.
+
+29. **Every byte the edge serves outside `/_astro/` has a cache rule, and no image is
+    fetched twice** (performance audit, 2026-10-29). `public/_headers` gives each asset
+    path a lifetime matched to whether its NAME changes with its bytes: `/__media/*` is
+    content-addressed and immutable for a year (`validate:media` fails the build without
+    that rule), fonts and brand PNGs are not hashed and get finite TTLs, never `immutable`.
+    A `<video>` that sits over a `<picture>` carries NO `poster`: the poster is fetched
+    whatever `preload` says and is never lazy, and the picture already paints that still.
+    Brand marks are served at twice their largest rendered width (`npm run brand:build`);
+    the originals in `public/brand/` are never edited. Record: `docs/PERFORMANCE_AUDIT.md`.
 
 ## 10.1 Stack, as actually installed
 

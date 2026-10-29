@@ -119,6 +119,8 @@ Not started: DNS cutover, the newsletter endpoint (D18).
 - [ ] **D19/D8 — GA4 + Google Ads.** Phase 14 assumes they are DROPPED for cookieless analytics. If the Ads tag is a live paid campaign, keeping it makes a consent banner mandatory and reopens the whole consent layer.
 - [ ] **Privacy policy vs. actual behaviour — LEGAL REVIEW.** The policy declares Google Analytics cookies (`_ga`, `_gid`, `_gat`), a `cookie_notice_accepted` cookie and Smartsupp chat. The rebuilt site sets **no cookies at all**. The policy over-declares; it was not amended, because it is binding text (`CLAUDE.md` §2). See `docs/ARCHITECTURE.md` §8.1.
 - [ ] **D18 — newsletter destination.** No endpoint is written until there is somewhere to send to.
+- [ ] **The opening curtain vs LCP.** The 6.6 s hold on the first page of a session is 1.94 s of element render delay on the homepage's 2.6 s mobile LCP, and the hero video decodes under it. The design is the owners'; the number is in `docs/PERFORMANCE_AUDIT.md` §1.
+- [ ] **Prune 25 unreferenced delivery objects (5.6 MB).** Four `pages/home/hero/1280.*` videos the homepage no longer uses, among others. A manifest/recipe prune plus `media:sync --execute --delete` — a bucket deletion the owners should see before it runs.
 - [ ] **D3 — portfolio category descriptions.** Four of five do not match their heading. Will not be rewritten here.
 - [ ] **English legal translation** — wanted or not? Both legal pages are Portuguese-only and say so in four places.
 
@@ -129,7 +131,9 @@ Not started: DNS cutover, the newsletter endpoint (D18).
 - [ ] **Media hostname + DNS** (`media.nextvisionfilms.com`, D20) — staging serves the 384 renditions from its own asset store instead, byte-identical to `nvf-media` and needing no public bucket. `PUBLIC_MEDIA_BASE_URL` stays unset until a real hostname exists.
 - [ ] **The `reduced` and `minimal` motion tiers are untested in a browser.** `prefers-reduced-motion` cannot be emulated with the tooling used for step 13. Their code path — the loader never arms — is the repeat-visit path and was verified; the tiers themselves were not.
 - [ ] **Two console messages left alone, both non-breaking.** Chromium's `preloaded ... but not used within a few seconds` for the two preloaded faces (both end `loaded`; they are applied after the opening hold), and Astro ClientRouter's unhandled `InvalidStateError: Transition was aborted because of invalid state` on each swap. Every swap completed.
-- [ ] **Content-Security-Policy** — the required origins are recorded (`ARCHITECTURE.md` §9). There IS a Worker now, so the blocker is gone and only the work remains; `_headers` currently carries one rule, the adapter's immutable `Cache-Control` for `/_astro/*`.
+- [ ] **Content-Security-Policy** — the required origins are recorded (`ARCHITECTURE.md` §9). There IS a Worker now, so the blocker is gone and only the work remains. `public/_headers` now carries the cache rules and five security headers (performance audit, 2026-10-29) but no CSP: it needs a nonce strategy for the inline motion bootstrap and JSON-LD, and allow-lists for Turnstile and youtube-nocookie. Ship it Report-Only first.
+- [ ] **Performance audit, after-deploy measurements.** Once `claude/perf-audit-006eb2` reaches `dev`: `curl -sI` a `/__media/*` object, a font and a page on `https://dev.nextvisionfilms.com` (rule 20 — only a real deploy validates `_headers`), then PageSpeed Insights (mobile) on `/` and `/portfolio/`. Fill the `UNKNOWN` column in `docs/PERFORMANCE_AUDIT.md` §2.
+- [ ] **`/__concepts/*` and `public/__generated/posters|preview` (2.5 MB) still deploy.** CLAUDE.md keeps the concepts; recorded by the performance audit, unchanged.
 - [ ] **Phase 11b reviewed copy/SEO proposals** — permitted as diffs against the archive, never applied silently.
 - [ ] **DNS cutover and a custom domain** — not started, by instruction (Step 15). Both Workers live on `workers.dev` and need neither.
 
