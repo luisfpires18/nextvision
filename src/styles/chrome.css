@@ -194,12 +194,13 @@ span.brand-mark {
 
 /* ══════════════════════════════════════════════════════════════════ cursor ══
    Decision C1: a native CSS cursor image, fine pointers only. Nothing follows the pointer
-   in script. The light variant is red on cream; the dark one is yellow, for film, the
-   spine, the rail and the lights-down state. */
+   in script. The light star is red on cream; the dark one is yellow, for film, the
+   spine and the lights-down state. On the rail it becomes the mockup's small arrow. */
 @media (hover: hover) and (pointer: fine) {
   html { cursor: var(--cursor-light); }
-  .ground-dark, .spine, .rail, .site-footer, [data-cursor='dark'],
+  .ground-dark, .spine, .site-footer, [data-cursor='dark'],
   :root:has(.rail:hover) .site { cursor: var(--cursor-dark); }
+  .rail { cursor: var(--cursor-arrow); }
   a, button, label, summary, [role='button'] { cursor: inherit; }
   input, textarea, select { cursor: text; }
 }

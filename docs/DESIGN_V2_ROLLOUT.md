@@ -28,7 +28,7 @@ copy, verified by `validate:data`. Where the storyboard proposes new copy, it is
 | Footer | One metaline | Black panel: NVF mark, the five sections plus contact as full-size links, then the legal links and socials as before |
 | Palette | Sampled from `colors.png` | **The brand guide's p. 10:** green `#124A43`, blue `#2B3990`, red `#D52B27`, orange `#F36E21`, yellow `#F9C914`, cream `#FFFAEC` |
 | Type | Barlow Condensed 500/700 | Barlow Condensed **300** (labels) and **900** (display) added; 8 faces, 110.8 KB |
-| Cursor | System | Red arrow on cream, yellow on dark. Native CSS, fine pointers only |
+| Cursor | System | Asterisk (the storyboard star — owners, 2026-10-29), red on cream, yellow on dark; a small arrow over the rail (mockup pp. 28–39). Native CSS, fine pointers only |
 
 ## 2. How the rule conflicts were resolved
 

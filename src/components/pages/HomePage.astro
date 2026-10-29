@@ -115,14 +115,13 @@ const schema = [
       </h1>
     </div>
 
-    <svg class="hero__asterisk" viewBox="-12 -12 24 24" aria-hidden="true">
-      <path d="M0-10V10M-10 0H10M-7-7 7 7M-7 7 7-7" />
-    </svg>
-
-    <div class="hero__marks" aria-hidden="true">
-      <BrandMark mark="monogram" />
-      <BrandMark mark="mono" />
-      <BrandMark mark="stack" />
+    <div class="hero__sign" aria-hidden="true">
+      <div class="hero__marks">
+        <BrandMark mark="monogram" />
+        <BrandMark mark="mono" />
+        <BrandMark mark="stack" />
+      </div>
+      <p class="hero__tagline">{BRAND_LINES.tagline}</p>
     </div>
   </section>
 </BaseLayout>
@@ -150,16 +149,25 @@ const schema = [
     color: var(--ink-on-dark);
   }
 
-  .hero__asterisk {
+  /* The logo and, under it, the brand tagline (owner request, 2026-10-29). The star the
+     storyboard drew on this frame is the pointer, so it lives in the cursor token now. */
+  .hero__sign {
     position: absolute;
     z-index: 1;
-    inset-inline-end: 9%;
-    inset-block-start: 63%;
-    inline-size: var(--space-5);
-    fill: none;
-    stroke: var(--brand-yellow);
-    stroke-width: 3.4;
-    stroke-linecap: round;
+    inset-block-end: var(--space-5);
+    inset-inline: 0;
+    display: grid;
+    justify-items: center;
+    gap: var(--space-2);
+    color: var(--ink-on-dark);
+  }
+  .hero__tagline {
+    margin: 0;
+    font-family: var(--font-display);
+    font-weight: var(--w-display);
+    font-size: var(--t-meta);
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-meta);
   }
 
   /* The marks are rendered by BrandMark, so they carry ITS scope, not this page's: the
@@ -171,14 +179,9 @@ const schema = [
      loop by another name, so it ends. Each lockup holds for a third of the cycle;
      `backwards` keeps the later ones hidden until their turn. */
   .hero__marks {
-    position: absolute;
-    z-index: 1;
-    inset-block-end: var(--space-5);
-    inset-inline-start: 50%;
+    position: relative;
     inline-size: var(--space-9);
     block-size: var(--space-7);
-    transform: translateX(-50%);
-    color: var(--ink-on-dark);
   }
   .hero__marks > :global(*) {
     position: absolute;
