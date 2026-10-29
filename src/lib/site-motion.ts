@@ -14,14 +14,14 @@
  *   2. THE TIER IS READ, NEVER DECIDED. `src/lib/motion/tier.ts` decided it before the
  *      first paint. No component re-derives a reader's preference for itself.
  *
- *   3. THE GROUND AND THE HEADER THEME ARE DRIVEN BY ONE SCROLL HANDLER, and that
+ *   3. THE GROUND IS DRIVEN BY ONE SCROLL HANDLER, and that
  *      handler cannot be silenced. IntersectionObserver was rejected for it in Review B
  *      because IO is not guaranteed to fire. Review E found the same hole one level down,
  *      in the throttle itself: the handler set a `queued` flag, asked rAF for a frame,
  *      and cleared the flag only inside that frame. One undelivered frame callback —
  *      a throttled background tab, an embedded webview, a device under load — and the
- *      flag stays raised, every later scroll early-returns, and the ground and header
- *      theme are frozen on stale values FOR THE REST OF THE PAGE'S LIFE. It now treats
+ *      flag stays raised, every later scroll early-returns, and the ground is
+ *      frozen on a stale value FOR THE REST OF THE PAGE'S LIFE. It now treats
  *      the first frame as a probe and falls back to a timer if that frame never lands.
  *
  *   4. NOTHING RUNS WHILE THE PAGE IS STILL. No frame loop, no decoding video, no
@@ -77,7 +77,6 @@ const clipSource = (video: HTMLVideoElement, large: boolean): string | undefined
 
 export function initSite(): Teardown {
   const root = document.documentElement;
-  const body = document.body;
   // The bootstrap sets this before paint; this is belt-and-braces for a document that
   // somehow reached the runtime without it.
   root.classList.add('js');
@@ -147,63 +146,32 @@ export function initSite(): Teardown {
   });
   cleanups.push(() => { scrollDead = true; scroll?.destroy(); scroll = null; });
 
-  /* ─────────────────────────────────────── ground · header theme · progress
-     One handler, three consumers, two independent questions:
-
-       ground  — the section at the viewport MIDDLE. What you are looking at.
-       header  — what is PHYSICALLY BEHIND THE HEADER TEXT. Never the viewport middle.
-
-     Review B's first attempt asked the section which theme to use. That is not enough:
-     a cream editorial section contains project photographs, and when one of those passes
-     behind the header the section still says "cream" while the ink is sitting on an
-     image. Measured, the stills' top bands average up to Y'=213 and peak at 249 — the
-     header was rendering dark ink at 2.64:1 over them.
-
-     So media declares itself. Anything that can pass behind the header and is not a flat
-     ground carries `data-header-zone`, and the resolver tests those rects against the
-     header's own text row. Explicit geometry, never image sampling. */
+  /* ────────────────────────────────────────────────────────────── ground
+     The section at the viewport MIDDLE decides the shell's ground — what you are looking
+     at. (Design v2 removed the fixed header, and with it the per-frame header-overlap
+     test over every `[data-header-zone]` box, the progress stripe and the section nav;
+     the performance audit of 2026-10-29 found all three still running on every frame.) */
   const shell = document.querySelector<HTMLElement>('[data-shell]');
-  const header = document.querySelector<HTMLElement>('.site-header');
   // Scoped to <main>: the shell itself carries data-ground as its CURRENT state, and
   // including it here would put a written value back into the list being read.
   const sections = [...document.querySelectorAll<HTMLElement>('main [data-ground]')];
-  const zones = [...document.querySelectorAll<HTMLElement>('[data-header-zone]')];
-  const bars = [...document.querySelectorAll<HTMLElement>('[data-progress] i')];
-  const navLinks = [...document.querySelectorAll<HTMLAnchorElement>('[data-nav-section]')];
   const hero = document.querySelector<HTMLElement>('[data-hero]');
-
-  let menuOpen = false;
 
   /**
    * Geometry is MEASURED, not read from offsetTop: offsetTop is relative to the nearest
    * positioned ancestor, and one `position: relative` added later would silently shift
    * every boundary.
    *
-   * Everything a scroll frame needs is cached in document space — including the document
-   * height, which the progress stripe used to read live and which is a layout read like
-   * any other. A scroll frame now does ZERO layout reads, which is what keeps the header
-   * correct under fast scrolling instead of lagging behind it. The cache is refreshed
-   * whenever the page can have moved: resize, load, web fonts settling, and any change
-   * to the document's height.
+   * Everything a scroll frame needs is cached in document space, so a scroll frame does
+   * ZERO layout reads (`innerHeight` is not one, so it is read live). The cache is
+   * refreshed whenever the page can have moved: load, web fonts settling, and any change
+   * to the body's size — which a resize that moves anything is.
    */
   let tops: number[] = [];
-  let zoneBands: { top: number; bottom: number }[] = [];
-  /** Vertical centre of the header's text row, in viewport pixels. */
-  let textRow = 32;
-  /** Scrollable distance, cached. */
-  let scrollMax = 0;
-  let viewport = window.innerHeight;
 
   const measure = () => {
     const y = window.scrollY;
-    viewport = window.innerHeight;
     tops = sections.map((s) => s.getBoundingClientRect().top + y);
-    zoneBands = zones.map((z) => {
-      const r = z.getBoundingClientRect();
-      return { top: r.top + y, bottom: r.bottom + y };
-    });
-    if (header) textRow = header.getBoundingClientRect().height / 2;
-    scrollMax = document.documentElement.scrollHeight - viewport;
   };
 
   const at = (y: number): HTMLElement | null => {
@@ -225,54 +193,10 @@ export function initSite(): Teardown {
     if (hero && y > CUE_OBEYED && hero.dataset['scrolled'] !== 'true') hero.dataset['scrolled'] = 'true';
 
     if (sections.length) {
-      const mid = at(y + viewport / 2);
+      const mid = at(y + window.innerHeight / 2);
       const next = mid?.dataset['ground'] ?? 'cream';
       if (shell && shell.dataset['ground'] !== next) shell.dataset['ground'] = next;
 
-      /* The header theme.
-         Every piece of header text sits on ONE line, so one probe answers it for all of
-         them — and probing the text row rather than a point higher up is what stops the
-         theme flipping before the header has actually crossed into the new ground.
-         HALF_ROW is roughly the cap height of the navigation type: media only counts as
-         "behind the header" when it is behind the letters themselves. */
-      const HALF_ROW = 14;
-      /* Hysteresis. Two rows of photographs are separated by their captions — about 96px
-         of cream. Without a dwell the header would strobe dark→light→dark on the way
-         past, and a cross-fade caught halfway is a mid-grey that reads on neither
-         ground. Once the header is in its film state it stays there until the text row
-         has been genuinely clear for a header's height, which is also what makes fast
-         scrolling settle instead of flickering. */
-      const DWELL = root.dataset['headerOver'] === 'media' ? 48 : 0;
-      const rowTop = y + textRow - HALF_ROW - DWELL;
-      const rowBottom = y + textRow + HALF_ROW + DWELL;
-      const onMedia = zoneBands.some((z) => z.top < rowBottom && z.bottom > rowTop);
-
-      let over: string;
-      if (menuOpen) over = 'dark';
-      else if (onMedia) over = 'media';
-      else {
-        const behind = at(y + textRow);
-        over = behind?.dataset['header'] ?? behind?.dataset['ground'] ?? 'media';
-      }
-      if (root.dataset['headerOver'] !== over) root.dataset['headerOver'] = over;
-
-      /* Section state, and ONLY for links that point at a section. A link to a real
-         route gets its `aria-current` from the server and must not be cleared here —
-         that is what would blank the Portfólio marker while reading the portfolio. */
-      if (navLinks.length) {
-        const id = mid?.id ?? '';
-        for (const a of navLinks) {
-          if (a.dataset['navSection'] === id) a.setAttribute('aria-current', 'true');
-          else a.removeAttribute('aria-current');
-        }
-      }
-    }
-
-    if (bars.length) {
-      const p = scrollMax > 0 ? Math.min(1, Math.max(0, y / scrollMax)) : 0;
-      bars.forEach((b, i) => {
-        b.style.transform = `scaleX(${Math.min(1, Math.max(0, p * bars.length - i))})`;
-      });
     }
   };
 
@@ -303,15 +227,14 @@ export function initSite(): Teardown {
 
   const remeasure = () => { measure(); schedule(); };
   on(window, 'scroll', schedule, { passive: true });
-  on(window, 'resize', remeasure, { passive: true });
   on(window, 'load', remeasure);
   measure();
   // Late web fonts change every heading's height, which moves every boundary.
   document.fonts?.ready.then(remeasure).catch(() => { /* unsupported */ });
-  // Anything else that changes the document's height — a lazy image without a reserved
-  // box, a font swap, an orientation change — invalidates the cache too. Coalesced,
-  // because a page of lazy images can otherwise fire this dozens of times in a row and
-  // each call measures every section and every zone.
+  // Anything else that changes the document's size — a resize, a lazy image without a
+  // reserved box, a font swap, an orientation change — invalidates the cache too.
+  // Coalesced, because a page of lazy images can otherwise fire this dozens of times in
+  // a row and each call measures every section.
   if ('ResizeObserver' in window) {
     let pendingMeasure = 0;
     const ro = new ResizeObserver(() => {
@@ -322,25 +245,6 @@ export function initSite(): Teardown {
     cleanups.push(() => { window.clearTimeout(pendingMeasure); ro.disconnect(); });
   }
   paint();
-
-  /* ────────────────────────────────────────────────────────── anchor links
-     A fixed header eats the top of whatever a `#hash` lands on. `scroll-padding` fixes
-     that for the browser's own jumps, for `:target`, and for keyboard focus travel;
-     Lenis does not read it, so a smooth-scrolled anchor asks the scroll model to apply
-     the same offset rather than a second number kept in step by hand. */
-  on(document, 'click', ((event: MouseEvent) => {
-    if (event.defaultPrevented || event.button !== 0) return;
-    if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
-    const link = (event.target as HTMLElement | null)?.closest?.('a[href]') as HTMLAnchorElement | null;
-    if (!link || !scroll) return;
-    const url = new URL(link.href, location.href);
-    if (url.pathname !== location.pathname || url.search !== location.search || !url.hash) return;
-    const target = document.querySelector(url.hash);
-    if (!target) return;
-    event.preventDefault();
-    history.pushState(null, '', url.hash);
-    scroll.to(target);
-  }) as EventListener);
 
   /* ──────────────────────────────────────────────────────────────── reveals
      Content is visible by default. The hidden state is armed only after the observer has
@@ -391,7 +295,6 @@ export function initSite(): Teardown {
      fetched at all and the poster stands in — the designed state, not a degradation
      (ARCHITECTURE.md §16.7). */
   const heroVideo = hero?.querySelector<HTMLVideoElement>('video');
-  const markEntered = () => { if (hero) hero.dataset['entered'] = 'true'; };
 
   if (hero && heroVideo && tier === 'full') {
     const dpr = window.devicePixelRatio || 1;
@@ -413,73 +316,6 @@ export function initSite(): Teardown {
       });
     }
   }
-  /**
-   * The hero entrance, armed the same way the reveals are.
-   *
-   * The hidden state applies only while <html class="hero-armed">, and the class is
-   * removed if rAF never delivers a second frame — throttled tabs, some embedded
-   * webviews. Otherwise a frame callback that never runs would leave the company
-   * statement permanently invisible, which is the one thing motion may never do.
-   */
-  if (hero) {
-    root.classList.add('hero-armed');
-    let framed = false;
-    requestAnimationFrame(() => { framed = true; requestAnimationFrame(markEntered); });
-    const failsafe = window.setTimeout(() => {
-      if (!framed) root.classList.remove('hero-armed');
-      markEntered();
-    }, 600);
-    cleanups.push(() => {
-      window.clearTimeout(failsafe);
-      root.classList.remove('hero-armed');
-    });
-  }
-
-  /* hero sound — opt-in, and it reports its own state */
-  const sound = document.querySelector<HTMLButtonElement>('[data-sound]');
-  if (sound && heroVideo) {
-    const label = sound.querySelector('span') ?? sound;
-    const onClick = () => {
-      heroVideo.muted = !heroVideo.muted;
-      sound.setAttribute('aria-pressed', String(!heroVideo.muted));
-      label.textContent = heroVideo.muted ? sound.dataset['on']! : sound.dataset['off']!;
-      if (!heroVideo.muted) heroVideo.play().catch(() => { /* ignored */ });
-    };
-    on(sound, 'click', onClick as EventListener);
-  } else if (sound) {
-    sound.hidden = true;
-  }
-
-  /* ───────────────────────────────── feature loop — plays in view, not on hover
-     A silent IO failure here is harmless: the still is already on screen. */
-  const feature = document.querySelector<HTMLElement>('[data-feature]');
-  const featureVideo = feature?.querySelector<HTMLVideoElement>('video');
-  if (feature && featureVideo && tier === 'full') {
-    const wide = window.innerWidth * (window.devicePixelRatio || 1) > 900;
-    const featureSrc = clipSource(featureVideo, wide);
-    const play = () => {
-      if (!featureVideo.src && featureSrc) featureVideo.src = featureSrc;
-      ambient.add(featureVideo);
-      featureVideo.play().then(() => { feature.dataset['playing'] = 'true'; }).catch(() => { /* poster stands in */ });
-    };
-    if ('IntersectionObserver' in window) {
-      const io = new IntersectionObserver((entries) => {
-        for (const e of entries) {
-          if (e.isIntersecting) play();
-          else { ambient.delete(featureVideo); featureVideo.pause(); feature.dataset['playing'] = 'false'; }
-        }
-      }, { rootMargin: '150px 0px', threshold: 0.2 });
-      io.observe(feature);
-      cleanups.push(() => io.disconnect());
-    } else {
-      play();
-    }
-    cleanups.push(() => {
-      ambient.delete(featureVideo);
-      featureVideo.pause(); featureVideo.removeAttribute('src'); featureVideo.load();
-    });
-  }
-
   /* ──────────────────────────── editorial preview loops — on intent only
      Three rules, and all three exist because of what the portfolio does at twenty
      frames:
@@ -527,32 +363,6 @@ export function initSite(): Teardown {
       cleanups.push(() => { video.pause(); video.removeAttribute('src'); video.load(); });
     }
     cleanups.push(() => { window.clearTimeout(dwell); stopPreview(); });
-  }
-
-  /* ──────────────────────────────────────────────────────────── mobile menu */
-  const toggle = document.querySelector<HTMLButtonElement>('[data-menu-toggle]');
-  const nav = document.querySelector<HTMLElement>('[data-menu]');
-  if (toggle && nav) {
-    const setOpen = (next: boolean) => {
-      menuOpen = next;
-      nav.dataset['open'] = String(next);
-      toggle.setAttribute('aria-expanded', String(next));
-      const label = toggle.querySelector('span') ?? toggle;
-      label.textContent = next ? toggle.dataset['close']! : toggle.dataset['open']!;
-      // The lock is `overflow` on the body rather than Lenis's own stop, because the menu
-      // has to lock on touch devices too — where there is no Lenis at all.
-      body.style.overflow = next ? 'hidden' : '';
-      if (next) scroll?.stop(); else scroll?.start();
-      paint();
-      if (next) nav.querySelector<HTMLAnchorElement>('a')?.focus();
-    };
-    on(toggle, 'click', () => setOpen(nav.dataset['open'] !== 'true'));
-    // Any destination closes the menu — an in-page anchor does not reload the document.
-    for (const a of nav.querySelectorAll('a')) on(a, 'click', () => setOpen(false));
-    on(document, 'keydown', ((e: KeyboardEvent) => {
-      if (e.key === 'Escape' && nav.dataset['open'] === 'true') { setOpen(false); toggle.focus(); }
-    }) as EventListener);
-    cleanups.push(() => { body.style.overflow = ''; });
   }
 
   /* ────────────────────────────────────────────────────── the film façade
