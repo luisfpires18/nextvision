@@ -34,7 +34,7 @@
       },
       "by": "nextvisionfilmsagency@gmail.com",
       "at": "2026-10-27T21:29:49.297Z",
-      "status": "pending",
+      "status": "ready",
       "create": {
         "slug": "agente-imobiliario-sem-casa-para-viver",
         "project": {
@@ -63,7 +63,7 @@
       },
       "by": "nextvisionfilmsagency@gmail.com",
       "at": "2026-10-27T21:47:36.417Z",
-      "status": "pending",
+      "status": "failed",
       "create": {
         "slug": "agente-imobiliario-sem-casa-para-viver",
         "project": {
@@ -76,7 +76,8 @@
           "film": "https://youtu.be/8T54ioXq7og?si=raE6IRYmLEYHUWHV",
           "hidden": false
         }
-      }
+      },
+      "error": "Já existe um projeto em /portfolio/agente-imobiliario-sem-casa-para-viver/. Escolha outro título."
     }
   ]
 }
