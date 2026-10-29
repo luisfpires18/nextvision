@@ -94,15 +94,21 @@
 }
 .ab2-person__role { margin: 0; font-family: var(--font-display); font-weight: var(--w-label); font-size: var(--t-body-s); }
 .ab2-person__links { list-style: none; margin: var(--space-4) 0 0; padding: 0; display: flex; gap: var(--space-4); font-size: var(--t-body-s); }
-.ab2-person__links a { text-decoration: underline; text-underline-offset: 0.2em; }
+.ab2-person__links a { display: inline-flex; text-decoration: underline; text-underline-offset: 0.2em; }
+.ab2-person__icon { inline-size: var(--space-5); block-size: var(--space-5); }
+/* Logical properties resolve in the element's OWN writing mode, and this one is
+   vertical-rl: its inline axis runs top-to-bottom and its block-start is the RIGHT edge.
+   Written in the panel's axes they laid the spine across the panel's foot, a lone
+   "ABOUT" over the reel's film line. The rotation then turns the left border to the
+   right, against the rail, as the storyboard draws it. */
 .ab2-team__spine {
   position: absolute;
-  inset-block: 0;
-  inset-inline-end: 0;
-  inline-size: var(--spine-w);
+  inset-inline: 0;
+  inset-block-start: 0;
+  block-size: var(--spine-w);
   display: grid;
   place-items: center;
-  border-inline-start: var(--rail-gap) solid var(--ground-cream);
+  border-block-end: var(--rail-gap) solid var(--ground-cream);
   writing-mode: vertical-rl;
   transform: rotate(180deg);
   font-family: var(--font-display);
