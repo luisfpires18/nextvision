@@ -57,10 +57,17 @@ const schema = [
     },
   },
 ];
+
+/* Measured (docs/PERFORMANCE_AUDIT.md): the first screen is the tagline in Condensed 900
+   (the LCP element), the shelf's spine titles in Condensed 700 and the intro in Barlow
+   400. The default pair left the LCP face to stylesheet discovery, and its swap moved
+   everything beneath it. */
+const CINEMA_FACES = ['barlow-condensed-900', 'barlow-condensed-700', 'barlow-400'];
 ---
 
 <BaseLayout
   section="cinema"
+  preloadFonts={CINEMA_FACES}
   title={pageTitle('portfolio', locale)}
   description={pageDescription('portfolio', locale) ?? undefined}
   locale={locale}
