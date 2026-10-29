@@ -265,6 +265,10 @@ const manifest = JSON.parse(manifestSource) as { theme_color: string };
             // rule keyed on it (the section slide among them) silently stopped applying.
             const tier = document.documentElement.dataset['motion'];
             if (tier) doc.documentElement.dataset['motion'] = tier;
+            // `class="js"` goes the same way, and `initSite()` re-adds it only after
+            // page-load — so the transition snapshot rendered the no-script state (both
+            // portfolio views at once) and collapsed after the slide. Same defect class.
+            doc.documentElement.classList.add('js');
             // `[data-loader-overlay]`, NOT `[data-loader]`. The root carries the STATE
             // flag and comes first in document order, so the shorter selector matched
             // <html> and put `hidden` on the whole document (see site-motion.ts).
