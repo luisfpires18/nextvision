@@ -30,6 +30,12 @@ interface Props {
 const { projects, active = FILTER_ALL, heading, total, enhance = false, locale = DEFAULT_LOCALE } = Astro.props;
 const facets = await categoryFacets(locale);
 
+/* Every card here is a list row whose thumbnail track is minmax(7.5rem, 17rem)
+   (sections.css), so 17rem is the true upper bound at every width. On /portfolio/ the
+   list starts hidden behind the shelf, so nothing in it may claim the LCP; an archive
+   shows its list first, so its first row still does. */
+const THUMB_SIZES = '17rem';
+
 /**
  * The composed sequence holds twenty; the owners add projects from the admin, so past that
  * it starts again from its first row. Twenty projects render exactly as composed.
@@ -144,10 +150,8 @@ const twoDigits = (n: number): string => String(n).padStart(2, '0');
             ratio={row.ratios[i]!}
             tabletRatio={row.tabletRatios[i] ?? row.ratios[i]!}
             mobileRatio={row.mobileRatios[i] ?? row.ratios[i]!}
-            sizes={row.fullBleed
-              ? '100vw'
-              : '(min-width: 64rem) 34vw, (min-width: 34rem) 48vw, 92vw'}
-            priority={ri === 0}
+            sizes={THUMB_SIZES}
+            priority={!enhance && ri === 0}
             locale={locale}
           />
         ))}
@@ -162,7 +166,7 @@ const twoDigits = (n: number): string => String(n).padStart(2, '0');
             ratio={FILTERED_RATIO}
             tabletRatio={FILTERED_RATIO}
             mobileRatio={FILTERED_RATIO}
-            sizes="(min-width: 64rem) 34vw, (min-width: 34rem) 48vw, 92vw"
+            sizes={THUMB_SIZES}
             locale={locale}
           />
         ))}

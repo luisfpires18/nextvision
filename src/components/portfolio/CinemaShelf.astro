@@ -21,6 +21,7 @@ const { projects, locale } = Astro.props;
 
 /* The storyboard stands up Dormência, the one project with a true portrait poster. */
 const lead = projects.find((p) => p.slug === 'dormencia-48h') ?? projects[0];
+const POSTER_SIZES = '(min-width: 48rem) 24rem, 80vw';
 const no = (i: number): string => String(i + 1).padStart(3, '0');
 ---
 
@@ -35,6 +36,7 @@ const no = (i: number): string => String(i + 1).padStart(3, '0');
           data-meta={`${p.categoryName} · ${p.date}`}
           data-src={p.posterSrc ?? undefined}
           data-srcset={p.posterSrcset ?? undefined}
+          data-avifset={p.posterAvifSrcset ?? undefined}
           aria-current={p.slug === lead?.slug ? 'true' : undefined}
         >
           <span class="vhs__tag" aria-hidden="true">NVF</span>
@@ -50,18 +52,23 @@ const no = (i: number): string => String(i + 1).padStart(3, '0');
   {lead && (
     <figure class="poster" data-poster aria-live="polite">
       <a class="poster__frame" href={lead.href} data-poster-link>
+        {/* The visible poster is this page's LCP: eager and high priority. */}
         {lead.posterSrc && (
-          <img
-            src={lead.posterSrc}
-            srcset={lead.posterSrcset}
-            sizes="(min-width: 48rem) 24rem, 80vw"
-            alt=""
-            width={lead.posterWidth}
-            height={lead.posterHeight}
-            loading="lazy"
-            decoding="async"
-            data-poster-img
-          />
+          <picture>
+            {lead.posterAvifSrcset && <source type="image/avif" srcset={lead.posterAvifSrcset} sizes={POSTER_SIZES} data-poster-avif />}
+            <img
+              src={lead.posterSrc}
+              srcset={lead.posterSrcset}
+              sizes={POSTER_SIZES}
+              alt=""
+              width={lead.posterWidth}
+              height={lead.posterHeight}
+              loading="eager"
+              decoding="async"
+              fetchpriority="high"
+              data-poster-img
+            />
+          </picture>
         )}
       </a>
       <figcaption>

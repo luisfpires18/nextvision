@@ -36,6 +36,7 @@ export function initCinema(): Teardown {
 
   /* ── poster ── */
   const img = root.querySelector<HTMLImageElement>('[data-poster-img]');
+  const avif = root.querySelector<HTMLSourceElement>('[data-poster-avif]');
   const title = root.querySelector<HTMLElement>('[data-poster-title]');
   const meta = root.querySelector<HTMLElement>('[data-poster-meta]');
   const links = [...root.querySelectorAll<HTMLAnchorElement>('[data-poster-link]')];
@@ -45,6 +46,8 @@ export function initCinema(): Teardown {
     if (img && spine.dataset['src']) {
       img.src = spine.dataset['src'];
       if (spine.dataset['srcset']) img.srcset = spine.dataset['srcset'];
+      // The <source> outranks the <img> in AVIF browsers, so it must follow the spine too.
+      if (avif) avif.srcset = spine.dataset['avifset'] ?? spine.dataset['srcset'] ?? '';
     }
     if (title) title.textContent = spine.dataset['title'] ?? '';
     if (meta) meta.textContent = spine.dataset['meta'] ?? '';
