@@ -197,6 +197,24 @@ async function checkBuild(manifest) {
   return seen.size;
 }
 
+/* ═════════════════════ J · content-addressed delivery is cached as immutable ══ */
+
+/**
+ * A `/__media/` name changes whenever its bytes do (rule 12), so the edge may keep it for a
+ * year. Without the rule Cloudflare serves `max-age=0, must-revalidate` and every repeat
+ * view revalidates every image. Read from the BUILT file — the adapter merges its own
+ * `/_astro/*` block into ours, and this is the file that is actually uploaded.
+ */
+async function checkHeaders() {
+  const file = path.join(ROOT, 'dist', 'client', '_headers');
+  if (!existsSync(file)) { log('  (no dist/client/_headers — skipping the header check)'); return; }
+  const text = await fs.readFile(file, 'utf8');
+  const block = text.split(/\n(?=\S)/).find((b) => b.split('\n')[0].trim() === '/__media/*');
+  if (!block || !/^\s+Cache-Control:.*\bimmutable\b/im.test(block)) {
+    fail('headers', 'dist/client/_headers has no immutable Cache-Control rule for /__media/*');
+  }
+}
+
 /* ════════════════════════════════════════════════════════════════════ main ══ */
 
 async function main() {
@@ -212,6 +230,7 @@ async function main() {
   const present = await checkMirror(manifest);
   await checkSources();
   const inBuild = await checkBuild(manifest);
+  await checkHeaders();
 
   const bytes = Object.values(manifest.items).reduce((n, i) => n + (i.bytes ?? 0), 0);
   log(`  assets              ${Object.keys(manifest.items).length}`);
