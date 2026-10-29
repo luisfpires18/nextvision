@@ -84,7 +84,7 @@ Not started: DNS cutover, the newsletter endpoint (D18).
 
 ## BLOCKED
 
-- [ ] **GitHub Actions will not start (since 2026-10-27).** Every job fails in seconds with "recent account payments have failed or your spending limit needs to be increased". Nothing deploys — not a push to `dev`, not a Publicar from the admin — and two owner requests to create «Agente Imobiliário sem Casa para Viver» sit `pending` in `src/data/media-uploads.json`. Fix billing in GitHub → Settings → Billing and plans, then `gh workflow run media-ingest.yml --repo luisfpires18/nextvision --ref master`; the first request (year 2026) creates the project, so the owners should check its year (their second try said 2024).
+- [x] **GitHub Actions would not start (2026-10-27 → 2026-10-29).** Billing refused every job on the private repo; resolved by making the repository public, after which `media-ingest` created «Agente Imobiliário sem Casa para Viver» (hidden, year 2026 — the owners' second try said 2024, so they should confirm the year).
 - [ ] **Owner photos.** New founder portraits for `/sobre/` and new images for the Services carousels are coming from the owners (2026-10-29).
 - [ ] **Design v2 assets.** VHS spine artwork (spines are drawn from titles until then), the
       NOWHERE poster and project, Need to Talk, Agente Imobiliário Sem Casa Para Viver, the

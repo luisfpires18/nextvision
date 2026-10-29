@@ -20,7 +20,7 @@ work it describes. Read it at the start of every session.
 > carousels (data: `services.json` `categories`). Project pages have VOLTAR. `/bts/` is
 > yellow only. The admin can delete a project (301 to the portfolio via
 > `removed-projects.json`), take off an opening video, and undo one draft. Open points:
-> `BLOCKED_TODOS.md` (GitHub Actions billing blocks every deploy).
+> `BLOCKED_TODOS.md`.
 
 > ### ✅ Review A — APPROVED (owner, 2026-09-02)
 > **Contact Sheet as the overall website system + Projection for immersive/cinematic
