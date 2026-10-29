@@ -139,9 +139,11 @@ span.brand-mark {
   font-size: var(--t-spine-meta);
   letter-spacing: var(--tracking-eyebrow);
   padding: var(--space-2) var(--space-1);
-  opacity: 0.7;
 }
-.spine__lang [aria-current] { opacity: 1; font-weight: 700; }
+/* The other language is a link at full ink: at 0.7 opacity it measured 3.11:1 on the
+   cinema ground, under the 4.5:1 floor. Weight alone marks the current one. A locale
+   with no translation stays dimmed — it is disabled, not text to be read. */
+.spine__lang [aria-current] { font-weight: 700; }
 .spine__lang .spine__lang-off { opacity: 0.35; }
 .spine__talk { display: block; inline-size: var(--reel-s); }
 .spine__talk .reel { transition: transform var(--dur-ui) var(--ease-ui); }

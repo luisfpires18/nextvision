@@ -65,7 +65,10 @@ export function initCinema(): Teardown {
     }
     if (title) title.textContent = spine.dataset['title'] ?? '';
     if (meta) meta.textContent = spine.dataset['meta'] ?? '';
-    for (const l of links) l.href = spine.href;
+    for (const l of links) {
+      l.href = spine.href;
+      if (l.hasAttribute('aria-label')) l.setAttribute('aria-label', spine.dataset['title'] ?? '');
+    }
   };
   for (const s of spines) {
     on(s, 'pointerenter', () => stand(s));

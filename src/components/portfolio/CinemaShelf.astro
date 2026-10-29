@@ -51,7 +51,8 @@ const no = (i: number): string => String(i + 1).padStart(3, '0');
 
   {lead && (
     <figure class="poster" data-poster aria-live="polite">
-      <a class="poster__frame" href={lead.href} data-poster-link>
+      {/* The image is decorative (alt=""), so the link takes the film's own title. */}
+      <a class="poster__frame" href={lead.href} aria-label={lead.title} data-poster-link>
         {/* The visible poster is this page's LCP: eager and high priority. */}
         {lead.posterSrc && (
           <picture>
