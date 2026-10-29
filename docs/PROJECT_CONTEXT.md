@@ -10,6 +10,18 @@ work it describes. Read it at the start of every session.
 > **Open items now live in one place: [`BLOCKED_TODOS.md`](BLOCKED_TODOS.md).** Update it
 > at the end of every phase.
 
+> ### Owner feedback round 1 on design v2 (2026-10-29), on `dev`
+> Checked against the mockup PDF (`next_vision_info/review/_extracted/mockup`). The
+> storyboard star is the POINTER (cursor tokens), with the mockup's arrow over the rail; the
+> static stars are gone. "Loving every frame" sits under the hero logo. The film line is
+> tied to its reel (tip = reel centre) on About and on Services' LET'S TALK, and About's
+> reel now rests as LET'S TALK linking to contacts. About lost its closing block and is
+> centred; the founders have icons and owner-supplied roles. `/servicos/` is two category
+> carousels (data: `services.json` `categories`). Project pages have VOLTAR. `/bts/` is
+> yellow only. The admin can delete a project (301 to the portfolio via
+> `removed-projects.json`), take off an opening video, and undo one draft. Open points:
+> `BLOCKED_TODOS.md` (GitHub Actions billing blocks every deploy).
+
 > ### ✅ Review A — APPROVED (owner, 2026-09-02)
 > **Contact Sheet as the overall website system + Projection for immersive/cinematic
 > moments.** Slate is not the primary direction; all three originals are kept for

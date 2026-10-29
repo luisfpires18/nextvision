@@ -84,6 +84,8 @@ Not started: DNS cutover, the newsletter endpoint (D18).
 
 ## BLOCKED
 
+- [ ] **GitHub Actions will not start (since 2026-10-27).** Every job fails in seconds with "recent account payments have failed or your spending limit needs to be increased". Nothing deploys — not a push to `dev`, not a Publicar from the admin — and two owner requests to create «Agente Imobiliário sem Casa para Viver» sit `pending` in `src/data/media-uploads.json`. Fix billing in GitHub → Settings → Billing and plans, then `gh workflow run media-ingest.yml --repo luisfpires18/nextvision --ref master`; the first request (year 2026) creates the project, so the owners should check its year (their second try said 2024).
+- [ ] **Owner photos.** New founder portraits for `/sobre/` and new images for the Services carousels are coming from the owners (2026-10-29).
 - [ ] **Design v2 assets.** VHS spine artwork (spines are drawn from titles until then), the
       NOWHERE poster and project, Need to Talk, Agente Imobiliário Sem Casa Para Viver, the
       About team-photo carousel, and a vector export of the logos (C8; PNG masks for now).
@@ -98,6 +100,8 @@ Not started: DNS cutover, the newsletter endpoint (D18).
 
 ## OWNER DECISION
 
+- [ ] **Second Services carousel.** The owners asked for "Publicidade & Branding"; no category carries that label. It shows `corporativo` (one project, Antiqvvm); `moda-identidade` (one project, YSL) is the alternative. One word in `services.json` `categories`.
+- [ ] **"Tira a cena dos BTS".** Read as the six-still grid on `/bts/`, now removed (the page is all yellow). If only the cream spine was meant, restore the grid in `BtsPage.astro`.
 - [ ] **Design v2 copy (Tatiana's storyboard).** New About lead and paragraphs, and the
       contact-sheet heading (contains "SCREME", "WOHOLE", "ALREDY"). Not published; the
       live copy stays until approved. `docs/DESIGN_V2_ROLLOUT.md` §5.
