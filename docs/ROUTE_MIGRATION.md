@@ -69,6 +69,12 @@ pages — 404ed in every build. Two groups are still deliberately not emitted: t
 `/wp-content/uploads/*` map needs R2, and the 410 patterns need a Worker, since
 `_redirects` speaks only in 3xx. The generated file says both.
 
+**Projects removed in the admin** (2026-10-29) are redirected from data, not from this
+map: `src/data/removed-projects.json`, written by the same commit that deletes the
+project, makes `build-redirects.mjs` emit `/portfolio/<slug>/ → /portfolio/` and
+`/en/portfolio/<slug>/ → /en/portfolio/`, 301. A slug that has a project file again is
+skipped, so a new project with the same title is not hidden behind a redirect.
+
 ---
 
 ## 4. Uploads — 77 mapped

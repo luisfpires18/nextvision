@@ -48,9 +48,9 @@ export const PROJECT_FIELDS: ProjectField[] = [
   { path: 'year', label: 'Ano', kind: 'year' },
   { path: 'categories', label: 'Categoria', kind: 'category' },
   { path: 'film.id', label: 'Filme no YouTube', kind: 'film', note: 'Cole o endereço do vídeo no YouTube, ou só o código de 11 caracteres.' },
-  { path: 'draft', label: 'No site', kind: 'visibility', note: 'Um projeto escondido sai do portfólio e a sua página deixa de existir.' },
-  { path: 'poster.key', label: 'Capa', kind: 'image', note: 'A imagem do projeto no portfólio e nas partilhas.' },
-  { path: 'heroVideo', label: 'Vídeo de abertura', kind: 'video', note: 'O excerto que corre em silêncio no topo da página do projeto. A capa vem com ele.' },
+  { path: 'draft', label: 'No site', kind: 'visibility', note: 'Um projeto escondido sai do portfólio e a sua página deixa de existir, mas fica guardado aqui: pode voltar a mostrá-lo quando quiser.' },
+  { path: 'poster.key', label: 'Capa', kind: 'image', note: 'A imagem do projeto no portfólio e nas partilhas. Todos os projetos têm capa: pode trocá-la, não tirá-la.' },
+  { path: 'heroVideo', label: 'Vídeo de abertura', kind: 'video', note: 'O excerto que corre em silêncio no topo da página do projeto. A capa vem com ele. Escolha «(nenhum)» para o tirar.' },
   { path: 'blocks', label: 'Blocos da página', kind: 'blocks' },
 ];
 
@@ -195,6 +195,19 @@ export function applyProjectEdits(text: string, edits: Record<string, string>, c
         set(f.path, value);
         break;
       case 'video':
+        if (!value) {
+          // Taking the video off. The file stays in the media library; only the key goes.
+          // Its still goes with it when it was the video's own poster, and the page falls
+          // back to the cover. A project with nothing else to show keeps its video
+          // (content.config.ts: film, heroVideo, previewVideo or filmUnavailable).
+          const before = projectValue(data, f.path);
+          if (!data['film'] && !data['previewVideo'] && !data['filmUnavailable']) {
+            throw new EditError(`«${f.label}»: este projeto não tem filme, por isso o vídeo de abertura não pode sair. Pode trocá-lo por outro.`);
+          }
+          doc.deleteIn(steps(f.path));
+          if (projectValue(data, 'heroStill.key') === `${before}/poster`) doc.deleteIn(['heroStill']);
+          break;
+        }
         if (ctx.mediaKind(value) !== 'video') throw new EditError(`«${f.label}»: escolha um vídeo da lista.`);
         set(f.path, value);
         // The still that stands in for the video until it plays is the video's own poster
@@ -255,6 +268,51 @@ export function applyOrder(projects: ProjectFile[], order: string): ProjectFile[
     out.push({ slug: p.slug, text: `---\n${writeFront(doc)}---\n${rest}` });
   }
   return out;
+}
+
+/* ── removing a project ──────────────────────────────────────────────────── */
+
+/**
+ * Removing a project is ONE draft, `projeto/<slug>:apagar`, whose value is the project's
+ * title: the confirm step names the project and the server checks that what was
+ * confirmed is still what would go. The publish commit then deletes the project's file and
+ * records it in REMOVED_PATH, which is what makes the removal deliberate:
+ *   - scripts/build-redirects.mjs sends its old URLs to the portfolio (301), so a shared
+ *     link lands somewhere rather than on a 404;
+ *   - scripts/validate-routes.mjs counts it, so the floor of migrated projects still
+ *     catches a project that went missing by ACCIDENT.
+ * Its media is NOT touched: the manifest and the bucket keep it (CLAUDE.md §10.13), so a
+ * removal can be undone by putting the file back from git history.
+ */
+export const REMOVE_FIELD = 'apagar';
+export const REMOVED_PATH = 'src/data/removed-projects.json';
+
+export interface RemovedDoc { removed: { slug: string; title: string; at: string }[] }
+
+export type ProjectWrite = { path: string; text: string } | { path: string; remove: true };
+
+/**
+ * The writes that remove `remove` (slug → confirmed title) from `all`: each project file
+ * deleted, and the removal list with them. Refuses, naming the project, when the confirmed
+ * title is not the current one or another project still links to it as related.
+ */
+export function removalWrites(all: ProjectFile[], remove: Map<string, string>, removedText: string, today: string): ProjectWrite[] {
+  const doc = JSON.parse(removedText) as RemovedDoc;
+  const writes: ProjectWrite[] = [];
+  for (const [slug, confirmed] of remove) {
+    const file = all.find((p) => p.slug === slug);
+    if (!file) throw new EditError('Este projeto já não existe.');
+    const title = projectValue(projectData(file.text), 'title.pt');
+    if (confirmed !== title) throw new EditError(`Para apagar «${title}», confirme o nome do projeto. Nada foi publicado.`);
+    const linking = all.filter((p) => !remove.has(p.slug) && ((projectData(p.text)['related'] as string[] | undefined) ?? []).includes(slug));
+    if (linking.length) {
+      throw new EditError(`«${title}» aparece como projeto relacionado em ${linking.map((p) => `«${projectValue(projectData(p.text), 'title.pt')}»`).join(', ')}. Fale com o programador antes de o apagar.`);
+    }
+    writes.push({ path: projectFilePath(slug), remove: true });
+    doc.removed = [...doc.removed.filter((r) => r.slug !== slug), { slug, title, at: today }];
+  }
+  writes.push({ path: REMOVED_PATH, text: `${JSON.stringify(doc, null, 2)}\n` });
+  return writes;
 }
 
 /* ── a new project ───────────────────────────────────────────────────────── */

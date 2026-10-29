@@ -137,7 +137,7 @@ export function createMockGitHub({ repo, branch, live = 'master', files, appId, 
       const base = trees.get(body.base_tree);
       if (!base) return json(422, { message: 'base_tree not found' });
       const next = new Map(base);
-      for (const entry of body.tree) next.set(entry.path, entry.content);
+      for (const entry of body.tree) { if (entry.sha === null) next.delete(entry.path); else next.set(entry.path, entry.content); }
       const sha = id();
       trees.set(sha, next);
       return json(201, { sha });

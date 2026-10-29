@@ -7,7 +7,7 @@
  * saved until Publicar sends every draft from every page at once (admin-client.ts).
  * What may be written, and how, is decided by the server (src/lib/admin/projects.ts).
  */
-import { fieldsFor, projectDraftFile, projectValue, type ProjectField } from '../lib/admin/projects.ts';
+import { REMOVE_FIELD, fieldsFor, projectDraftFile, projectValue, type ProjectField } from '../lib/admin/projects.ts';
 import { MEDIA, thumb } from './media-options.ts';
 import UploadPanel from './UploadPanel.astro';
 import BlocksEditor from './BlocksEditor.astro';
@@ -70,12 +70,13 @@ const rows = (v: string) => Math.min(8, Math.ceil(v.length / 60) + v.split('\n')
         ) : f.kind === 'image' || f.kind === 'video' ? (
           <>
           <div class="ed-media__row">
-            <img src={value ? thumb(value) : ''} alt="" data-preview-for={id} width="160" height="90" />
+            <img src={value ? thumb(value) : ''} alt="" data-preview-for={id} width="160" height="90" hidden={!value} />
             <label class="ed-media__pick">
               <span class="f-lang">{f.kind === 'video' ? 'Vídeo' : 'Imagem'}</span>
               <select id={id} name={name(f)} data-original={value} data-label={named(f)}>
                 {/* The current value is ALWAYS an option, so the browser never picks another. */}
-                {!value ? <option value="" selected>(nenhum)</option> : null}
+                {/* A cover is required (content.config.ts), so only the video can be taken off. */}
+                {!value || f.kind === 'video' ? <option value="" selected={!value}>(nenhum)</option> : null}
                 {value && !MEDIA[f.kind].some(([, keys]) => keys.includes(value)) ? (
                   <option value={value} data-thumb={thumb(value)} selected>{value} (atual)</option>
                 ) : null}
@@ -116,6 +117,19 @@ const rows = (v: string) => Math.min(8, Math.ceil(v.length / 60) + v.split('\n')
     englishProse={alreadyEnglish}
     defaultImage={projectValue(data, 'poster.key')}
   />
+
+  {/* Removing the project: one draft whose value is the confirmed title (projects.ts `removalWrites`). */}
+  <fieldset class="ed-field" data-field data-remove>
+    <legend>Apagar projeto</legend>
+    <p class="ed-note">Tira o projeto do site e desta lista. Quem abrir o endereço antigo vai parar ao portfólio. As imagens e os vídeos ficam guardados.</p>
+    <p class="ed-note">Só quer tirá-lo do site por agora? Em «No site», escolha «Escondido»: o projeto fica aqui e pode voltar a mostrá-lo.</p>
+    <input type="hidden" name={`${projectDraftFile(slug)}:${REMOVE_FIELD}`} value="" data-original="" data-label={`Projeto «${title}» — Apagar projeto`} data-remove-input />
+    <button type="button" class="pub-cancel" data-remove-go data-title={title}>Apagar este projeto…</button>
+    <p class="ed-note" data-remove-pending hidden>
+      Este projeto vai ser apagado quando carregar em Publicar.{' '}
+      <button type="button" class="pub-cancel" data-remove-undo>Não apagar</button>
+    </p>
+  </fieldset>
 
   <p class="ed-message" role="status" aria-live="polite" data-message></p>
 </form>
