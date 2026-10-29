@@ -389,6 +389,18 @@ export function initSite(): Teardown {
       filmPlay.remove();
       frame.focus();
     };
+    // The press IS the consent, so the connection is opened on its first half (pointer
+    // down) and never on hover — hovering a poster must not reach YouTube. It buys the
+    // TLS handshake the ~100 ms until `click`.
+    on(filmPlay, 'pointerdown', () => {
+      const embed = film.dataset['embed'];
+      if (!embed || document.head.querySelector('link[data-film-preconnect]')) return;
+      const link = document.createElement('link');
+      link.rel = 'preconnect';
+      link.href = new URL(embed).origin;
+      link.dataset['filmPreconnect'] = '';
+      document.head.append(link);
+    });
     on(filmPlay, 'click', mount);
   }
 

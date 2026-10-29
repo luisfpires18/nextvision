@@ -273,8 +273,12 @@ const maxLength: Record<string, number> = {
       });
     };
 
+    /* Turnstile's script is ~40 KB plus an iframe, and most readers of this page never
+       write. It loads on the first sign of intent — a press or focus anywhere in the
+       form — which always comes before a message can be typed and sent. */
     const src = mount?.dataset['script'];
-    if (src) {
+    const load = () => {
+      if (!src) return;
       if ((window as TurnstileWindow).turnstile) {
         render();
       } else if (document.querySelector(`script[src="${src}"]`)) {
@@ -288,7 +292,9 @@ const maxLength: Record<string, number> = {
         el.addEventListener('load', render, { once: true });
         document.head.appendChild(el);
       }
-    }
+    };
+    form.addEventListener('focusin', load, { once: true });
+    form.addEventListener('pointerdown', load, { once: true });
 
     /* ------------------------------------------------------------------- submit */
 
