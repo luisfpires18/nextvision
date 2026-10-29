@@ -85,29 +85,29 @@ const TODAY = '2026-10-22';
 }
 
 await check('per-field freshness reads the live value each draft name points at', () => {
-  const docs = { home: read('home'), bts: read('bts') };
+  const docs = { home: read('home'), services: read('services') };
   assert.equal(liveValue(docs, 'home:copy.heroLineA#pt'), docs.home.copy.heroLineA.text);
   assert.equal(liveValue(docs, 'home:copy.heroLineA#en'), docs.home.copy.heroLineA.en);
   assert.equal(liveValue(docs, 'home:heroVideo'), docs.home.heroVideo);
-  assert.equal(liveValue(docs, 'bts:frames.2'), docs.bts.frames[2]);
+  assert.equal(liveValue(docs, 'services:collage.2'), docs.services.collage[2]);
   assert.equal(liveValue(docs, 'home:nope#pt'), undefined, 'an unknown field is never "fresh"');
 });
 await check('drafts from several pages and files apply in one go', () => {
-  const docs = { home: read('home'), about: read('about'), bts: read('bts') };
-  const fields = [...expandFields(SCREENS.home, docs), ...expandFields(SCREENS.about, docs), ...expandFields(SCREENS.bts, docs)];
+  const docs = { home: read('home'), about: read('about'), services: read('services') };
+  const fields = [...expandFields(SCREENS.home, docs), ...expandFields(SCREENS.about, docs), ...expandFields(SCREENS.services, docs)];
   const { docs: next, changed } = applyEdits(fields, docs, {
     'home:copy.heroLineA#en': 'We capture feeling',
     'about:copy.storyB#en': 'x',
-    'bts:frames.0': docs.bts.frames[1],
+    'services:collage.0': docs.services.collage[1],
   }, TODAY);
-  assert.deepEqual([...new Set(changed.map((c) => c.file))].sort(), ['about', 'bts', 'home']);
-  assert.equal(next.bts.frames[0], docs.bts.frames[1]);
+  assert.deepEqual([...new Set(changed.map((c) => c.file))].sort(), ['about', 'home', 'services']);
+  assert.equal(next.services.collage[0], docs.services.collage[1]);
 });
 await check('lists expand to one field per item', () => {
   const about = expandFields(SCREENS.about, docsFor('about'));
   assert.equal(about.filter((f) => f.key.startsWith('copy.closing.')).length, read('about').copy.closing.length);
-  const bts = expandFields(SCREENS.bts, docsFor('bts'));
-  assert.deepEqual(bts.map((f) => f.key), read('bts').frames.map((_, i) => `frames.${i}`));
+  const collage = expandFields(SCREENS.services, docsFor('services')).filter((f) => f.key.startsWith('collage.'));
+  assert.deepEqual(collage.map((f) => f.key), read('services').collage.map((_, i) => `collage.${i}`));
 });
 
 await check('every offered field exists in its file', () => {
@@ -423,7 +423,7 @@ await check('the build of a save is followed from queued to completed', async ()
 
 {
   const homeFields = expandFields(SCREENS.home, docsFor('home'));
-  const btsFields = expandFields(SCREENS.bts, docsFor('bts'));
+  const servicesFields = expandFields(SCREENS.services, docsFor('services'));
   const src = 'uploads/2026-10-22/abc12345/clip.mp4';
   const film = { screen: 'home', target: 'home:heroVideo', source: src, name: 'Clip Final.MOV', start: 10, end: 18, posterAt: 12 };
   const plan = (fields, req) => planUpload(fields, req, 'abc12345', 'o@x', '2026-10-22T18:00:00Z');
@@ -435,14 +435,14 @@ await check('the build of a save is followed from queued to completed', async ()
     assert.deepEqual([e.start, e.duration, e.posterAt, e.status], [10, 8, 12, 'pending']);
     assert.deepEqual(e.target, { screen: 'home', file: 'home', path: 'heroVideo', label: 'Vídeo da página inicial' });
   });
-  await check('a still for a BTS frame becomes owner/<id>/image, with no window', () => {
-    const e = plan(btsFields, { screen: 'bts', target: 'bts:frames.2', source: src.replace('clip.mp4', 'f.jpg'), name: 'frame.JPG' });
+  await check('a still for a collage image becomes owner/<id>/image, with no window', () => {
+    const e = plan(servicesFields, { screen: 'services', target: 'services:collage.2', source: src.replace('clip.mp4', 'f.jpg'), name: 'frame.JPG' });
     assert.equal(e.key, 'owner/abc12345/image');
     assert.equal(e.start, undefined);
   });
   await check('the wrong kind for the field is refused, in words', () => {
     assert.throws(() => plan(homeFields, { ...film, name: 'photo.jpg' }), /precisa de um vídeo/);
-    assert.throws(() => plan(btsFields, { screen: 'bts', target: 'bts:frames.0', source: src, name: 'clip.mp4' }), /precisa de uma imagem/);
+    assert.throws(() => plan(servicesFields, { screen: 'services', target: 'services:collage.0', source: src, name: 'clip.mp4' }), /precisa de uma imagem/);
   });
   await check('a text field, an unknown field and a locked field take no file', () => {
     assert.throws(() => plan(homeFields, { ...film, target: 'home:copy.heroLineA' }), /não aceita ficheiros/);

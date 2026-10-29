@@ -1,7 +1,7 @@
 /**
  * New media from the owners (phase A4): what a request may ask for, and how it is recorded.
  *
- * An owner uploads FOR a field — the homepage film, a BTS frame — never into a free
+ * An owner uploads FOR a field — the homepage film, a collage image — never into a free
  * library: the admin runs on the live site and can only show media the live site has, so
  * a file is processed and attached in one step and appears in the preview like any save
  * (docs/ADMIN_DASHBOARD_PLAN.md §4.1). The request is one entry appended to

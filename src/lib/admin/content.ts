@@ -132,10 +132,6 @@ export const AREAS: AdminArea[] = [
     ],
   },
   {
-    id: 'bts', label: 'BTS', section: 'bts',
-    groups: [page('bts', 'bts')],
-  },
-  {
     id: 'definicoes', label: 'Definições', section: null,
     groups: [
       {
