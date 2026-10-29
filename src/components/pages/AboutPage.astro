@@ -215,5 +215,9 @@ const schema = [
     </div>
   </section>
 
-  <div class="spool" aria-hidden="true"><i class="spool__film"></i><Reel class="spool__reel" /></div>
+  <a class="spool" href={`${navHref('contact', locale)}#contactar`}>
+    <i class="spool__film" aria-hidden="true"></i>
+    <Reel class="spool__reel" text={["LET'S", 'TALK']} />
+    <span class="visually-hidden">{t('ui.letsTalk', locale)}</span>
+  </a>
 </BaseLayout>

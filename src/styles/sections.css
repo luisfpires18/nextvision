@@ -126,18 +126,22 @@
 }
 @keyframes nvf-from-left { from { transform: translateX(-100%); } }
 
-/* The reel along the foot of the page, unspooling a line of film as the reader scrolls.
-   Sticky at the end of the content, so it rides the viewport's foot and comes to rest
-   above the footer instead of over it. */
+/* The reel along the foot of the page, unspooling a line of film as the reader scrolls
+   and coming to rest at the end as LET'S TALK, the way into /contactos/. Sticky at the
+   end of the content, so it rides the viewport's foot and comes to rest above the
+   footer instead of over it. The resting place is the default; only the `full` tier
+   rolls into it, so every other tier sees the invitation where it ends up. */
 .spool {
   position: sticky;
   z-index: var(--z-overlay);
   inset-block-end: 0;
+  display: block;
   block-size: var(--reel-m);
   margin-block-start: calc(var(--reel-m) * -1);
   pointer-events: none;
   container-type: inline-size;
   overflow: clip;
+  --focus-ring: var(--brand-ink);
 }
 .spool__film {
   position: absolute;
@@ -146,22 +150,22 @@
   block-size: var(--film-line);
   background: var(--brand-yellow);
   transform-origin: left;
-  transform: scaleX(0.08);
 }
 .spool__reel {
   position: absolute;
   inset-block-end: 0;
   inset-inline-start: 0;
   inline-size: var(--reel-m);
-  transform: translate(-50%, 30%);
+  pointer-events: auto;
+  transform: translateX(calc(100cqi - 100% - var(--space-4)));
   --reel-hole: var(--ground-cream);
 }
 @supports (animation-timeline: scroll()) {
   :root[data-motion='full'] .spool__film { animation: nvf-unspool linear both; animation-timeline: scroll(root); }
   :root[data-motion='full'] .spool__reel { animation: nvf-roll linear both; animation-timeline: scroll(root); }
 }
-@keyframes nvf-unspool { to { transform: scaleX(1); } }
-@keyframes nvf-roll { to { transform: translate(calc(100cqi - 50%), 30%) rotate(var(--reel-turns)); } }
+@keyframes nvf-unspool { from { transform: scaleX(0.08); } }
+@keyframes nvf-roll { from { transform: translate(-50%, 30%) rotate(calc(var(--reel-turns) * -1)); } }
 
 /* ═════════════════════════════════════════════════════════════ COMMERCIAL ══ */
 .cm {
@@ -453,4 +457,5 @@
    rests at the end of the content instead, and only the commercial reel still rolls in. */
 @media (max-width: 47.99rem) {
   .spool, .talk { position: relative; margin-block-start: 0; }
+  :root[data-motion] .spool__film, :root[data-motion] .spool__reel { animation: none; }
 }
