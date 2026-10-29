@@ -9,9 +9,9 @@
  * What is NOT here is deliberate:
  *   - strings the current design does not render (home.json workLineA/B, workBodyB,
  *     ctaPortfolio, servicesLead, aboutBodyB; about.json closing, workLineA/B — the
- *     About closing block the owners removed on 2026-10-29; portfolio.json `more`) —
- *     editing them would
- *     change nothing anyone can see;
+ *     About closing block the owners removed on 2026-10-29; portfolio.json `more`;
+ *     bts.json `frames`, whose grid the owners had taken off /bts/) — editing them
+ *     would change nothing anyone can see;
  *   - the WordPress excerpts, which are an archive record and not published.
  * And what is LOCKED says why, in the owners' words.
  *
@@ -80,9 +80,7 @@ export const SCREENS: Record<PageFileName, FieldDef[]> = {
     { file: 'portfolio', path: 'copy.lead', label: 'Frase', kind: 'text', note: 'Também é usada na descrição para pesquisa.' },
     { file: 'portfolio', path: 'copy.all', label: 'Filtro «todos»', kind: 'text' },
   ],
-  bts: [
-    { file: 'bts', path: 'frames.*', label: 'Imagem', kind: 'image' },
-  ],
+  bts: [],
 };
 
 /** Each screen's name, as the admin's navigation shows it. */

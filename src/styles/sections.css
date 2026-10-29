@@ -378,15 +378,17 @@
 }
 .pf-index .item__dot { display: none; }
 
-/* ═══════════════════════════════════════════════════════════════════════ BTS ══ */
-[data-section='bts'] .spine { background: var(--brand-cream); color: var(--brand-ink); --reel-disc: var(--brand-ink); --reel-hole: var(--brand-cream); --focus-ring: var(--brand-ink); }
+/* ═══════════════════════════════════════════════════════════════════════ BTS ══
+   Only the section's yellow (owners, 2026-10-29): no frames, and the spine wears --sec
+   like every other section, so the page is one field of colour. */
 .bts {
-  display: grid;
-  gap: var(--space-7);
+  min-block-size: 100svh;
   padding: var(--space-7) var(--gutter) var(--space-9);
+  background: var(--sec);
+  color: var(--sec-ink);
+  --focus-ring: var(--sec-ink);
 }
-@media (min-width: 60rem) { .bts { grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.4fr); } }
-.bts__mark { inline-size: min(100%, 24rem); color: var(--ink-on-dark); }
+.bts__mark { inline-size: min(100%, 24rem); color: var(--sec-ink); }
 .bts__title {
   margin: var(--space-6) 0 0;
   font-family: var(--font-display);
@@ -401,11 +403,7 @@
   font-size: var(--t-service);
   text-transform: uppercase;
 }
-.bts__links a:is(:hover, :focus-visible) { color: var(--brand-yellow); }
-.bts__grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-2); }
-.bts__grid a { display: block; aspect-ratio: 3 / 4; overflow: hidden; }
-.bts__grid img { inline-size: 100%; block-size: 100%; object-fit: cover; transition: transform var(--dur-reveal) var(--ease-reveal); }
-.bts__grid a:is(:hover, :focus-visible) img { transform: scale(var(--scale-media)); }
+.bts__links a:is(:hover, :focus-visible) { text-decoration: underline; }
 
 /* ═════════════════════════════════════════════════════════ CONTACT SHEET ══
    The storyboard's numbered sheet, on the real form: each field gets its number and a
