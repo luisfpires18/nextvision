@@ -185,7 +185,12 @@ const schema = [
                 {member.data.links.map((link) => (
                   <li>
                     <a href={link.url} rel="noopener me" target="_blank">
-                      {link.label}
+                      {link.platform === 'instagram' ? (
+                        <svg class="ab2-person__icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5" fill="none" stroke="currentColor" stroke-width="2" /><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="2" /><circle cx="17.5" cy="6.5" r="1.3" fill="currentColor" /></svg>
+                      ) : link.platform === 'linkedin' ? (
+                        <svg class="ab2-person__icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M4.98 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5ZM3 9.75h4V21H3V9.75Zm6.5 0h3.83v1.54h.06c.53-1 1.84-2.06 3.79-2.06 4.05 0 4.8 2.67 4.8 6.13V21h-4v-5c0-1.2-.02-2.73-1.66-2.73-1.67 0-1.92 1.3-1.92 2.65V21h-4V9.75Z" /></svg>
+                      ) : null}
+                      <span class={link.platform === 'instagram' || link.platform === 'linkedin' ? 'visually-hidden' : undefined}>{link.label}</span>
                       <span class="visually-hidden">{`, ${member.data.name}`}</span>
                     </a>
                   </li>
@@ -199,5 +204,9 @@ const schema = [
     </div>
   </section>
 
-  <div class="spool" aria-hidden="true"><i class="spool__film"></i><Reel class="spool__reel" /></div>
+  <a class="spool" href={`${navHref('contact', locale)}#contactar`}>
+    <i class="spool__film" aria-hidden="true"></i>
+    <Reel class="spool__reel" text={["LET'S", 'TALK']} />
+    <span class="visually-hidden">{t('ui.letsTalk', locale)}</span>
+  </a>
 </BaseLayout>

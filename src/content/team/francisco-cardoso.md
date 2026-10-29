@@ -3,9 +3,8 @@
 # ("Francisco" / "Cardoso"); that is a line break, not a different name.
 name: "Francisco Cardoso"
 role:
-  pt: "Direção Criativa & Videógrafo"
-  # PHASE 11 — a translation of the published role, not a new job title.
-  en: "Creative Direction & Videographer"
+  pt: "Co-founder & Creative director"
+  en: "Co-founder & Creative director"
 # The photograph the live /sobre/ places beside this name and role. The pairing is the
 # source's — see docs/STATIC_PAGES_ROLLOUT.md question P1.
 portrait:
@@ -20,5 +19,9 @@ links:
   - label: "LinkedIn"
     url: "https://www.linkedin.com/in/franciscocardoso95/"
     platform: linkedin
+# The role above was supplied by the owners on 2026-10-29 (bug report from a screenshot),
+# in English, for both locales. It replaces the archived /sobre/ role, which stays in
+# docs/source-archive/pages.json; ownerEdited is how validate:data records that (A2).
+ownerEdited: 2026-10-29
 order: 1
 ---

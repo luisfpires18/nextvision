@@ -79,15 +79,21 @@
 }
 .ab2-person__role { margin: 0; font-family: var(--font-display); font-weight: var(--w-label); font-size: var(--t-body-s); }
 .ab2-person__links { list-style: none; margin: var(--space-4) 0 0; padding: 0; display: flex; gap: var(--space-4); font-size: var(--t-body-s); }
-.ab2-person__links a { text-decoration: underline; text-underline-offset: 0.2em; }
+.ab2-person__links a { display: inline-flex; text-decoration: underline; text-underline-offset: 0.2em; }
+.ab2-person__icon { inline-size: var(--space-5); block-size: var(--space-5); }
+/* Logical properties resolve in the element's OWN writing mode, and this one is
+   vertical-rl: its inline axis runs top-to-bottom and its block-start is the RIGHT edge.
+   Written in the panel's axes they laid the spine across the panel's foot, a lone
+   "ABOUT" over the reel's film line. The rotation then turns the left border to the
+   right, against the rail, as the storyboard draws it. */
 .ab2-team__spine {
   position: absolute;
-  inset-block: 0;
-  inset-inline-end: 0;
-  inline-size: var(--spine-w);
+  inset-inline: 0;
+  inset-block-start: 0;
+  block-size: var(--spine-w);
   display: grid;
   place-items: center;
-  border-inline-start: var(--rail-gap) solid var(--ground-cream);
+  border-block-end: var(--rail-gap) solid var(--ground-cream);
   writing-mode: vertical-rl;
   transform: rotate(180deg);
   font-family: var(--font-display);
@@ -105,43 +111,49 @@
 }
 @keyframes nvf-from-left { from { transform: translateX(-100%); } }
 
-/* The reel along the foot of the page, unspooling a line of film as the reader scrolls.
-   The line slides in rather than grows, on the reel's own timeline, so its tip is always
-   the reel's centre: the film leaves the reel, as the owners asked (2026-10-29). Sticky
-   at the end of the content, so it rides the viewport's foot and comes to rest above the
-   footer instead of over it. */
+/* The reel along the foot of the page, unspooling a line of film as the reader scrolls
+   and coming to rest at the end as LET'S TALK, the way into /contactos/. The film ends at
+   the reel's resting centre and slides in by exactly the reel's travel, on the same
+   timeline, so its tip is always the reel's centre: the reel unspools it (owners,
+   2026-10-29). Sticky at the end of the content, so it rides the viewport's foot and
+   comes to rest above the footer instead of over it. The resting place is the default;
+   only the `full` tier rolls into it, so every other tier sees the invitation where it
+   ends up. */
 .spool {
   position: sticky;
   z-index: var(--z-overlay);
   inset-block-end: 0;
+  display: block;
   block-size: var(--reel-m);
   margin-block-start: calc(var(--reel-m) * -1);
   pointer-events: none;
   container-type: inline-size;
   overflow: clip;
+  --focus-ring: var(--brand-ink);
 }
 .spool__film {
   position: absolute;
-  inset-inline: 0;
+  inset-inline-start: 0;
+  inset-inline-end: calc(var(--space-4) + var(--reel-m) / 2);
   inset-block-end: var(--space-2);
   block-size: var(--film-line);
   background: var(--brand-yellow);
-  transform: translateX(-100%);
 }
 .spool__reel {
   position: absolute;
   inset-block-end: 0;
   inset-inline-start: 0;
   inline-size: var(--reel-m);
-  transform: translate(-50%, 30%);
+  pointer-events: auto;
+  transform: translateX(calc(100cqi - 100% - var(--space-4)));
   --reel-hole: var(--ground-cream);
 }
 @supports (animation-timeline: scroll()) {
   :root[data-motion='full'] .spool__film { animation: nvf-unspool linear both; animation-timeline: scroll(root); }
   :root[data-motion='full'] .spool__reel { animation: nvf-roll linear both; animation-timeline: scroll(root); }
 }
-@keyframes nvf-unspool { to { transform: translateX(0); } }
-@keyframes nvf-roll { to { transform: translate(calc(100cqi - 50%), 30%) rotate(var(--reel-turns)); } }
+@keyframes nvf-unspool { from { transform: translateX(-100%); } }
+@keyframes nvf-roll { from { transform: translate(-50%, 30%) rotate(calc(var(--reel-turns) * -1)); } }
 
 /* ═════════════════════════════════════════════════════════════ COMMERCIAL ══ */
 .cm {
@@ -418,4 +430,5 @@
    rests at the end of the content instead, and only the commercial reel still rolls in. */
 @media (max-width: 47.99rem) {
   .spool, .talk { position: relative; margin-block-start: 0; }
+  :root[data-motion] .spool__film, :root[data-motion] .spool__reel { animation: none; }
 }
