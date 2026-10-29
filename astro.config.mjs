@@ -202,9 +202,11 @@ export default defineConfig({
      * precache list, and where the two offline shells ended up.
      *
      * ── What goes in the precache, and what must never ──────────────────────
-     * The two offline documents, the manifest, the six font faces, and the hashed CSS and
-     * JS in /_astro/. A few hundred kilobytes, and everything needed to RENDER a page with
-     * no network.
+     * The two offline documents, the manifest, the eight font faces, and the hashed CSS and
+     * JS those documents and the homepage actually REFERENCE, followed through their
+     * imports. Not a listing of /_astro/: that shipped the /__concepts/* bundles and the
+     * desktop-only Lenis chunk to every phone (rule 25 — read what pages reference, never a
+     * directory). Everything else in /_astro/ arrives through the runtime cache.
      *
      * `public/__generated/` — apart from the fonts — is excluded absolutely. It holds
      * around a hundred megabytes of video renditions and image derivatives, and the
@@ -233,12 +235,43 @@ export default defineConfig({
             }
           };
 
+          /**
+           * Every /_astro/ CSS and JS file the given documents load, plus the modules those
+           * import. Lenis is the one import deliberately left out: smooth scroll is desktop
+           * only (rule §11), so precaching it would spend a phone's storage on a chunk the
+           * phone never runs. It still loads, and is runtime-cached, where it is used.
+           * @param {string[]} documents paths under dist/client
+           * @returns {Promise<string[]>} site-root paths
+           */
+          const referenced = async (documents) => {
+            /** @type {Set<string>} */
+            const found = new Set();
+            /** @type {string[]} */
+            const queue = [];
+            /** @param {string} asset */
+            const add = (asset) => { if (!found.has(asset)) { found.add(asset); queue.push(asset); } };
+            for (const doc of documents) {
+              const html = await readFile(new URL(doc, dir), 'utf8');
+              for (const m of html.matchAll(/\/_astro\/[^"'\s)]+?\.(?:css|js)/g)) add(m[0]);
+            }
+            while (queue.length) {
+              const asset = /** @type {string} */ (queue.shift());
+              if (!asset.endsWith('.js')) continue;
+              const code = await readFile(new URL(asset.slice(1), dir), 'utf8');
+              for (const m of code.matchAll(/(?:from|import\(?)\s*["'`]\.\/([^"'`]+\.js)["'`]/g)) {
+                const file = m[1] ?? '';
+                if (!file.startsWith('lenis.')) add(`/_astro/${file}`);
+              }
+            }
+            return [...found].sort();
+          };
+
           const shells = { pt: '/offline/', en: '/en/offline/' };
           const precache = [
             ...Object.values(shells),
             '/manifest.webmanifest',
             ...await listing('__generated/fonts/', ['.woff2']),
-            ...await listing('_astro/', ['.css', '.js']),
+            ...await referenced(['index.html', 'offline/index.html', 'en/offline/index.html']),
           ];
 
           const source = await readFile(
