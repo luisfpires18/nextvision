@@ -12,6 +12,20 @@
 
 interface Teardown { destroy(): void }
 
+/** The view a URL asks for. The ONE reading of `?view=`, shared with the router hook. */
+const viewOf = (url: URL): 'list' | 'shelf' => (url.searchParams.get('view') === 'list' ? 'list' : 'shelf');
+
+/**
+ * Sets the view on an INCOMING document, before the router swaps it in. The server sends
+ * `data-view="both"` (the no-script state), and `initCinema` runs only at page-load, so
+ * without this the view-transition snapshot showed the shelf AND the list, which then
+ * collapsed after the slide.
+ */
+export function presetCinemaView(doc: Document, url: URL): void {
+  const root = doc.querySelector<HTMLElement>('[data-cinema]');
+  if (root) root.dataset['view'] = viewOf(url);
+}
+
 export function initCinema(): Teardown {
   const root = document.querySelector<HTMLElement>('[data-cinema]');
   if (!root) return { destroy() { /* not this page */ } };
@@ -31,7 +45,7 @@ export function initCinema(): Teardown {
     if (view === 'list') url.searchParams.set('view', 'list'); else url.searchParams.delete('view');
     history.replaceState(history.state, '', url);
   };
-  setView(new URL(location.href).searchParams.get('view') === 'list' ? 'list' : 'shelf', false);
+  setView(viewOf(new URL(location.href)), false);
   for (const b of buttons) on(b, 'click', () => setView(b.dataset['viewSet'] ?? 'shelf', true));
 
   /* ── poster ── */

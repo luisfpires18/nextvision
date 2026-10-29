@@ -208,7 +208,7 @@ const manifest = JSON.parse(manifestSource) as { theme_color: string };
         <script>
           import { initSite } from '../lib/site-motion.ts';
           import { initPortfolio } from '../lib/portfolio-filter.ts';
-          import { initCinema } from '../lib/cinema.ts';
+          import { initCinema, presetCinemaView } from '../lib/cinema.ts';
           import { initTransitions } from '../lib/motion/transitions.ts';
 
           // Wired ONCE, to the document, because the router outlives every page. Putting
@@ -269,6 +269,7 @@ const manifest = JSON.parse(manifestSource) as { theme_color: string };
             // page-load — so the transition snapshot rendered the no-script state (both
             // portfolio views at once) and collapsed after the slide. Same defect class.
             doc.documentElement.classList.add('js');
+            presetCinemaView(doc, (event as unknown as { to: URL }).to);
             // `[data-loader-overlay]`, NOT `[data-loader]`. The root carries the STATE
             // flag and comes first in document order, so the shorter selector matched
             // <html> and put `hidden` on the whole document (see site-motion.ts).
