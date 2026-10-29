@@ -214,8 +214,8 @@ const maxLength: Record<string, number> = {
    * The form's browser half. Three jobs, and it does nothing else.
    *
    *   1. Mount Turnstile. Explicit render, not the auto-scanning `cf-turnstile` class,
-   *      because this module re-runs on every ClientRouter swap and an auto-scanner would
-   *      mount a second widget into the same container each time.
+   *      because the form is wired again on every visit and an auto-scanner would mount a
+   *      second widget into the same container each time.
    *   2. Submit by fetch and read the OUTCOME CODE the endpoint returns, then say it in
    *      the page's own language from the table the server serialised. The browser never
    *      composes an error sentence and never decides that a submission succeeded.
@@ -223,9 +223,16 @@ const maxLength: Record<string, number> = {
    *      `?erro=<code>` — and then remove the parameter, so a reload does not replay a
    *      failure that already happened.
    *
-   * Every listener is bound to the FORM, never to the document. A document-level listener
-   * would survive each swap while this module re-runs, so the page would accumulate one
-   * identical handler per navigation (Review E measured that leak to zero).
+   * This module runs ONCE per session — a module is never re-executed, and ClientRouter
+   * skips a script it has already run — so everything is wired from `astro:page-load`,
+   * which fires on every visit. It used to run at the top level and assume a re-run: a
+   * second visit to the contact page in one session got no Turnstile and no fetch, and
+   * fell back to a native POST that the challenge then refused.
+   *
+   * The one document-level listener is that page-load hook. Every other listener is bound
+   * to the FORM, which is a new element on every visit, so nothing accumulates (Review E
+   * measured that leak to zero); `data-wired` makes a second call for the same form a
+   * no-op.
    */
   interface TurnstileApi {
     render(el: HTMLElement, options: Record<string, unknown>): string;
@@ -234,12 +241,14 @@ const maxLength: Record<string, number> = {
   }
   interface TurnstileWindow extends Window { turnstile?: TurnstileApi }
 
+  const wire = () => {
   const form = document.querySelector<HTMLFormElement>('form[data-contact-form="live"]');
   const status = form?.querySelector<HTMLElement>('[data-form-status]');
   const mount = form?.querySelector<HTMLElement>('[data-turnstile]');
   const table = form?.querySelector<HTMLScriptElement>('[data-form-messages]');
 
-  if (form && status && table) {
+  if (form && status && table && form.dataset['wired'] === undefined) {
+    form.dataset['wired'] = '';
     const say: Record<string, string> = JSON.parse(table.textContent || '{}');
     const speak = (code: string) => {
       status.textContent = say[code] ?? say['malformed'] ?? '';
@@ -359,4 +368,8 @@ const maxLength: Record<string, number> = {
       }
     }
   }
+  };
+
+  document.addEventListener('astro:page-load', wire);
+  wire();
 </script>
