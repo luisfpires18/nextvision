@@ -2014,3 +2014,35 @@ and from then on it is in the list.
 - the draft survived a reload and published as one commit;
 - that file built, the film rendered as the YouTube embed, and every validator passed;
 - the screen fits 375 px.
+
+## 32. Admin: deleting what the owners can create (2026-10-29)
+
+The owners asked "como apago cenas aqui?". What the admin could already remove: a page
+block (× on the block, with a confirm), an image inside a gallery, a tagline (empty both
+languages), and every unpublished draft at once («Descartar todos os rascunhos»). What it
+could NOT remove, and now can:
+
+- **A project.** «Apagar projeto», at the end of the project form, behind a confirm that
+  names it. It is ONE draft, `projeto/<slug>:apagar`, whose value is the confirmed title;
+  the server refuses if that is not the current title, or if another project lists it as
+  `related` (the build would fail on the dangling reference). Publicar deletes the `.mdx`
+  and appends `{slug, title, at}` to `src/data/removed-projects.json` in the same commit.
+  Its media is NOT touched: the manifest and R2 keep it (§10.13), so the project can be
+  restored from git history. Edits to a project being removed go with it.
+  - `scripts/build-redirects.mjs` turns each recorded removal into
+    `/portfolio/<slug>/` and `/en/portfolio/<slug>/` → the portfolio, 301, unless a
+    project file with that slug exists again.
+  - `validate:routes` keeps its floor of 20 migrated projects, now counted as project
+    FILES plus recorded removals. A file that vanishes without a record still fails.
+    This also fixes a latent defect: the floor counted only `draft: false`, so hiding
+    one of the twenty with «No site → Escondido» would have failed the deploy.
+- **The opening video** of a project: «(nenhum)» in «Vídeo de abertura». Its still goes
+  with it when the still is the video's own poster, and the page falls back to the cover.
+  Refused for a project with no film, no preview and no `filmUnavailable` (the schema
+  needs one). The cover is mandatory, so it can be swapped but not removed, and the field
+  says so.
+- **One draft.** Each line of the Publicar list has «Desfazer», with a confirm.
+
+The softer option is named next to the delete: «No site → Escondido» keeps the project.
+`npm run test:admin`: 62 checks, including a removal that is exactly one commit touching
+exactly the project file and the removal list, and a stale removal that deletes nothing.

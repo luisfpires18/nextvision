@@ -19,7 +19,7 @@ import { SCREENS, pageFilePath } from '../src/lib/admin/fields.ts';
 import { applyEdits, expandFields, fieldName, liveValue, serialise, EditError } from '../src/lib/admin/edit.ts';
 import { readFile, commitFiles, latestRun, gitBlobSha, resetGitHubToken, GitHubError } from '../src/lib/admin/github.ts';
 import { planUpload, appendUpload, safeName, kindOf, uploadKey, isUploadKey, UPLOADS_PATH } from '../src/lib/admin/uploads.ts';
-import { applyProjectEdits, applyOrder, newProjectText, portfolioSequence, projectData, projectValue, fieldsFor, roundTrips, slugFrom, youtubeId } from '../src/lib/admin/projects.ts';
+import { applyProjectEdits, applyOrder, newProjectText, removalWrites, projectFilePath, REMOVED_PATH, portfolioSequence, projectData, projectValue, fieldsFor, roundTrips, slugFrom, youtubeId } from '../src/lib/admin/projects.ts';
 import { ENTRY_TYPES, applyEntryEdits, entryData, entryFields, entryRoundTrips } from '../src/lib/admin/entries.ts';
 import { createMockGitHub, gitBlobSha as nodeBlobSha } from './lib/mock-github.mjs';
 
@@ -165,6 +165,19 @@ await check('every offered field exists in its file', () => {
     assert.equal(data.heroStill.key, 'projects/the-end/hero/poster');
     assert.throws(() => applyProjectEdits(leonor, { heroVideo: 'projects/the-end/poster' }, ctx), /vídeo/);
     assert.throws(() => applyProjectEdits(leonor, { 'poster.key': 'projects/the-end/hero' }, ctx), /imagem/);
+  });
+  await check('an opening video can be taken off, its own still with it; the cover cannot', () => {
+    const { text, changed } = applyProjectEdits(leonor, { heroVideo: '' }, ctx);
+    const data = projectData(text);
+    assert.deepEqual(changed, ['Vídeo de abertura']);
+    assert.equal(data.heroVideo, undefined);
+    assert.equal(data.heroStill, undefined);
+    assert.equal(data.poster.key, projectData(leonor).poster.key, 'the cover stays');
+    assert.ok(roundTrips(text));
+    assert.throws(() => applyProjectEdits(leonor, { 'poster.key': '' }, ctx), /imagem/);
+    const noFilm = leonor.replace(/^film:\n(?: {2}.*\n)+/m, '').replace(/^previewVideo: .*\n/m, '');
+    assert.equal(projectData(noFilm).film, undefined);
+    assert.throws(() => applyProjectEdits(noFilm, { heroVideo: '' }, ctx), /não pode sair/);
   });
   await check('unknown or unoffered fields are refused; no change writes nothing', () => {
     assert.throws(() => applyProjectEdits(leonor, { date: '2020-01-01' }, ctx), /desconhecido/);
@@ -416,6 +429,50 @@ await check('the build of a save is followed from queued to completed', async ()
   assert.equal(done.conclusion, 'success');
   assert.equal(done.headSha, commit);
 });
+
+/* ── removing a project ─────────────────────────────────────────────────── */
+
+{
+  const dir = 'src/content/projects';
+  const all = fs.readdirSync(dir).map((f) => ({ slug: f.replace(/\.mdx$/, ''), text: fs.readFileSync(`${dir}/${f}`, 'utf8') }));
+  const removedText = fs.readFileSync(REMOVED_PATH, 'utf8');
+  const leonorTitle = projectValue(projectData(all.find((p) => p.slug === 'leonor').text), 'title.pt');
+
+  await check('removing a project needs its current title confirmed', () => {
+    assert.throws(() => removalWrites(all, new Map([['leonor', '']]), removedText, TODAY), /confirme/);
+    assert.throws(() => removalWrites(all, new Map([['leonor', 'Outro']]), removedText, TODAY), /confirme/);
+    assert.throws(() => removalWrites(all, new Map([['nao-existe', 'x']]), removedText, TODAY), /já não existe/);
+  });
+  await check('a project another one lists as related cannot be removed', () => {
+    const linked = all.map((p) => (p.slug === 'the-end' ? { ...p, text: p.text.replace(/^related: \[\]$/m, 'related:\n  - leonor') } : p));
+    assert.throws(() => removalWrites(linked, new Map([['leonor', leonorTitle]]), removedText, TODAY), /relacionado/);
+  });
+  await check('removing a project is ONE commit: its file deleted, the removal recorded, nothing else', async () => {
+    const start = { ...files, [REMOVED_PATH]: removedText, ...Object.fromEntries(all.map((p) => [projectFilePath(p.slug), p.text])) };
+    const { gh, cfg, opts } = setup({ files: start });
+    const writes = removalWrites(all, new Map([['leonor', leonorTitle]]), (await readFile(cfg, REMOVED_PATH, opts)).text, TODAY);
+    assert.deepEqual(writes.map((w) => w.path).sort(), [REMOVED_PATH, projectFilePath('leonor')].sort(), 'only the project and the removal list');
+    const expected = {};
+    for (const w of writes) expected[w.path] = (await readFile(cfg, w.path, opts)).sha;
+    await commitFiles(cfg, writes, expected, 'content: Projeto', opts);
+    assert.equal(gh.runs.length, 1, 'one push, one build');
+    assert.equal(gh.file(projectFilePath('leonor')), undefined, 'the file is gone');
+    assert.deepEqual(JSON.parse(gh.file(REMOVED_PATH)).removed, [{ slug: 'leonor', title: leonorTitle, at: TODAY }]);
+    const touched = Object.keys(start).filter((p) => gh.file(p) !== start[p]).sort();
+    assert.deepEqual(touched, [REMOVED_PATH, projectFilePath('leonor')].sort(), 'no other file changed');
+  });
+  await check('a removal from a stale project file is refused and deletes nothing', async () => {
+    const start = { ...files, [REMOVED_PATH]: removedText, [projectFilePath('leonor')]: all.find((p) => p.slug === 'leonor').text };
+    const { gh, cfg, opts } = setup({ files: start });
+    const before = await readFile(cfg, projectFilePath('leonor'), opts);
+    gh.pushElsewhere(projectFilePath('leonor'), `${before.text}\n`);
+    await assert.rejects(
+      commitFiles(cfg, [{ path: projectFilePath('leonor'), remove: true }], { [projectFilePath('leonor')]: before.sha }, 'm', opts),
+      (e) => e instanceof GitHubError && e.status === 409,
+    );
+    assert.ok(gh.file(projectFilePath('leonor')), 'still there');
+  });
+}
 
 /* ── new media from the owners (A4) ─────────────────────────────────────── */
 

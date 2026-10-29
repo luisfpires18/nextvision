@@ -110,7 +110,9 @@ const formSay = (text: string, tone?: 'ok' | 'error') => {
 function syncThumb(select: HTMLSelectElement) {
   const img = form?.querySelector<HTMLImageElement>(`[data-preview-for="${select.id}"]`);
   const thumb = select.selectedOptions[0]?.dataset['thumb'];
-  if (img && thumb) img.src = thumb;
+  if (!img) return;
+  img.hidden = !thumb;
+  if (thumb) img.src = thumb;
 }
 
 function markDirty() {
@@ -160,6 +162,28 @@ if (form) {
 }
 showCount();
 
+/* ── removing a project: a draft like any other, confirmed by name ───────── */
+
+const removeInput = form?.querySelector<HTMLInputElement>('[data-remove-input]');
+if (form && removeInput) {
+  const go = form.querySelector<HTMLButtonElement>('[data-remove-go]')!;
+  const pending = form.querySelector<HTMLElement>('[data-remove-pending]')!;
+  const title = go.dataset['title'] ?? '';
+  const show = () => { go.hidden = Boolean(removeInput.value); pending.hidden = !removeInput.value; };
+  const set = (value: string) => {
+    removeInput.value = value;
+    removeInput.dispatchEvent(new Event('input', { bubbles: true }));
+    show();
+  };
+  go.addEventListener('click', () => {
+    if (!window.confirm(`Apagar o projeto «${title}»?\n\nSai do site quando carregar em Publicar. Até lá pode desfazer.`)) return;
+    set(title);
+    formSay(`«${title}» vai ser apagado ao publicar.`, 'ok');
+  });
+  form.querySelector('[data-remove-undo]')!.addEventListener('click', () => { set(''); formSay(''); });
+  show();
+}
+
 /* ── one Publicar, for every draft ───────────────────────────────────────── */
 
 const dialog = document.querySelector<HTMLDialogElement>('[data-publish-dialog]');
@@ -177,24 +201,24 @@ if (dialog) {
 
   /** The drafts, grouped by the page they belong to, as "field: before → after". */
   function render() {
-    const drafts = Object.values(loadDrafts());
+    const drafts = Object.entries(loadDrafts());
     list.replaceChildren();
     if (!drafts.length) {
       const p = document.createElement('p');
       p.textContent = 'Não há alterações por publicar.';
       list.append(p);
     }
-    const byPage = new Map<string, Draft[]>();
-    for (const d of drafts) {
+    const byPage = new Map<string, [string, Draft][]>();
+    for (const [n, d] of drafts) {
       const page = d.label.split(' — ')[0] ?? '';
-      byPage.set(page, [...(byPage.get(page) ?? []), d]);
+      byPage.set(page, [...(byPage.get(page) ?? []), [n, d]]);
     }
     for (const [page, items] of byPage) {
       const h = document.createElement('h3');
       h.textContent = page;
       const ul = document.createElement('ul');
       ul.className = 'pub-list';
-      for (const d of items) {
+      for (const [n, d] of items) {
         const li = document.createElement('li');
         const name = document.createElement('span');
         name.className = 'pub-page';
@@ -203,8 +227,25 @@ if (dialog) {
         change.className = 'pub-fields';
         change.textContent = d.label.endsWith('— Ordem') ? 'nova ordem'
           : d.label.endsWith('— Blocos da página') ? 'blocos alterados'
+          : d.label.endsWith('— Apagar projeto') ? 'o projeto sai do site'
           : `${short(d.from)} → ${short(d.to)}`;
-        li.append(name, change);
+        // One draft undone, the rest kept.
+        const undo = document.createElement('button');
+        undo.type = 'button';
+        undo.className = 'pub-cancel';
+        undo.textContent = 'Desfazer';
+        undo.setAttribute('aria-label', `Desfazer: ${d.label}`);
+        undo.addEventListener('click', () => {
+          if (!window.confirm(`Desfazer esta alteração?\n\n${d.label}`)) return;
+          const all = loadDrafts();
+          delete all[n];
+          storeDrafts(all);
+          // The editor on screen still shows the draft: start it again from the live value.
+          if (controls.some((c) => c.name === n)) { location.reload(); return; }
+          showCount();
+          render();
+        });
+        li.append(name, change, undo);
         ul.append(li);
       }
       list.append(h, ul);

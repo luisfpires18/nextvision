@@ -85,10 +85,14 @@ const projects = fs.readdirSync(PROJECT_DIR)
 const published = projects.filter((p) => !p.draft);
 
 // Twenty were migrated; owners add more from the admin, so this is a FLOOR, not a count.
-// Losing one is still a failure: a project is never removed by accident.
+// Losing one is still a failure: a project is never removed by accident. Removed on
+// purpose is a project the admin deleted AND recorded (src/data/removed-projects.json);
+// a hidden one (`draft: true`) still has its file. Either is the owners' decision.
 const MIGRATED = 20;
-if (published.length < MIGRATED) {
-  errors.push(`content: at least ${MIGRATED} published projects expected, found ${published.length}`);
+const removed = JSON.parse(read(path.join(ROOT, 'src', 'data', 'removed-projects.json'))).removed
+  .filter((r) => !projects.some((p) => p.slug === r.slug));
+if (projects.length + removed.length < MIGRATED) {
+  errors.push(`content: at least ${MIGRATED} projects expected (files, plus those removed in the admin), found ${projects.length} + ${removed.length} removed — a project file went missing without being recorded as removed`);
 }
 
 /* ------------------------------------------------------ evidence: the build */

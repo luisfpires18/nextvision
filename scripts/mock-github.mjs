@@ -27,6 +27,8 @@ for (const dir of ['src/content/projects', 'src/content/services', 'src/content/
 }
 // The owners' upload requests (A4).
 files['src/data/media-uploads.json'] = fs.readFileSync(path.join(ROOT, 'src/data/media-uploads.json'), 'utf8');
+// Projects removed in the admin.
+files['src/data/removed-projects.json'] = fs.readFileSync(path.join(ROOT, 'src/data/removed-projects.json'), 'utf8');
 
 const gh = createMockGitHub({ repo: 'luisfpires18/nextvision', branch: 'dev', files, buildMs: 12_000 });
 const PORT = Number(process.env.PORT ?? 8790);
