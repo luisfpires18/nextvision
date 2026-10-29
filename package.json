@@ -37,6 +37,7 @@
     "test:forms": "node scripts/test-forms.mjs",
     "verify": "npm run validate:data && npm run test:access && npm run test:admin && npm run validate:legal && npm run icons:check && npm run check && npm run redirects:build && npm run build && npm run validate:routes && npm run validate:seo && npm run validate:analytics && npm run validate:pwa && npm run validate:media",
     "icons:build": "node scripts/build-icons.mjs",
+    "brand:build": "node scripts/build-brand.mjs",
     "icons:check": "node scripts/build-icons.mjs --check",
     "validate:pwa": "node scripts/validate-pwa.mjs",
     "preview:cloudflare": "npm run build && wrangler dev",
