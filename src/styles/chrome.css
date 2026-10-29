@@ -23,9 +23,10 @@
 }
 
 /* ═══════════════════════════════════════════════════════════════════ marks ══ */
-.brand-mark { display: block; inline-size: 100%; block-size: auto; }
+/* Both branches carry --mark-ar: `block-size: auto` overrides an <img>'s height
+   attribute, so without it the browser cannot reserve the box before the bytes arrive. */
+.brand-mark { display: block; inline-size: 100%; block-size: auto; aspect-ratio: var(--mark-ar); }
 span.brand-mark {
-  aspect-ratio: var(--mark-ar);
   background: currentColor;
   -webkit-mask: var(--mark) center / contain no-repeat;
   mask: var(--mark) center / contain no-repeat;
