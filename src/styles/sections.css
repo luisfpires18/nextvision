@@ -62,7 +62,7 @@
 }
 .ab2__actions { margin-block-start: var(--space-5); }
 .ab2__asterisk { position: absolute; inset-inline-end: 0; inset-block-end: calc(var(--space-7) * -1); }
-.ab2__asterisk, .cm__asterisk { inline-size: var(--space-5); fill: none; stroke: var(--sec); stroke-width: 3.4; stroke-linecap: round; }
+.ab2__asterisk { inline-size: var(--space-5); fill: none; stroke: var(--sec); stroke-width: 3.4; stroke-linecap: round; }
 .ab2 .tagline { margin-block-start: var(--space-9); }
 
 /* The founders, on About's own blue. The panel slides in from the left as it reaches
@@ -173,52 +173,37 @@
   letter-spacing: var(--tracking-eyebrow);
   text-transform: uppercase;
 }
-.cm__collage {
-  position: relative;
-  inline-size: min(100%, 60rem);
-  aspect-ratio: 15 / 7;
-  margin-block: var(--space-6) var(--space-7);
+/* One carousel per category: the portfolio's own cards on a native scroll-snap track. */
+.cm__rows {
+  display: grid;
+  gap: var(--space-8);
+  inline-size: min(100%, 72rem);
+  margin-block: var(--space-7) var(--space-8);
+  text-align: start;
 }
-.cm__frame img { position: absolute; object-fit: cover; }
-.cm__frame--1 img { inset-inline-start: 0; inset-block-start: 0; inline-size: 32%; block-size: 52%; opacity: 0.55; }
-.cm__frame--3 img { inset-inline-end: 0; inset-block-start: 0; inline-size: 32%; block-size: 52%; opacity: 0.55; }
-.cm__frame--2 img { inset-inline-start: 24%; inset-block-start: 12%; inline-size: 51%; block-size: 86%; z-index: 1; }
-.cm__lead {
-  margin: 0 0 var(--space-8);
-  font-family: var(--font-display);
-  font-weight: 500;
-  font-size: var(--t-display-s);
-  line-height: 1.25;
-  max-inline-size: 34ch;
-}
-.cm__services { display: grid; gap: var(--space-8); }
-.cm__service h2 {
-  margin: 0;
+.cm__row-title {
+  margin: 0 0 var(--space-4);
   font-family: var(--font-display);
   font-weight: var(--w-display);
   font-size: var(--t-headline);
   line-height: 1;
   text-transform: uppercase;
 }
-.cm__service p {
-  margin: var(--space-3) auto 0;
-  font-family: var(--font-display);
-  font-weight: var(--w-label);
-  font-size: var(--t-lead);
-  line-height: var(--lh-lead);
-  max-inline-size: 40ch;
+.cm__track {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: min(80%, 24rem);
+  gap: var(--space-5);
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  /* Room for the focus ring, which the scroller would otherwise clip; the negative margin
+     keeps the cards aligned with the heading. */
+  padding: var(--space-1) var(--space-1) var(--space-3);
+  margin-inline: calc(var(--space-1) * -1);
+  scroll-padding-inline: var(--space-1);
 }
-.cm__close { margin-block-start: var(--space-9); max-inline-size: 44ch; }
-.cm__close-a { margin: 0; font-size: var(--t-eyebrow); letter-spacing: var(--tracking-eyebrow); text-transform: uppercase; }
-.cm__close-b {
-  margin: var(--space-2) 0 var(--space-3);
-  font-family: var(--font-display);
-  font-weight: var(--w-display);
-  font-size: var(--t-display-s);
-  text-transform: uppercase;
-}
-.cm__close p:last-child { margin: 0; font-family: var(--font-display); font-weight: var(--w-label); font-size: var(--t-lead); }
-.cm__asterisk { position: absolute; inset-inline-end: 7%; inset-block-start: 40%; }
+.cm__track > .item { scroll-snap-align: start; }
 
 /* LET'S TALK: the reel rolls in along the foot on arrival and rests in the corner. */
 .talk {
