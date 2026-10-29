@@ -10,7 +10,8 @@
  *   - strings the current design does not render (home.json workLineA/B, workBodyB,
  *     ctaPortfolio, servicesLead, aboutBodyB; about.json closing, workLineA/B — the
  *     About closing block the owners removed on 2026-10-29; portfolio.json `more`;
- *     bts.json `frames`, whose grid the owners had taken off /bts/) — editing them
+ *     bts.json `frames`, whose grid the owners had taken off /bts/; services.json
+ *     `lead`, `copy` and `collage`, off the page since 2026-10-29) — editing them
  *     would change nothing anyone can see;
  *   - the WordPress excerpts, which are an archive record and not published.
  * And what is LOCKED says why, in the owners' words.
@@ -50,12 +51,8 @@ export const SCREENS: Record<PageFileName, FieldDef[]> = {
   ],
   services: [
     { file: 'home', path: 'copy.servicesTitle', label: 'Título da página', kind: 'text' },
-    { file: 'services', path: 'leadImage', label: 'Imagem ao lado do texto de abertura', kind: 'image' },
-    { file: 'services', path: 'collage.*', label: 'Colagem, imagem', kind: 'image' },
-    { file: 'home', path: 'copy.servicesLeadFull', label: 'Texto de abertura', kind: 'text', locked: LOCK_LEAD },
-    { file: 'services', path: 'copy.closeLineA', label: 'Fecho, 1.ª linha', kind: 'text' },
-    { file: 'services', path: 'copy.closeLineB', label: 'Fecho, 2.ª linha', kind: 'text' },
-    { file: 'services', path: 'copy.closeBody', label: 'Fecho, texto', kind: 'text' },
+    { file: 'services', path: 'leadImage', label: 'Imagem de partilha', kind: 'image', note: 'Não aparece na página: é a imagem mostrada quando a página é partilhada.' },
+    { file: 'home', path: 'copy.servicesLeadFull', label: 'Frase para pesquisa no Google', kind: 'text', locked: LOCK_LEAD, note: 'Não aparece na página: é a descrição que o Google mostra para esta página.' },
   ],
   contact: [
     { file: 'contact', path: 'banner', label: 'Imagem de topo', kind: 'image' },

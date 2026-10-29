@@ -306,6 +306,29 @@ for (const page of STATIC_PAGES) {
   staticOk += 1;
 }
 
+/* ----------------------------------------------------------- /servicos/ */
+/* Owner request, 2026-10-29: no text, one carousel per category named in services.json.
+   Each must carry a heading and at least one card, and every card must open a project
+   page that was built — an empty carousel or a dead card is a defect, not a layout. */
+try {
+  const html = read(path.join(DIST, 'servicos', 'index.html'));
+  const wanted = JSON.parse(read(path.join(ROOT, 'src/content/page-content/services.json'))).categories;
+  const rows = html.split('<section class="cm__row"').slice(1);
+  if (rows.length === 0) errors.push('page: /servicos/ renders no category carousel');
+  for (const row of rows) {
+    const title = (row.match(/<h2 class="cm__row-title"[^>]*>([^<]+)<\/h2>/) ?? [])[1];
+    if (!title?.trim()) errors.push('page: /servicos/ has a carousel without a heading');
+    const hrefs = [...row.split('</section>')[0].matchAll(/<a class="card" href="([^"]+)"/g)].map((m) => m[1]);
+    if (hrefs.length === 0) errors.push(`page: /servicos/ carousel "${title}" has no cards`);
+    for (const href of hrefs) {
+      if (!exists(path.join(DIST, href.replace(/^\/|\/$/g, ''), 'index.html'))) errors.push(`page: /servicos/ card ${href} was not built`);
+    }
+  }
+  if (rows.length > wanted.length) errors.push(`page: /servicos/ renders ${rows.length} carousels for ${wanted.length} categories`);
+} catch (e) {
+  errors.push(`page: /servicos/ could not be read — ${e.message}`);
+}
+
 /* ---------------------------------------------------------- /contactos/ */
 try {
   const html = read(path.join(DIST, 'contactos', 'index.html'));

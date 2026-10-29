@@ -1,5 +1,6 @@
 {
   "leadImage": "pages/servicos/lead",
+  "categories": ["visual-storytelling", "corporativo"],
   "collage": [
     "projects/nvf-vs-antiqvvm/poster",
     "projects/nazaryi/poster",

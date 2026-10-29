@@ -89,23 +89,20 @@ await check('per-field freshness reads the live value each draft name points at'
   assert.equal(liveValue(docs, 'home:copy.heroLineA#pt'), docs.home.copy.heroLineA.text);
   assert.equal(liveValue(docs, 'home:copy.heroLineA#en'), docs.home.copy.heroLineA.en);
   assert.equal(liveValue(docs, 'home:heroVideo'), docs.home.heroVideo);
-  assert.equal(liveValue(docs, 'services:collage.2'), docs.services.collage[2]);
+  assert.equal(liveValue(docs, 'services:leadImage'), docs.services.leadImage);
   assert.equal(liveValue(docs, 'home:nope#pt'), undefined, 'an unknown field is never "fresh"');
 });
 await check('drafts from several pages and files apply in one go', () => {
   const docs = { home: read('home'), about: read('about'), services: read('services') };
+  const other = read('contact').banner;
   const fields = [...expandFields(SCREENS.home, docs), ...expandFields(SCREENS.about, docs), ...expandFields(SCREENS.services, docs)];
   const { docs: next, changed } = applyEdits(fields, docs, {
     'home:copy.heroLineA#en': 'We capture feeling',
     'about:copy.storyB#en': 'x',
-    'services:collage.0': docs.services.collage[1],
+    'services:leadImage': other,
   }, TODAY);
   assert.deepEqual([...new Set(changed.map((c) => c.file))].sort(), ['about', 'home', 'services']);
-  assert.equal(next.services.collage[0], docs.services.collage[1]);
-});
-await check('lists expand to one field per item', () => {
-  const collage = expandFields(SCREENS.services, docsFor('services')).filter((f) => f.key.startsWith('collage.'));
-  assert.deepEqual(collage.map((f) => f.key), read('services').collage.map((_, i) => `collage.${i}`));
+  assert.equal(next.services.leadImage, other);
 });
 
 await check('every offered field exists in its file', () => {
@@ -490,14 +487,14 @@ await check('the build of a save is followed from queued to completed', async ()
     assert.deepEqual([e.start, e.duration, e.posterAt, e.status], [10, 8, 12, 'pending']);
     assert.deepEqual(e.target, { screen: 'home', file: 'home', path: 'heroVideo', label: 'Vídeo da página inicial' });
   });
-  await check('a still for a collage image becomes owner/<id>/image, with no window', () => {
-    const e = plan(servicesFields, { screen: 'services', target: 'services:collage.2', source: src.replace('clip.mp4', 'f.jpg'), name: 'frame.JPG' });
+  await check('a still for an image field becomes owner/<id>/image, with no window', () => {
+    const e = plan(servicesFields, { screen: 'services', target: 'services:leadImage', source: src.replace('clip.mp4', 'f.jpg'), name: 'frame.JPG' });
     assert.equal(e.key, 'owner/abc12345/image');
     assert.equal(e.start, undefined);
   });
   await check('the wrong kind for the field is refused, in words', () => {
     assert.throws(() => plan(homeFields, { ...film, name: 'photo.jpg' }), /precisa de um vídeo/);
-    assert.throws(() => plan(servicesFields, { screen: 'services', target: 'services:collage.0', source: src, name: 'clip.mp4' }), /precisa de uma imagem/);
+    assert.throws(() => plan(servicesFields, { screen: 'services', target: 'services:leadImage', source: src, name: 'clip.mp4' }), /precisa de uma imagem/);
   });
   await check('a text field, an unknown field and a locked field take no file', () => {
     assert.throws(() => plan(homeFields, { ...film, target: 'home:copy.heroLineA' }), /não aceita ficheiros/);

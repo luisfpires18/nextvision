@@ -74,6 +74,9 @@ export const PAGE_SCHEMAS = {
   }),
   services: z.object({
     leadImage: imageKey,
+    /** The portfolio categories the page shows, one carousel each, in this order. Slugs from src/content/categories/. */
+    categories: z.array(z.string().regex(/^[a-z0-9-]+$/)).min(1),
+    /** Not rendered since 2026-10-29 (the carousels replaced it); kept as the owners' choice of stills. */
     collage: z.array(imageKey).length(3),
     lead: z.array(z.object({ text: z.string().min(1), en: z.string().min(1), mark: z.boolean().optional() })).min(1),
     copy: strings('closeLineA', 'closeLineB', 'closeBody'),
