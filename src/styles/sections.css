@@ -111,8 +111,9 @@
 }
 @keyframes nvf-from-left { from { transform: translateX(-100%); } }
 
-/* The reel along the foot of the page, unspooling a line of film as the reader scrolls
-   and coming to rest at the end as LET'S TALK, the way into /contactos/. The film ends at
+/* The reel along the foot of /sobre/ and /servicos/, unspooling a line of film as the
+   reader scrolls and coming to rest at the end as LET'S TALK, the way into /contactos/.
+   The film ends at
    the reel's resting centre and slides in by exactly the reel's travel, on the same
    timeline, so its tip is always the reel's centre: the reel unspools it (owners,
    2026-10-29). Sticky at the end of the content, so it rides the viewport's foot and
@@ -202,42 +203,6 @@
   scroll-padding-inline: var(--space-1);
 }
 .cm__track > .item { scroll-snap-align: start; }
-
-/* LET'S TALK: the reel rolls in along the foot on arrival and rests in the corner. */
-.talk {
-  position: sticky;
-  z-index: var(--z-overlay);
-  inset-block-end: 0;
-  display: block;
-  block-size: var(--reel-l);
-  margin-block-start: calc(var(--reel-l) * -1);
-  pointer-events: none;
-  container-type: inline-size;
-  --focus-ring: var(--brand-ink);
-}
-.talk__film {
-  position: absolute;
-  inset-inline-start: 0;
-  inset-block-end: var(--space-2);
-  block-size: var(--film-line);
-  inset-inline-end: calc(var(--space-4) + var(--reel-l) / 2);
-  background: var(--brand-yellow);
-}
-.talk__reel {
-  position: absolute;
-  inset-block-end: 0;
-  inset-inline-end: var(--space-4);
-  inline-size: var(--reel-l);
-  pointer-events: auto;
-  transition: transform var(--dur-ui) var(--ease-ui);
-}
-.talk:is(:hover, :focus-visible) .talk__reel { transform: rotate(-12deg); }
-:root[data-motion='full'] .talk__film { animation: nvf-unspool-in var(--dur-reel-roll) var(--ease-cinematic) both; }
-:root[data-motion='full'] .talk__reel { animation: nvf-roll-in var(--dur-reel-roll) var(--ease-cinematic) both; }
-/* The film ends at the reel's centre and travels the reel's own distance, so it is the
-   reel that draws it in. */
-@keyframes nvf-unspool-in { from { transform: translateX(calc(-100cqi + var(--reel-l) + var(--space-4))); } }
-@keyframes nvf-roll-in { from { transform: translateX(calc(-100cqi + 100% + var(--space-4))) rotate(calc(var(--reel-turns) * -1)); } }
 
 /* ═════════════════════════════════════════════════════════════════ CINEMA ══
    The tagline, the index header (its <h1> always visible), the view switch, the shelf,
@@ -427,8 +392,8 @@
 }
 
 /* On a phone a sticky reel would sit over the copy the whole way down the page. There it
-   rests at the end of the content instead, and only the commercial reel still rolls in. */
+   rests at the end of the content instead. */
 @media (max-width: 47.99rem) {
-  .spool, .talk { position: relative; margin-block-start: 0; }
+  .spool { position: relative; margin-block-start: 0; }
   :root[data-motion] .spool__film, :root[data-motion] .spool__reel { animation: none; }
 }

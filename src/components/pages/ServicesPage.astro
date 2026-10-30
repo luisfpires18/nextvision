@@ -83,9 +83,9 @@ const schema = [
   schema={schema}
 >
   {/* ── DESIGN V2 (Tatiana) — Commercial ───────────────────────────────────
-      The colour NVF, the page title, and a carousel of films per category. The reel rolls
-      in along the foot and comes to rest as LET'S TALK, the page's own invitation to
-      /contactos/. */}
+      The colour NVF, the page title, and a carousel of films per category. The same reel
+      as /sobre/ rolls along the foot with the scroll and comes to rest as LET'S TALK, the
+      page's own invitation to /contactos/. */}
   <section class="cm ground-cream" data-ground="cream">
     <BrandMark mark="colour" class="cm__mark" />
     <h1 class="cm__title" id="page-title">{say(SERVICES_PAGE.title, locale)}</h1>
@@ -111,9 +111,9 @@ const schema = [
     </div>
   </section>
 
-  <a class="talk" href={`${navHref('contact', locale)}#contactar`}>
-    <i class="talk__film" aria-hidden="true"></i>
-    <Reel class="talk__reel" text={["LET'S", 'TALK']} />
+  <a class="spool" href={`${navHref('contact', locale)}#contactar`}>
+    <i class="spool__film" aria-hidden="true"></i>
+    <Reel class="spool__reel" text={["LET'S", 'TALK']} />
     <span class="visually-hidden">{t('ui.letsTalk', locale)}</span>
   </a>
 </BaseLayout>
