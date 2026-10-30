@@ -2068,7 +2068,8 @@ one commit each. Full record, with the font measurements and what was verified l
 `docs/PERFORMANCE_AUDIT.md`.
 
 - `public/_headers` (new): `/__media/*` immutable, fonts and brand PNGs finite TTLs, HSTS,
-  `nosniff`, `Referrer-Policy`, `Permissions-Policy`, `X-Frame-Options: DENY`.
+  `nosniff`, `Referrer-Policy`, `Permissions-Policy`, `X-Frame-Options: SAMEORIGIN` (the
+  admin's page preview frames the site).
   `validate:media` asserts the immutable `/__media/*` rule in the built file.
 - No `poster` on videos that sit over a `<picture>` (six 1400w WebPs on `/portfolio/`).
 - The shelf poster is the eager, high-priority, AVIF LCP image; the hidden list no longer

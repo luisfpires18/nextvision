@@ -59,7 +59,8 @@ Each fix is its own commit on `claude/perf-audit-006eb2`.
    immutable for a year (names are content-addressed, rule 12), fonts 30 days and brand
    PNGs one day (not hashed, so never immutable), and on every path HSTS, `nosniff`,
    `Referrer-Policy: strict-origin-when-cross-origin`, a `Permissions-Policy` that turns
-   off camera, microphone and geolocation, and `X-Frame-Options: DENY`. The adapter merges
+   off camera, microphone and geolocation, and `X-Frame-Options: SAMEORIGIN` (not `DENY`:
+   the admin's page preview frames the site from the same origin). The adapter merges
    its own `/_astro/*` rule into this file. `validate:media` now fails if the built
    `_headers` has no immutable `/__media/*` rule; tested by breaking it.
 2. **Duplicate poster downloads** (`perf(media)`). A `<video poster>` is fetched whatever
@@ -159,7 +160,9 @@ Tier 2, same branch:
   at 375 px (DPR 2).
 - Homepage: only the AVIF hero still is requested (no WebP poster beside it), and both
   preloaded faces end `loaded`.
-- `X-Frame-Options: DENY` is live under workerd: a same-origin iframe was refused.
+- Frame protection is live under workerd. Measured with `DENY`, which refused even a
+  same-origin iframe; it was then set to `SAMEORIGIN` so the admin's page preview
+  (`src/admin/AdminRoute.astro`) keeps working.
 
 ## 5. Not verified here
 
