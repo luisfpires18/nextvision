@@ -2089,6 +2089,8 @@ one commit each. Full record, with the font measurements and what was verified l
 - `npm run brand:build`: marks at twice their largest rendered width (homepage sign
   112 KB → 11 KB, footer mono 49 KB → 27 KB).
 
-**Not yet measured:** the after-deploy PageSpeed numbers and the edge headers, which need
-the branch on `dev` (rule 20). Tier 3 items (the curtain, CSP, the 5.6 MB media prune) are
+**Measured after the dev deploy (`b7f69e0`, 2026-10-30):** `/` 98 / LCP 1.7 s / CLS 0;
+`/portfolio/` 100 / A11y 100 / LCP 0.9 s / CLS 0. `/__media/*` is immutable at the edge,
+fonts 30 days, and the five security headers are on every route
+(`docs/PERFORMANCE_AUDIT.md` §2). Tier 3 items (the curtain, CSP, the 5.6 MB media prune) are
 in `docs/BLOCKED_TODOS.md`. New standing rule: CLAUDE.md §10 rule 29.

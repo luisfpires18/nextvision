@@ -33,23 +33,41 @@ HSTS, `nosniff`, `Referrer-Policy`, `Permissions-Policy` or frame protection.
 
 ## 2. Before and after
 
-The after column needs the branch deployed: PageSpeed Insights cannot reach a local
-server, and `_headers` is validated only by a real deploy (CLAUDE.md rule 20).
+The after column was measured once the branch was on `dev` (`b7f69e0`): PageSpeed
+Insights cannot reach a local server, and `_headers` is validated only by a real deploy
+(CLAUDE.md rule 20). Before: production, 2026-10-29, Lighthouse 13.5. After:
+`https://dev.nextvisionfilms.com`, 2026-10-30, Lighthouse 13.6. Both mobile, Moto G Power,
+Slow 4G.
 
 | Page | Metric | Before | After (dev deploy) |
 |---|---|---|---|
-| `/` | Perf | 95 | UNKNOWN |
-| `/` | LCP | 2.6 s | UNKNOWN |
-| `/` | CLS | 0 | UNKNOWN |
-| `/portfolio/` | Perf | 94 | UNKNOWN |
-| `/portfolio/` | A11y | 92 | UNKNOWN |
-| `/portfolio/` | LCP | 1.8 s | UNKNOWN |
-| `/portfolio/` | CLS | 0.14 | UNKNOWN |
-| edge | `/__media/*` Cache-Control | `max-age=0, must-revalidate` | UNKNOWN |
-| edge | security headers | none | UNKNOWN |
+| `/` | Perf | 95 | 98 |
+| `/` | FCP | 1.2 s | 1.0 s |
+| `/` | LCP | 2.6 s | 1.7 s |
+| `/` | CLS | 0 | 0 |
+| `/portfolio/` | Perf | 94 | 100 |
+| `/portfolio/` | A11y | 92 | 100 |
+| `/portfolio/` | FCP | 1.4 s | 0.9 s |
+| `/portfolio/` | LCP | 1.8 s | 0.9 s |
+| `/portfolio/` | CLS | 0.14 | 0 |
+| edge | `/__media/*` Cache-Control | `max-age=0, must-revalidate` | `max-age=31536000, immutable` |
+| edge | `/__generated/fonts/*` Cache-Control | `max-age=0, must-revalidate` | `max-age=2592000` |
+| edge | security headers | none | HSTS, `nosniff`, `Referrer-Policy`, `Permissions-Policy`, `X-Frame-Options: SAMEORIGIN` |
 
-Targets: portfolio CLS under 0.05, accessibility 100, the image-delivery and
-cache-lifetime insights gone, the homepage unchanged or better.
+Targets were: portfolio CLS under 0.05, accessibility 100, the image-delivery and
+cache-lifetime insights gone, the homepage unchanged or better. All met. The homepage
+LCP gained 0.9 s with the opening curtain untouched.
+
+What Lighthouse still lists on dev, and why it stays:
+
+- `/brand/*-192w.png` etc. at a one-day TTL (21 KiB on `/`). The derivative names are not
+  content-hashed, so a longer lifetime would be a lie (rule 12's logic, inverted).
+- A 50 ms forced reflow inside Astro's own ClientRouter bundle. Not this project's code.
+- The three loader animations (`/`) and the `visibility` transition on the hold variant
+  (`/portfolio/`) are reported as non-composited. They are the opening sequence, which is
+  an owner decision (`BLOCKED_TODOS.md`).
+- CSP, COOP and Trusted Types are listed under "trust and safety" as informational.
+  CSP is a Tier 3 follow-up (`BLOCKED_TODOS.md`).
 
 ## 3. Findings and fixes
 
