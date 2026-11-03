@@ -2094,3 +2094,21 @@ one commit each. Full record, with the font measurements and what was verified l
 fonts 30 days, and the five security headers are on every route
 (`docs/PERFORMANCE_AUDIT.md` §2). Tier 3 items (the curtain, CSP, the 5.6 MB media prune) are
 in `docs/BLOCKED_TODOS.md`. New standing rule: CLAUDE.md §10 rule 29.
+
+## 34. HTTP2Shell, CVE-2026-111497 (2026-11-03)
+
+An out-of-bounds write in the Brotli DECODER, 1.0.3–1.2.0 (GHSA-9v8h-qqgm-4m35). Fixed in PyPI
+`brotli` 1.2.1 and Node 22.23.4. Production was not vulnerable through this repository: the
+deployed Worker never decodes Brotli, and the WOFF2 files are compressed data the browser decodes.
+Only CI carried vulnerable copies.
+
+- `dev.yml` / `prod.yml` pinned `brotli==1.2.0` for font generation. That path only COMPRESSES
+  repository TTFs, so the decoder was never reached. Bumped to `brotli==1.2.1`.
+- `setup-node` asked for `'22'`, which prefers the runner's cached 22.x and may predate 22.23.4.
+  `check-latest: true` added in `dev.yml`, `prod.yml` and `media-ingest.yml`.
+- Measured, not assumed: the eight WOFF2 faces are byte-identical under 1.2.0 and 1.2.1 (same
+  SHA-256), and `src/styles/fonts.css` is unchanged. `BUILD_ID` hashes the precache URL list,
+  not font bytes, so the change cannot touch the service worker.
+- Not fixable here: Cloudflare's workerd patch status is UNKNOWN; the workerd that wrangler
+  4.128.0 bundles predates the fix (local preview only, raise with `compatibility_date`, rule 21);
+  the local workstation ran Node 22.23.2 and needs a manual upgrade.
