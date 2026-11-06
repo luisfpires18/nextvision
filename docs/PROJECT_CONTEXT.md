@@ -2215,7 +2215,8 @@ destination. **Sending is paused by the user:** onboarding a domain for Email Se
 and no plan or Brevo account was chosen, so the form still sends nothing (`BLOCKED_TODOS.md`). DNS
 checked: `geral@` is hosted at Infomaniak, so Email Routing must not be turned on for the apex.
 
-The cycling logo over the homepage film is gone; "We are NVF" and the tagline stay.
+The visible "We are NVF" over the homepage film is gone; it stays as the page's hidden `<h1>`. The
+cycling logo and the tagline stay.
 
 The reel's windows are real holes now, cut with an SVG mask, on every page. They used to be painted
 cream, which showed as white squares on the blue of `/sobre/`. `--reel-hole` is gone, and the hub

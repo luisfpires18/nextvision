@@ -2,16 +2,16 @@
 /**
  * Homepage — DESIGN V2 (Tatiana).
  *
- * The storyboard's homepage is one frame: the film, full-bleed, with "We are NVF" over it
- * and the tagline at its foot. Everything else lives in its own section, one stripe of the
+ * The storyboard's homepage is one frame: the film, full-bleed, with the logo and tagline
+ * at its foot. Everything else lives in its own section, one stripe of the
  * rail away, so the page no longer carries the Review B editorial rows, the feature, the
  * services list or the about excerpt — each of those is now the page it was excerpting.
  *
  * The opening sequence plays here, and only here (decision C5).
  *
  * ── The words ────────────────────────────────────────────────────────────────
- * "We are NVF" is the live site's own <title> suffix (src/lib/brand.ts), and it is the
- * page's single <h1>. The two published lines that used to sit under it ("Captamos emoções /
+ * "We are NVF" is the live site's own <title> suffix (src/lib/brand.ts). It is the page's single
+ * <h1>, hidden from view since 2026-11-06 so that only the logo and tagline sit over the film. The two published lines that used to sit under it ("Captamos emoções /
  * Contamos Histórias") were taken off this frame at the user's request on 2026-11-06. They
  * stay in home.json and in the archive.
  *
@@ -23,6 +23,7 @@
  */
 import { getEntry } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import BrandMark from '../site/BrandMark.astro';
 import { getMedia, imageProps, videoProps } from '../../lib/media.ts';
 import { organizationSchema, websiteSchema, absoluteUrl } from '../../lib/seo.ts';
 import { pageTitle, pageDescription } from '../../lib/page-meta.ts';
@@ -35,7 +36,7 @@ const { locale } = Astro.props;
 
 const settings = await getEntry('settings', 'site');
 
-/* The first screen is the wordmark in Condensed 900. Barlow 500 was preloaded for the
+/* The first screen's text is the tagline in Condensed 900. Barlow 500 was preloaded for the
    statement, which is gone (rule 24). Barlow 400 sets only visually-hidden text here, and
    Condensed 700 only the 'PT' of the language switch (docs/PERFORMANCE_AUDIT.md). */
 const HOME_FACES = ['barlow-condensed-900'];
@@ -112,11 +113,14 @@ const schema = [
       )}
     </div>
 
-    <div class="hero__centre">
-      <h1 class="hero__wordmark">{BRAND_LINES.wordmark}</h1>
-    </div>
+    <h1 class="visually-hidden">{BRAND_LINES.wordmark}</h1>
 
     <div class="hero__sign" aria-hidden="true">
+      <div class="hero__marks">
+        <BrandMark mark="monogram" />
+        <BrandMark mark="mono" />
+        <BrandMark mark="stackSmall" />
+      </div>
       <p class="hero__tagline">{BRAND_LINES.tagline}</p>
     </div>
   </section>
@@ -129,18 +133,9 @@ const schema = [
   }
   .hero--v2 .hero__media::after { background: var(--scrim-text); }
 
-  .hero__centre { position: relative; z-index: 1; text-align: center; padding-inline: var(--gutter); }
-  .hero__wordmark {
-    margin: 0;
-    font-family: var(--font-display);
-    font-weight: var(--w-display);
-    font-size: var(--t-statement);
-    line-height: var(--lh-poster);
-    color: var(--brand-yellow);
-  }
 
-  /* The brand tagline (owner request, 2026-10-29). The logo that sat above it was removed on
-     2026-11-06. The star the storyboard drew on this frame is the pointer, so it lives in the cursor token. */
+  /* The logo and, under it, the brand tagline (owner request, 2026-10-29). The star the
+     storyboard drew on this frame is the pointer, so it lives in the cursor token now. */
   .hero__sign {
     position: absolute;
     z-index: 1;
@@ -159,5 +154,37 @@ const schema = [
     text-transform: uppercase;
     letter-spacing: var(--tracking-meta);
   }
+
+  /* The marks are rendered by BrandMark, so they carry ITS scope, not this page's: the
+     child selectors below must be :global() or they match nothing (they did, at first —
+     all three lockups showed at once, at their own full size).
+
+     The logo at the foot of the frame cycles through its three lockups — N, NVF, NEXT
+     VISION FILMS — three times, then rests on NVF. A loop that never ends is a frame
+     loop by another name, so it ends. Each lockup holds for a third of the cycle;
+     `backwards` keeps the later ones hidden until their turn. */
+  .hero__marks {
+    position: relative;
+    inline-size: var(--space-9);
+    block-size: var(--space-7);
+  }
+  .hero__marks > :global(*) {
+    position: absolute;
+    inset: 0;
+    inline-size: 100%;
+    block-size: 100%;
+    aspect-ratio: auto;
+    opacity: 0;
+    animation: nvf-cycle calc(var(--dur-reveal) * 9) linear 3 backwards;
+  }
+  .hero__marks > :global(:nth-child(2)) { opacity: 1; animation-delay: calc(var(--dur-reveal) * 3); }
+  .hero__marks > :global(:nth-child(3)) { animation-delay: calc(var(--dur-reveal) * 6); }
+  @keyframes nvf-cycle {
+    0% { opacity: 0; }
+    3%, 30% { opacity: 1; }
+    33%, 100% { opacity: 0; }
+  }
+  :root[data-motion='minimal'] .hero__marks > :global(*),
+  :root[data-motion='reduced'] .hero__marks > :global(*) { animation: none; }
 
 </style>

@@ -30,9 +30,9 @@ const CHECK = process.argv.includes('--check');
 
 /** [original, width, where the width comes from] */
 const TARGETS = [
-  ['nvf-stack.png', 192, 'no longer on the homepage (2026-11-06): was var(--space-9) = 6rem'],
+  ['nvf-stack.png', 192, 'homepage .hero__marks: var(--space-9) = 6rem'],
   ['nvf-mono.png', 768, '.site-footer__mark and .bts__mark: min(100%, 24rem)'],
-  ['nvf-n.png', 192, '.ab2-team__mono var(--space-8) = 4rem; was also the homepage logo at 6rem'],
+  ['nvf-n.png', 192, '.hero__marks 6rem, .ab2-team__mono var(--space-8) = 4rem'],
   ['nvf-colour.png', 640, '.cm__mark: min(70%, 20rem)'],
   ['nvf-n-colour.png', 192, '.loader__mono 4rem, .vhs__logo 64% of a spine'],
 ];
