@@ -1,5 +1,7 @@
 # Performance audit — 2026-10-29
 
+> **Status:** these fixes were released to prod on 2026-11-06. The §2 measurements were taken on `dev`.
+
 The owners asked for the site to be "as fast as possible, good practices". It already was
 fast: Lighthouse scored the production homepage 95 and the portfolio 94 on mobile, with
 zero blocking time. What remained was a short list of concrete defects, each with a

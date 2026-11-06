@@ -1,5 +1,8 @@
 # Phase 10 — the remaining Portuguese pages
 
+> **Historical record (Phase 10).** Design v2 (2026-10-22) rebuilt these pages' layouts, and owner
+> feedback round 1 changed `/servicos/` and `/sobre/` again. Current design: `docs/DESIGN_V2_ROLLOUT.md`.
+
 **Date:** 2026-09-03 (session 11) · **Status:** ✅ COMPLETE
 **Scope:** `/sobre/` · `/servicos/` · `/contactos/` · `/obrigado/` ·
 `/termos-e-condicoes/` · `/politica-de-privacidade/`

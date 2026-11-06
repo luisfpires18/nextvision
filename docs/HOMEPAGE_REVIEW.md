@@ -1,5 +1,8 @@
 # Homepage — Review B
 
+> **Historical record.** Design v2 (2026-10-22) replaced this homepage's look and structure.
+> Current design: `docs/DESIGN_V2_ROLLOUT.md`.
+
 **Date:** 2026-09-02 · **Route:** `/` · **Status:** ✅ **APPROVED**
 (direction approved on the visual review; four targeted fixes applied afterwards — §15)
 **Direction:** the approved Contact Sheet editorial system + Projection cinematic mode

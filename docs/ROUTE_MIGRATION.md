@@ -1,5 +1,8 @@
 # Route Migration Map
 
+> **Status, 2026-11-06:** the domain now serves the rebuild, so this map is live. The crawl diff
+> this file mentions (Phase 16) has no recorded result: UNKNOWN whether it was run.
+
 **Generated:** 2026-09-02 · **Data:** [`src/data/routes.json`](../src/data/routes.json) · **Built by:** `scripts/build-route-map.mjs`
 
 Every URL the WordPress site serves, and what happens to it. This file explains the map;

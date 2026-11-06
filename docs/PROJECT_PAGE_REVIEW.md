@@ -1,5 +1,8 @@
 # Project page — Review D
 
+> **Historical record.** Design v2 (2026-10-22) changed the chrome and palette around this page.
+> Current design: `docs/DESIGN_V2_ROLLOUT.md`.
+
 **Date:** 2026-09-02 · **Route:** `/portfolio/leonor/` · **Status:** ✅ **APPROVED**
 (approved on visual review; one refinement applied afterwards — §15)
 **Direction:** Projection, entered from the Contact Sheet · **Produced with the `frontend-design` skill.**

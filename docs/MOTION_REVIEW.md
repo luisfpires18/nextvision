@@ -1,6 +1,10 @@
 # Motion and interaction — Review E
 
-**Date:** 2026-09-03 · **Scope:** every production route · **Status:** ⏳ **AWAITING OWNER VISUAL CONFIRMATION**
+> **Historical record for the look of things.** The tier contract still stands, but design v2
+> (2026-10-22) replaced the dissolve with the slide and the loader with the opening. Tiers now
+> reach `minimal` only at 2 GB / 2 cores or below. Current design: `docs/DESIGN_V2_ROLLOUT.md`.
+
+**Date:** 2026-09-03 · **Scope:** every production route · **Status:** ✅ **APPROVED** (owner, 2026-09-03; `PROJECT_CONTEXT.md`)
 **Produced with the `frontend-design` skill.**
 
 > This is the last design-system review before propagation. It adds no new design and no

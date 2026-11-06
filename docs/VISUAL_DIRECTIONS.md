@@ -1,5 +1,8 @@
 # Visual Directions — Review A
 
+> **Historical record.** Design v2 (2026-10-22) superseded these directions. The `/__concepts/`
+> routes still exist. Current design: `docs/DESIGN_V2_ROLLOUT.md`.
+
 **Date:** 2026-09-02 · **Status:** ✅ **APPROVED** — applied to the real homepage at `/`
 (see [`HOMEPAGE_REVIEW.md`](HOMEPAGE_REVIEW.md))
 **Prototypes:** `/__concepts/` · **Produced with the `frontend-design` skill.**

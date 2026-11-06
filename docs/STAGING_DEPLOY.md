@@ -1,5 +1,9 @@
 # Staging deployment — step 12
 
+> **Historical record of the first deploy (2026-09-04).** The Worker `next-vision-films` and its
+> workers.dev URL no longer exist (that URL answers 404), "staging" is now the `dev` Worker, and
+> both Workers have custom domains. For how things work today, read `docs/HANDOVER.md`.
+
 **Cloudflare Workers + Workers Static Assets, on the company account. No custom domain, no
 DNS, no production secret.** This file records what was deployed, what it is configured
 with, what it deliberately is NOT configured with, and how to do it again.

@@ -9,98 +9,44 @@ Not a project plan — no dates, no owners, no estimates. Detail lives in the ph
 
 ---
 
-## ROADMAP
+## WHERE THINGS STAND
 
-**Step 12 — Cloudflare staging deploy ✅ DONE.** The site is live on the company account at
-`https://next-vision-films.next-vision-films.workers.dev` — one Worker, `next-vision-films`,
-Workers Static Assets, no custom domain and no secret. `npm run deploy` is verify → build →
-`wrangler deploy`. Record: `docs/STAGING_DEPLOY.md`.
+Live at `https://www.nextvisionfilms.com` (`master`, Worker `next-vision-films-production`),
+with `https://dev.nextvisionfilms.com` as the developer copy (`dev`, Worker `dev`). Design v2
+and the owners' admin are live. Done: audit · architecture · Phase 0/0.5 · Reviews A–E · 9 · 10
+· 11 · 12 · 13 · 14 · 15 · steps 12–14 · design v2 · admin A0–A5 · performance audit.
+Records: `docs/HANDOVER.md`, `docs/STAGING_DEPLOY.md`, `docs/PROJECT_CONTEXT.md`.
 
-Done: audit · architecture · Phase 0/0.5 · Reviews A–E · 9 · 10 · 11 · 12 · 13 · 14 ·
-15 (PWA finalisation) · step 12 (staging deploy) · step 13 (QA) · **step 14 (GitHub + CI/CD + handover)**.
-
-**Step 13 — full QA against the staging URL ✅ DONE.** Measured on the live workers.dev
-URL, not on a local approximation: 35 routes and assets 200, both localised 404s, every
-redirect class, the contact endpoint's 405/403/503, archives rendering their own subsets,
-canonicals and hreflang on the production domain, zero trackers, zero cookies, no 500 and
-no secret in any served file. ClientRouter, Back/Forward, filters, cards, the mobile menu
-and a direct project URL at 375 px all verified in a real browser.
-
-**Four defects found and fixed** (`docs/STAGING_DEPLOY.md` §8.3): the first visit of a
-session rendered blank; the hit-test anomaly that hid behind it; the category filter hid
-nothing; a preloaded font was never used. Three regression checks now run inside
-`npm run validate:routes`, and all three were tested by breaking them.
-
-**Not exercised:** the `reduced` and `minimal` motion tiers — `prefers-reduced-motion`
-cannot be emulated with the available tooling. Their code path (loader never armed) is the
-repeat-visit path, which was verified.
-
-**Step 14 — GitHub, CI/CD and handover ✅ COMPLETE.** The repository is
-`luisfpires18/nextvision` (private). Public history is ONE root commit, `Initial Commit`;
-`master` and `dev` start at the same SHA. Two Cloudflare Workers, and they cannot overwrite
-each other: `dev` -> `next-vision-films` (staging), `master` ->
-`next-vision-films-production`. Two workflows, one per branch, verify-gated. Record:
-`docs/HANDOVER.md`.
-
-**Two findings, both measured rather than assumed.** (1) `wrangler deploy --env production`
-against a build made with no `CLOUDFLARE_ENV` exits 0 with no error and deploys to
-**staging** — the target is resolved at BUILD time by `@astrojs/cloudflare`'s redirected
-config, and `--env` only cross-checks it when the build declared one. `scripts/deploy.mjs`
-reads the built config back and refuses the mismatch; it was tested by breaking it. (2) A
-clean checkout **cannot build the site at all**: `media/dist/` is gitignored and
-`media:build` needs 646 MB of gitignored sources, so `npm run verify` failed at
-`validate:media` with 0 of 384 renditions present. `npm run media:pull` restores the mirror
-from R2, read-only and hash-verified. The full CI recipe was then run in a clean worktree
-and passed.
-
-**CI/CD is live and was proved end to end.** All four repository secrets are set, and a
-push to `dev` ran checkout -> `npm ci` -> fontTools -> `fonts:build` -> `media:pull` ->
-`npm run verify` -> deploy in 1m21s, green. It deployed Worker `next-vision-films`
-(version `ff6cf3fb`), and `next-vision-films-production` still **does not exist on the
-account** — the cleanest possible proof that staging and production cannot overwrite each
-other. Smoke-tested on the live URL: 8 routes 200, a media rendition 200, and the Step-14
-copy fix visible in the served HTML. Repository merge settings are configured through the
-API: merge commits ON, squash OFF, rebase OFF, auto-merge OFF, no required reviews.
-
-**One defect, found only by running it.** `npm run fonts:build` shells out to
-`python -m fontTools.subset`, which is not an npm dependency and is not on the runner, so
-the first credentialed run died with `ModuleNotFoundError` before it reached the mirror.
-The script had always documented the requirement; nothing enforced it, because a developer
-machine that installed it once never notices again. Both workflows now install it, pinned
-to the versions that produced the QA'd faces.
-
-**Production is live on workers.dev.** PR #1 merged `dev` into `master` as a merge commit,
-and the production workflow ran green in 1m27s: `deploy target: production -> Worker
-"next-vision-films-production"`, version `5793e05f`, at
-`https://next-vision-films-production.next-vision-films.workers.dev`. Smoke-tested: 7 routes
-200, a media rendition 200, a missing route 404, the contact endpoint refusing an
-Origin-less POST with 403, and canonicals still pointing at `www.nextvisionfilms.com` — which
-is what keeps the workers.dev copies from competing with the real site. **`dev` is now the
-GitHub default branch**, so a clone lands there and new branches fork from it.
-
-Not started: DNS cutover, the newsletter endpoint (D18).
+Not started: the media hostname (D20), the newsletter endpoint (D18).
 
 ---
 
 ## BLOCKED
 
-- [x] **GitHub Actions would not start (2026-10-27 → 2026-10-29).** Billing refused every job on the private repo; resolved by making the repository public, after which `media-ingest` created «Agente Imobiliário sem Casa para Viver» (hidden, year 2026 — the owners' second try said 2024, so they should confirm the year).
+- [x] **GitHub Actions would not start (2026-10-27 → 2026-10-29).** Billing refused every job on the private repo; resolved by making the repository public, after which `media-ingest` created «Agente Imobiliário sem Casa para Viver». The owners published it on 2026-11-06 (year 2026; their second try said 2024, so they should confirm the year).
 - [ ] **Owner photos.** New founder portraits for `/sobre/` and new images for the Services carousels are coming from the owners (2026-10-29).
 - [ ] **Design v2 assets.** VHS spine artwork (spines are drawn from titles until then), the
-      NOWHERE poster and project, Need to Talk, Agente Imobiliário Sem Casa Para Viver, the
-      About team-photo carousel, and a vector export of the logos (C8; PNG masks for now).
+      NOWHERE poster and project, Need to Talk, the About team-photo carousel, and a vector
+      export of the logos (C8; PNG masks for now).
 - [ ] **Contact "Company/brand" field.** The honeypot is already named `empresa`; renaming it
       and adding the field is a contract change on both sides (`src/config/forms.ts`).
 
-- [ ] **Branch protection is impossible on this plan.** Both the branch-protection and the ruleset APIs answer `403 Upgrade to GitHub Pro or make this repository public` for a private repo on GitHub Free, so "no deletion, no force-push" on `dev` and `master` cannot be enforced server-side. `scripts/hooks/pre-push` enforces both on the CLIENT (`git config core.hooksPath scripts/hooks`) and protects only the machine that has it. Exits: GitHub Pro, or making the repository public — which would publish the archived source data and internal documents too.
-- [ ] **Turnstile production keys** — site key + `TURNSTILE_SECRET_KEY`. Unset, `/api/contact/` refuses every submission with `503`. Needs the owners' Cloudflare account.
+- [ ] **Turnstile site key on the live site.** The widget exists and `TURNSTILE_SECRET_KEY` is on the prod Worker. The site key goes in the GitHub repository VARIABLE `PUBLIC_TURNSTILE_SITE_KEY`, which `prod.yml` reads at build, so it reaches the page with the next release. Until it is set and a build has run, the page serves Cloudflare's test widget ("Somente para teste"), whose tokens the real secret refuses.
+- [ ] **Contact email: paused by the user, so the form sends nothing.** Recipient `geral@nextvisionfilms.com` is set and verified as a Cloudflare destination address, and the `cloudflare` adapter is built. Email Sending needs Workers Paid, and the free route is blocked: Email Routing is not onboarded on the apex, which would need the Infomaniak MX records removed. Never do that. To finish, choose one. Workers Paid: onboard `mail.nextvisionfilms.com` under Email Sending, then add the `send_email` binding to `env.prod` in `wrangler.jsonc` (the comment there has it). Or Brevo: account, DNS records, `wrangler secret put BREVO_API_KEY --env prod`, and a sender on the verified domain. Then release.
 - [ ] **Cloudflare Web Analytics site token** — `PUBLIC_ANALYTICS_TOKEN`. Unset, no beacon is emitted at all. Created under **Manage site → JS snippet**; the token, not the snippet, is what we need. (Phase 14)
 - [ ] **Outstanding masters / weak media** — M1–M9 in `docs/SMASH_MEDIA_INVENTORY.md` §6. Longest lead time in the project; nothing is upscaled to hide it.
 - [ ] **English review by an owner or native speaker** — every English string was authored here and has never been read by the company.
 
 ## OWNER DECISION
 
-- [ ] **Second Services carousel.** The owners asked for "Publicidade & Branding"; no category carries that label. It shows `corporativo` (one project, Antiqvvm); `moda-identidade` (one project, YSL) is the alternative. One word in `services.json` `categories`.
+- [ ] **The repository is public.** It was made public to get Actions running, so the archived source data and internal documents are public too. Going private again brings the Actions billing refusal back unless the plan changes.
+- [ ] **The homepage has no footer, so no legal links or socials.** Removed on request; `/termos-e-condicoes/`, `/politica-de-privacidade/` and the socials are one rail click away, on every other page. Whether the policy must be linked from the homepage itself is for legal review.
+- [ ] **The homepage's rail stripes have no larger equivalent on a desktop.** WCAG 2.5.8 was met by repeating the rail's links in the footer, and the 12 px stripes now stand alone on `/`. A larger link set on the homepage, or wider stripes, would close it.
+- [x] **LET'S TALK on the reel stays cream on yellow.** Decided by the user on 2026-11-06, though the pair is below the 4.5:1 floor in `CLAUDE.md` §11. The link's accessible name does not depend on it.
+- [ ] **IMDb and trailer addresses.** The fields exist on every project in the admin, and all are empty, so no link shows yet. The owners have to fill them in.
+- [ ] **Homepage statement fields in the admin.** "Captamos emoções / Contamos Histórias" no longer shows on `/`, but «Frase de abertura» still appears in the admin, where an edit changes nothing visible. Hide the two fields, or restore the text.
+- [ ] **Showreel poster on `/servicos/`.** The film under the carousel opens on a still from «The endless "WAVES"», chosen as a stand-in. No still from the showreel itself is in the media pipeline. Changing it is «Imagem do vídeo» in the admin, next to «Vídeo no YouTube» and «Nome do vídeo».
+- [ ] **Services stage replaces the owners' category rows.** Owner round 1 asked for one carousel per category, with no category names now shown. The stage opens on the collage's stills, then runs through `corporativo` and `visual-storytelling`. Which films join it is one list, `services.json` `categories`. The owners asked for "Publicidade & Branding", which no category carries; `moda-identidade` (one project, YSL) is the alternative to `corporativo`.
 - [ ] **"Tira a cena dos BTS".** Read as the six-still grid on `/bts/`, now removed (the page is all yellow). If only the cream spine was meant, restore the grid in `BtsPage.astro`.
 - [ ] **Design v2 copy (Tatiana's storyboard).** New About lead and paragraphs, and the
       contact-sheet heading (contains "SCREME", "WOHOLE", "ALREDY"). Not published; the
@@ -113,8 +59,7 @@ Not started: DNS cutover, the newsletter endpoint (D18).
 - [ ] **Design v2 dark-state text (C2 caveat).** The rail's lights-down darkens text with
       everything else; turning it cream needs a colour transition and a §11 amendment.
 
-- [ ] **D2 — canonical contact email.** Three candidates: `nextvisionfilmsagency@gmail.com`, `hello@nextvisionfilms.com`, `geral@nextvisionfilms.com`. No page publishes any of them.
-- [ ] **D17 — contact recipient + email provider.** Blocks delivery only; the endpoint and the four-adapter seam are built.
+- [ ] **D2 — which contact email to PUBLISH.** Three candidates: `nextvisionfilmsagency@gmail.com`, `hello@nextvisionfilms.com`, `geral@nextvisionfilms.com`. No page publishes any of them. The form's recipient is `geral@` now, which does not decide this.
 - [ ] **D9 — is the contact consent checkbox required?** The published form says no. `CONSENT_REQUIRED` is the one switch.
 - [ ] **D19/D8 — GA4 + Google Ads.** Phase 14 assumes they are DROPPED for cookieless analytics. If the Ads tag is a live paid campaign, keeping it makes a consent banner mandatory and reopens the whole consent layer.
 - [ ] **Privacy policy vs. actual behaviour — LEGAL REVIEW.** The policy declares Google Analytics cookies (`_ga`, `_gid`, `_gat`), a `cookie_notice_accepted` cookie and Smartsupp chat. The rebuilt site sets **no cookies at all**. The policy over-declares; it was not amended, because it is binding text (`CLAUDE.md` §2). See `docs/ARCHITECTURE.md` §8.1.
@@ -128,13 +73,18 @@ Not started: DNS cutover, the newsletter endpoint (D18).
 
 - [ ] **PWA icons track the visual identity** — generated from the EXISTING mark (`source-assets/brand/NVF.png`). If Review A changes the logo, drop the new source in and run `npm run icons:build`; nothing else changes. Not a blocker — the site is installable now.
 - [ ] **Personal-account R2 buckets** — two empty buckets left behind by the move to the company account. Manual dashboard cleanup.
-- [ ] **Media hostname + DNS** (`media.nextvisionfilms.com`, D20) — staging serves the 384 renditions from its own asset store instead, byte-identical to `nvf-media` and needing no public bucket. `PUBLIC_MEDIA_BASE_URL` stays unset until a real hostname exists.
+- [ ] **Media hostname + DNS** (`media.nextvisionfilms.com`, D20) — both Workers serve the renditions from their own asset store instead, byte-identical to `nvf-media` and needing no public bucket. `PUBLIC_MEDIA_BASE_URL` stays unset until a real hostname exists.
+- [ ] **Branch protection.** Not configured: `dev` and `master` report `protected: false`. It was refused while the repository was private on GitHub Free; now that it is public it should be available. Any rule on `master` must let the admin's GitHub App push. Until then only `scripts/hooks/pre-push` guards them, on machines that enable it.
+- [ ] **Windows checkouts fail `verify`.** No `.gitattributes`, so `core.autocrlf=true` breaks `test:admin` and `validate:legal`. Adding one must leave the hash-locked `docs/content/` bytes alone. `docs/HANDOVER.md` §4.
+- [ ] **Dependency vulnerabilities.** `npm audit --omit=dev` reports 8 (6 high, 2 moderate) on 2026-11-06, including `astro` itself (fixed in 7.4.7). Raising wrangler moves `compatibility_date` with it (rule 21).
+- [ ] **Stale comments in code.** `wrangler.jsonc` ("Nothing here has been provisioned"), the workflows ("all eleven validators", "six WOFF2 faces"), the generated `_redirects` note ("R2 is not provisioned") and `astro.config.mjs`. Left alone in the documentation pass of 2026-11-06.
+- [ ] **Stale remote branch** `feat/design-v2`, last commit 2026-10-22.
 - [ ] **The `reduced` and `minimal` motion tiers are untested in a browser.** `prefers-reduced-motion` cannot be emulated with the tooling used for step 13. Their code path — the loader never arms — is the repeat-visit path and was verified; the tiers themselves were not.
 - [ ] **Two console messages left alone, both non-breaking.** Chromium's `preloaded ... but not used within a few seconds` for the two preloaded faces (both end `loaded`; they are applied after the opening hold), and Astro ClientRouter's unhandled `InvalidStateError: Transition was aborted because of invalid state` on each swap. Every swap completed.
 - [ ] **Content-Security-Policy** — the required origins are recorded (`ARCHITECTURE.md` §9). There IS a Worker now, so the blocker is gone and only the work remains. `public/_headers` now carries the cache rules and five security headers (performance audit, 2026-10-29) but no CSP: it needs a nonce strategy for the inline motion bootstrap and JSON-LD, and allow-lists for Turnstile and youtube-nocookie. Ship it Report-Only first.
-- [ ] **Performance audit, after-deploy measurements.** Once `claude/perf-audit-006eb2` reaches `dev`: `curl -sI` a `/__media/*` object, a font and a page on `https://dev.nextvisionfilms.com` (rule 20 — only a real deploy validates `_headers`), then PageSpeed Insights (mobile) on `/` and `/portfolio/`. Fill the `UNKNOWN` column in `docs/PERFORMANCE_AUDIT.md` §2.
+- [x] **Performance audit, after-deploy measurements.** Measured on `dev` on 2026-10-30 and recorded in `docs/PERFORMANCE_AUDIT.md` §2. Released to prod on 2026-11-06; not re-measured there.
 - [ ] **`/__concepts/*` and `public/__generated/posters|preview` (2.5 MB) still deploy.** CLAUDE.md keeps the concepts; recorded by the performance audit, unchanged.
 - [ ] **Phase 11b reviewed copy/SEO proposals** — permitted as diffs against the archive, never applied silently.
-- [ ] **DNS cutover and a custom domain** — not started, by instruction (Step 15). Both Workers live on `workers.dev` and need neither.
+- [x] **DNS cutover and custom domains.** `nextvisionfilms.com`, `www` and `dev` are Workers Custom Domains, found bound on 2026-10-22. Only the media hostname (above) is left.
 
-- [ ] **Staging is publicly reachable and not robots-blocked.** Every canonical points at `https://www.nextvisionfilms.com/…`, which is what keeps the workers.dev copy from competing with the real site; no staging-only `X-Robots-Tag` was added, because an artefact that behaves differently from the one that ships is not a staging artefact.
+- [ ] **The dev Worker is publicly reachable and not robots-blocked.** Every canonical points at `https://www.nextvisionfilms.com/…`, which is what keeps `dev.nextvisionfilms.com` and the workers.dev copies from competing with the real site; no dev-only `X-Robots-Tag` was added, because an artefact that behaves differently from the one that ships is not a useful copy of it.

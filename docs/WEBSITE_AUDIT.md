@@ -1,5 +1,8 @@
 # Website Audit — nextvisionfilms.com
 
+> **Historical record.** This audits the WordPress site as it was on 2026-09-01. That site no
+> longer answers at this domain, which now serves the rebuild. It remains the content baseline.
+
 **Audited:** 2026-09-01
 **Target:** https://www.nextvisionfilms.com
 **Method:** full HTML fetch of all 34 discoverable URLs, WordPress REST API, Yoast

@@ -237,10 +237,12 @@ event (CLAUDE.md §10, standing rule 4).
 
 ## 9. Current state
 
-- **86 assets, 384 renditions, 16.69 MB** built, verified, mirrored locally **and uploaded**
-  to `nvf-media` on the company account.
-- **102 source files, 645.95 MB** uploaded to the private `nvf-source-archive`. Standing
-  rule 4 is discharged: the masters are no longer a single copy on one machine.
+- **On 2026-11-06 the manifest holds 88 assets / 392 renditions / 17.1 MiB on `dev` and
+  90 / 398 / 19.8 MiB on `master`.** The extra assets are owner uploads, which `media-ingest.yml`
+  adds to `nvf-media`. Phase 12 itself built and uploaded 86 / 384 / 16.69 MB.
+- **102 source files, 645.95 MB** uploaded to the private `nvf-source-archive`, plus the
+  owners' originals under `uploads/`. Standing rule 4 is discharged: the masters are no
+  longer a single copy on one machine.
 - **Neither bucket is public.** `r2.dev` is disabled on both and neither has a custom
   domain. That is a deliberate stop — delivery needs DNS, which this phase does not touch.
 - `PUBLIC_MEDIA_BASE_URL` is unset, so the site still serves its own mirror and works

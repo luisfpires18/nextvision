@@ -1,5 +1,8 @@
 # SEO & i18n Rollout — Phase 11
 
+> **Historical record (Phase 11).** The architecture and rules still stand. The page and sitemap
+> counts have since grown (`docs/HANDOVER.md` §6), and `/bts/` was added in both languages.
+
 **Completed:** 2026-09-03 · **Scope:** PT/EN architecture, English content, the SEO pass,
 a designed 404 and the PWA offline shell.
 

@@ -3,9 +3,12 @@
 Living state document. **Update this file as work progresses**, in the same commit as the
 work it describes. Read it at the start of every session.
 
-**Last updated:** 2026-09-04 (session 15)
-**Current phase:** **Phase 15 ✅ COMPLETE — PWA finalised; the site is installable.**
-**Next:** step 12 — Cloudflare staging/deploy and DNS. Then the newsletter endpoint (D18)
+**Last updated:** 2026-11-06
+**Current state:** live at www.nextvisionfilms.com in design v2, with the owners' admin at
+`/admin`. `dev` and `master` were released together on 2026-11-06.
+**Next:** contact email (paused, `BLOCKED_TODOS.md`), the media hostname (D20) and the newsletter
+endpoint (D18). The review notes below and the numbered sessions are a dated record, so
+read `HANDOVER.md` and `CLAUDE.md` §10 for what is true today.
 
 > **Open items now live in one place: [`BLOCKED_TODOS.md`](BLOCKED_TODOS.md).** Update it
 > at the end of every phase.
@@ -2112,3 +2115,108 @@ Only CI carried vulnerable copies.
 - Not fixable here: Cloudflare's workerd patch status is UNKNOWN; the workerd that wrangler
   4.128.0 bundles predates the fix (local preview only, raise with `compatibility_date`, rule 21);
   the local workstation ran Node 22.23.2 and needs a manual upgrade.
+
+## 35. Documentation pass (2026-11-06)
+
+The living documents had fallen behind the project, so they were checked against the code,
+GitHub's public API and the two live sites, and corrected. Words on the site, the archive and
+`docs/content/` were not touched.
+
+**Measured on 2026-11-06:**
+- `master` is 36 commits behind `dev`, and `dev` is 3 behind `master`. Prod therefore lacks owner
+  round 1, the performance audit, `_headers` and the CVE bump. `dev` lacks the owners' publish of
+  «Agente Imobiliário».
+- The repository is public, and every branch reports `protected: false`.
+- Sitemaps: 54 URLs on `dev`, 56 on `master`. Built pages are worked out from those (75 and 77):
+  the build could not run on this machine.
+- Manifest: 88 assets / 392 renditions / 17.1 MiB on `dev`, 90 / 398 / 19.8 MiB on `master`.
+- Both sites serve the Turnstile test site key. The old Worker's workers.dev URL answers 404.
+
+**Corrections that change what someone would do:**
+- `npm run archive:source` must not be re-run. Its origin now serves the rebuild, so it would
+  write the rebuild over the record of the WordPress site. `CLAUDE.md` used to recommend it for
+  refreshing.
+- `master` also receives the owners' commits, so `dev -> master` needs `master` merged into `dev`
+  first. The rule was recorded only in §26, while `HANDOVER.md` and the README said the opposite.
+- `HANDOVER.md` now has the eight CI secrets, the admin (§11) and what a Windows checkout needs.
+  CI does write to R2, through `media-ingest.yml`, which it used to say it never did.
+- `IMPLEMENTATION_PLAN.md`, `ADMIN_DASHBOARD_PLAN.md` and `ARCHITECTURE.md` no longer present
+  finished work as planned. Review E is recorded as approved in `MOTION_REVIEW.md`.
+
+**Dated records were annotated, not rewritten.** The reviews, the rollouts, `STAGING_DEPLOY.md`
+and the numbered sections above carry a note at most, because each is true of its date.
+
+**Not verified:** the numbers that need a build, the repository's merge settings and the R2 keys'
+real scopes, none of which can be read from here. Stale comments in code were left and are listed
+in `BLOCKED_TODOS.md`.
+
+## 36. Homepage: the arrow and the statement removed (2026-11-06)
+
+At the user's request:
+
+- **The spine's next-section arrow is gone on every page.** It read as a stuck mouse pointer. The
+  rail still reaches every section, and the arrow was already hidden on a phone.
+- **"Captamos emoções / Contamos Histórias" is off the homepage, in both languages.** It was the
+  page's `<h1>`, so "We are NVF" is now the `<h1>` and no longer `aria-hidden`. The strings stay in
+  `home.json` and the archive, so `validate:data` still verifies them. The share image's alt text
+  is now "We are NVF", and `barlow-500` is no longer preloaded on `/` (rule 24).
+- **Left open:** the admin still offers the two lines (`BLOCKED_TODOS.md`).
+
+Also at the user's request, HELLO in the opening is 50% larger: 5.4vh, now the token
+`--t-intro-hello`. Its clipping box grew from 6vh to 8vh so the larger word is not cut off.
+
+The footer is off on the homepage, in both languages, through a `footer` prop on `BaseLayout`.
+Every other page keeps it. That removed the larger equivalent of the rail's 12 px stripes on `/`
+(`BLOCKED_TODOS.md`).
+
+Holding a rail link no longer drags a link ghost or opens a long-press preview, and the browser's
+link bubble is gone from the rail. The built HTML is still real links, so nothing changes without
+scripting or for a crawler. Once scripting runs, `src/lib/rail.ts` moves each `href` to
+`data-rail-href`, and restores the link role, the tab stop, Enter, and new-tab clicks. The one
+thing lost is "open in new tab" in the right-click menu. Other links on the site still show the
+bubble.
+
+`/servicos/` has a stage carousel instead of the two category rows: the storyboard's large frame
+over two smaller ones, made to rotate, with no library (`src/lib/stage.ts`, `.stage` in
+`sections.css`, geometry in `tokens.space.css`). No autoplay. Without scripting the frames are a row
+of plain links. The `collage` list is back on the page and editable in the admin.
+
+Under it is the showreel (`iUGq6AtzUuY`, «NVF showreel 2026» on the owners' YouTube channel), on the
+project pages' façade, so nothing reaches YouTube before play. It is `film` in `services.json`, and
+the admin's Services screen edits all of it: the video (an address or an id), its name and its
+poster. That added two field kinds to the page screens, `film` and `line`.
+
+"Portfólio" and "Na NVF, transformamos ideias em imagens." are off `/portfolio/`, in both languages.
+The `<h1>` stays, visually hidden, because `CLAUDE.md` §11 needs one per page. The lead is off the
+category archives too, which keep their visible category name. The strings stay in `portfolio.json`,
+and the lead is still the meta description.
+
+On the Cinema shelf, the poster and "Ver o projeto" are no longer links, so the spines are the only
+way into a project from the shelf. The view switch is now a solid dark panel. Projects gained two
+optional fields, `imdb` and `trailer`, edited in the project form in the admin. The links show under
+the Cinema poster and under the title on the project page, and only when set; no project has any
+yet, because the addresses are the owners' to give.
+
+The BTS section is labelled "Know more about us" in both languages, as the user asked: rail, spine,
+footer, page heading and page title. Its address is still `/bts/`.
+
+VHS spine titles shrink to fit: the size is worked out in CSS from the title's length and the
+spine's height, with a floor below which the title wraps onto a second line.
+
+Every portfolio project's play button now says "Ver trailer" / "Watch the trailer", as the user
+asked. A project whose video is the full film can say "Ver o filme" instead, through «O vídeo é» in
+the admin (`filmKind`, default `trailer`). The showreel on `/servicos/` keeps "Ver o filme".
+
+The contact form's recipient is `geral@nextvisionfilms.com` (user's decision), set in `env.prod.vars`.
+`prod.yml` reads the Turnstile site key from a repository variable. The provider is Cloudflare Email
+Service, the user's choice: a `cloudflare` adapter on an `EMAIL` `send_email` binding, sender
+`site@mail.nextvisionfilms.com`. The Turnstile widget and secret exist, and `geral@` is verified as a
+destination. **Sending is paused by the user:** onboarding a domain for Email Sending needs Workers Paid,
+and no plan or Brevo account was chosen, so the form still sends nothing (`BLOCKED_TODOS.md`). DNS
+checked: `geral@` is hosted at Infomaniak, so Email Routing must not be turned on for the apex.
+
+The cycling logo over the homepage film is gone; "We are NVF" and the tagline stay.
+
+The reel's windows are real holes now, cut with an SVG mask, on every page. They used to be painted
+cream, which showed as white squares on the blue of `/sobre/`. `--reel-hole` is gone, and the hub
+text's colour is `--reel-text`.

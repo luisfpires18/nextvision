@@ -4,6 +4,15 @@ Stable instructions for **every** Claude Code agent working in this repository.
 Read this file before doing anything else. If a request appears to conflict with a rule
 here, say so and ask before proceeding.
 
+**Then read `.ai/WORKFLOW.md`, `.ai/PROJECT.md` and `.ai/STATE.md` before acting.** Follow
+linked Issues, PRs and task-specific references, and report missing access instead of
+guessing. This file wins on content, media, motion and deployment.
+
+For an approved task, publish results or blockers to its Issue or PR before ending, and
+return the link. Factual reporting is already part of the handoff, even when a decision is
+pending, so do not ask whether to post it. `.ai/WORKFLOW.md` sets the report and approval
+boundaries; this does not permit changing scope or starting corrections without approval.
+
 ---
 
 ## 1. Project purpose
@@ -84,13 +93,13 @@ existing Next Vision Films website. See §2.
 
 ---
 
-## 4. Fonts and visual identity — **PROVISIONAL**
+## 4. Fonts and visual identity
 
-> **The final visual identity is still being developed.** **Tatiana** will contribute art
-> direction, typography, mood, colour and visual language. Nothing below is final until
-> **Review A** (`docs/IMPLEMENTATION_PLAN.md`).
+> **Review A was approved on 2026-09-02, and Tatiana's design v2 replaced the visual layer
+> on 2026-10-22** (`docs/DESIGN_V2_ROLLOUT.md`). What still waits on Tatiana or the owners
+> is listed in `docs/BLOCKED_TODOS.md`.
 
-**Currently supplied fonts** — self-hosted, and they stay supported:
+**Fonts in use** — self-hosted, eight faces built by `scripts/build-fonts.mjs`:
 
 - **Barlow** · **Barlow Condensed** · **Space Mono**
 
@@ -105,10 +114,10 @@ Rules:
 - **These are not permanently approved typography.** Typography may change after
   owner/design review. Build so that a change is a token edit, never a refactor.
 
-**Colour:** the palette sampled from the owners' own `colors.png` — gold `#EFB025`, rust
-`#D54B27`, oxblood `#982703`, teal `#3D7D70`, ink `#292929`, cream ground `#F0EAD6` — is
-the **starting** palette, not the final one. Its measured contrast facts stay valid
-regardless (`docs/PROJECT_CONTEXT.md` §7.2).
+**Colour:** the brand guide's palette, from design v2 — green `#124A43`, blue `#2B3990`,
+red `#D52B27`, orange `#F36E21`, yellow `#F9C914`, cream `#FFFAEC`, with ink kept at
+`#292929`. `src/styles/tokens.colour.css` is the authority and records the contrast limits.
+The palette sampled from `colors.png` (`docs/PROJECT_CONTEXT.md` §7.2) is superseded.
 
 **Binding rule that outlives any design decision:** colour, typography, spacing **and
 motion** are all CSS custom properties in `src/styles/tokens.*.css`. **No component may
@@ -124,9 +133,11 @@ Frontend and design work must use the official Anthropic **`frontend-design`** s
 Purpose: avoid generic AI-generated website aesthetics and produce a polished,
 professional production website.
 
-**Status as of 2026-09-02: installed and verified loaded** as
-`frontend-design@claude-plugins-official` (enabled in `.claude/settings.json`, real
-`SKILL.md` in the plugin cache, invoked successfully).
+**Status:** installed as a project skill in `.claude/skills/frontend-design`, from Anthropic's
+`anthropics/skills`, and verified loaded on 2026-11-06. `.claude/settings.json` also enables
+the plugin `frontend-design@claude-plugins-official`, but enabling is not installing: on that
+checkout the plugin never loaded. Where the skill conflicts with this file, for example by
+inviting new copy or a new palette, this file wins.
 
 Verify it still loads at the start of any frontend session — invoke it, do not merely
 check the config. If it is missing, **stop and tell the user** rather than proceeding
@@ -139,11 +150,12 @@ directions live in `docs/DESIGN_REFERENCES.md`. Read it before any visual work.
 
 ## 6. Infrastructure targets
 
-Intended (not yet provisioned — do not create any of this without an explicit request):
+All in place. Do not create new infrastructure without an explicit request:
 
-- **Hosting:** Cloudflare
-- **Media storage:** Cloudflare R2, used through its S3-compatible API where appropriate
-- **Source control:** Git + GitHub
+- **Hosting:** Cloudflare Workers with Static Assets, two Workers on the company account (§10)
+- **Media storage:** Cloudflare R2, `nvf-media` (delivery) and `nvf-source-archive` (private
+  sources), used through the S3-compatible API. Neither bucket is public
+- **Source control:** GitHub, `luisfpires18/nextvision`, public since 2026-10-29
 
 Media rules:
 
@@ -151,8 +163,8 @@ Media rules:
   permanently in the Git repository.
 - Adding or replacing media later must be simple — a media manifest / structured data
   layer, not hardcoded asset paths scattered through components.
-- The architecture must leave room for a lightweight CMS/admin workflow later, if the
-  owners ask for one.
+- The owners asked for an admin workflow, and it exists: `nextvisionfilms.com/admin`, which
+  commits to the same content files (`docs/ADMIN_DASHBOARD_PLAN.md`). There is no CMS or database.
 
 ---
 
@@ -167,7 +179,10 @@ Media rules:
 - **Never commit secrets.** No Cloudflare account IDs paired with tokens, no R2 access
   keys, no API keys, no `.env` files. `.env*` is gitignored; keep it that way.
 - Never commit large media binaries. They belong in R2.
-- Commit or push only when the user asks.
+- Commit or push only when the user asks. A clear instruction to start a named, approved
+  Implementation Issue is that ask, for commits and pushes to its feature branch and its
+  draft PR (`.ai/WORKFLOW.md`). Merging into `dev` or `master` deploys, and always needs its
+  own instruction.
 
 ---
 
@@ -186,6 +201,9 @@ Do not fill gaps with plausible-sounding text.
 | File | Purpose |
 |---|---|
 | `CLAUDE.md` | This file. Stable rules for all agents. |
+| `.ai/WORKFLOW.md` | The shared workflow: planning, Issue-start authorization, evidence, independent review, releasing. |
+| `.ai/PROJECT.md` | Project facts, test commands and the documentation index for that workflow. |
+| `.ai/STATE.md` | Pointers: current task, branch positions and setup blockers. |
 | `docs/PROJECT_CONTEXT.md` | Living state: decisions, phase, completed work, open questions. **Update as work progresses.** |
 | `docs/WEBSITE_AUDIT.md` | Complete audit of the existing site (structure, content, media, design, interaction, technical). |
 | `docs/ARCHITECTURE.md` | Technical decisions and rejected alternatives. Framework, content, media, motion, PWA, i18n, SEO, repo. |
@@ -209,8 +227,8 @@ Do not fill gaps with plausible-sounding text.
 | `docs/PERFORMANCE_AUDIT.md` | The 2026-10-29 performance audit: Lighthouse baseline, every finding and its fix, the font measurements, what was verified locally, and the after-deploy numbers still to fill. |
 | `docs/PWA-ICONS-TODO.md` | Phase 15. The archived vector logo, why the icons are rasterised from the square monogram anyway, and what ships. |
 | `docs/HANDOVER.md` | Step 14. How to run, edit and deploy: git flow, the two Workers, what CI needs, a fresh clone, content, PT/EN, media, R2, and what is deployed but unconfigured. |
-| `docs/STAGING_DEPLOY.md` | Step 12. The Worker, the staging URL, the deploy commands, the environment matrix, what staging refuses to pretend, and the `_redirects` defect only a real deploy could find. |
-| `docs/ADMIN_DASHBOARD_PLAN.md` | PLAN ONLY. Owner admin at `/admin/` on the dev Worker: content inventory, what moves out of components first, Cloudflare Access login, commit-to-dev + publish flow, CI media ingest, admin UI design, phases A0–A5, open decisions. |
+| `docs/STAGING_DEPLOY.md` | Step 12, a historical record: the first deploy, its environment matrix, the QA, and the `_redirects` defect only a real deploy could find. Its Worker and URL are gone; `docs/HANDOVER.md` is current. |
+| `docs/ADMIN_DASHBOARD_PLAN.md` | The owners' admin, BUILT, at `/admin/` on the prod Worker: content inventory, Cloudflare Access login, CI media ingest, admin UI design, phases A0–A5 and decisions A1–A10. Written as the plan, so its status note says what later decisions changed. |
 | `docs/content/` | Verbatim content extracts and machine-readable inventories. **Read-only source material — never edited.** |
 
 Read `docs/PROJECT_CONTEXT.md` at the start of every session to pick up where the last
@@ -224,7 +242,8 @@ one left off.
 Phase 9 ✅ · Phase 10 ✅ · Phase 11 ✅ · Phase 12 ✅ · Phase 13 ✅ ·
 Phase 14 ✅ · Phase 15 ✅ · Step 12 staging deploy ✅ · Step 13 QA ✅ ·
 Step 14 GitHub + CI/CD + handover ✅ COMPLETE (2026-09-04) ·
-Design v2 (Tatiana) ✅ on dev (2026-10-22).**
+Design v2 (Tatiana) ✅ live (2026-10-22) · Owner admin A0–A5 ✅ live ·
+Owner feedback round 1, the performance audit and the owner bug round ✅ live (released 2026-11-06).**
 
 **Design v2 replaced the visual layer, and nothing else.** The menu is the rail (five logo
 stripes on the right; a bottom bar on a phone), each page wears its section's colour through
@@ -235,22 +254,28 @@ swap dropped `data-motion` after the first navigation, so every `full`-tier rule
 applying; BaseLayout now carries it across. Record: `docs/DESIGN_V2_ROLLOUT.md`.
 
 **The project is on GitHub, with two branches and two Workers.** `luisfpires18/nextvision`,
-private, public history reset to ONE root commit — `Initial Commit` — with `master` and
-`dev` starting at the same SHA. The `dev` branch deploys the **`dev`** Worker, `master` the
+public since 2026-10-29 (private before that), with history starting from ONE root commit,
+`Initial Commit`. The `dev` branch deploys the **`dev`** Worker, `master` the
 **prod** Worker (`next-vision-films-production`, which serves the live domain), one verify-gated workflow each (`dev.yml`, `prod.yml`), and they
 are two separate files precisely so that no condition decides which Worker gets overwritten.
 The prod Worker now carries the live domains `nextvisionfilms.com` and `www.nextvisionfilms.com`
 (Custom Domains, found bound on 2026-10-22). Record: `docs/HANDOVER.md`.
 
+**The owners publish to the live site themselves, so `master` does not only receive merges.**
+The admin at `nextvisionfilms.com/admin` (prod Worker, behind Cloudflare Access) writes each
+Publicar as one commit to `master` through a GitHub App, and `media-ingest.yml` commits
+processed uploads there too (decision A10). **Before any `dev -> master` release, merge
+`master` into `dev`.** Record: `docs/ADMIN_DASHBOARD_PLAN.md`, `docs/PROJECT_CONTEXT.md` §21–§32.
+
 **Two findings, and neither was visible from reading configuration.** `wrangler deploy
---env production` against a build made with no `CLOUDFLARE_ENV` exits 0 and deploys to
-STAGING — the target is resolved at BUILD time by the adapter's redirected config, and
+--env prod` against a build made with no `CLOUDFLARE_ENV` exits 0 and deploys to the
+top-level Worker, `dev` (measured under the old names `production` and staging) — the target is resolved at BUILD time by the adapter's redirected config, and
 `--env` is only a cross-check when the build declared one. And a clean checkout could not
 build the site at all: `media/dist/` is gitignored and `media:build` needs 646 MB of
 gitignored sources, so `npm run verify` failed at `validate:media` with 0 of 384 renditions.
 `npm run media:pull` fetches them from R2, read-only and hash-verified.
 
-**The site is deployed twice; only prod has a domain (see above).** Both Workers are on
+**The site is deployed twice, and both Workers have a domain.** Both Workers are on
 the COMPANY account (`c87adf05…8e39`), both serve from Workers Static Assets:
 
 | Branch | Worker | URL |
@@ -260,16 +285,16 @@ the COMPANY account (`c87adf05…8e39`), both serve from Workers Static Assets:
 
 Renamed 2026-10-22 from `staging` / `production`. The dev Worker was renamed (old `next-vision-films` deleted); the prod Worker keeps its name because the live domains are bound to it. Never rename it.
 
-The staging deploy needed **no custom domain, no DNS, no secret and no owner input** —
+The first deploy, of what is now the `dev` Worker, needed **no custom domain, no DNS, no secret and no owner input** —
 every unset variable already had a defined, safe meaning, which is what made a
-zero-credential deploy possible at all. **Deployment is now CI**: push `dev` for the `dev` Worker,
-merge `dev -> master` for `prod`. `npm run deploy:dev` / `deploy:prod` remain
+zero-credential deploy possible at all. **Deployment is now CI**: push `dev` for the `dev` Worker;
+a `dev -> master` merge or an owner's Publicar for `prod`. `npm run deploy:dev` / `deploy:prod` remain
 as emergency tooling and both run the full `verify` first, so nothing reaches the edge that
-has not passed all eleven validators. `npm run preview:cloudflare` runs the BUILT Worker
+has not passed every step of it. `npm run preview:cloudflare` runs the BUILT Worker
 under workerd, which is the only local surface where the asset handler, `_headers`,
 `_redirects` and the 404 fallthrough behave as they do in production.
 
-Staging refuses the contact form with `503 not-configured` and **cannot be configured into
+The `dev` Worker refuses the contact form with `503 not-configured` and **cannot be configured into
 pretending otherwise**: `IS_DEV` is false in every build, so the development sink cannot
 run there. `compatibility_date` moved 2026-09-01 → **2026-08-31** to match the workerd
 wrangler actually bundles, because a preview running newer semantics than production is a
@@ -278,7 +303,7 @@ find it: **`_redirects` may not carry a trailing comment on a rule line** — Pa
 it, Workers Static Assets rejects it server-side, and miniflare parses the same file
 happily, so `wrangler dev` is green on a file the API refuses.
 
-**Step 13 QA is complete, against the live URL.** 35 routes and assets 200, both localised
+**Step 13 QA is complete, against the deployed URL of the time (2026-09-04).** 35 routes and assets 200, both localised
 404s, every redirect class, `405`/`403`/`503` from the contact endpoint, archives rendering
 their own subsets, canonicals and hreflang on the PRODUCTION domain, zero trackers, zero
 cookies, no 500 and no secret in any served file; ClientRouter, Back/Forward, filters,
@@ -333,10 +358,12 @@ load — so `spa: true` triples every page. The published privacy policy still d
 Google Analytics cookies this site no longer sets; it was NOT amended, because it is
 binding text. Record: `docs/ARCHITECTURE.md` §8.1–§8.3.
 
-**The site is bilingual, optimised, and has both error states.** 73 built pages: 33
-Portuguese routes, 31 English, a 404 and an offline shell in each language, and the five
-internal concepts. 52 URLs in the sitemap — exactly the indexable set. Zero placeholders.
-Record: `docs/SEO_I18N_ROLLOUT.md`.
+**The site is bilingual, optimised, and has both error states.** At Phase 11 it had 73 built
+pages: 33 Portuguese routes, 31 English, a 404 and an offline shell in each language, and the
+five internal concepts, with 52 URLs in the sitemap — exactly the indexable set. Zero
+placeholders. With `/bts/` and the owners' new project it is now 75 pages and 54 sitemap URLs
+on `dev`, 77 and 56 on `master` (sitemaps counted live on 2026-11-06). Record:
+`docs/SEO_I18N_ROLLOUT.md`.
 
 Every page is **one component mounted twice**, once per locale. The two legal documents
 are **Portuguese only** and say so in four places, because no approved English translation
@@ -355,35 +382,38 @@ field contents. `npm run test:forms` drives the live endpoint; all three server 
 Record: `docs/ARCHITECTURE.md` §7.
 
 **Phase 12 added the production media pipeline.** `src/data/media-manifest.json` is the
-site's only media authority — **86 assets, 384 renditions, 16.69 MB**, every one of them
-content-addressed. Both buckets now live on the COMPANY account (`c87adf05…8e39`) and are
-FULL: 384 delivery objects in `nvf-media`, 102 source files / 645.95 MB in the private
+site's only media authority, and every file in it is content-addressed. It held 86 assets,
+384 renditions and 16.69 MB at Phase 12. It grows with every owner upload: on 2026-11-06 it
+holds **88 assets / 392 renditions / 17.1 MiB on `dev` and 90 / 398 / 19.8 MiB on `master`**.
+Both buckets live on the COMPANY account (`c87adf05…8e39`), and Phase 12 filled them with 384
+delivery objects in `nvf-media` and 102 source files / 645.95 MB in the private
 `nvf-source-archive`. Neither is public — `r2.dev` disabled, no custom domain, because
 delivery needs DNS. The empty personal-account buckets are a manual cleanup item. Record:
 `docs/MEDIA_PIPELINE.md` §9.
 
-**CI/CD is live, and `dev` is the GitHub default branch.** All four repository secrets are
-set; a push to `dev` runs checkout -> `npm ci` -> fontTools -> `fonts:build` ->
-`media:pull` -> `npm run verify` -> deploy in about 1m15s. PR #1 promoted `dev` to `master`
-and deployed production, which smoke-tests clean. **Branch protection is impossible on this
-plan** — both the branch-protection and the ruleset APIs answer `403 Upgrade to GitHub Pro
-or make this repository public` for a private repo on GitHub Free — so no-deletion and
-no-force-push are enforced client-side by `scripts/hooks/pre-push`
-(`git config core.hooksPath scripts/hooks`), which protects only the machine that has it.
+**CI/CD is live, and `dev` is the GitHub default branch.** The workflows use eight repository
+secrets (`docs/HANDOVER.md` §3); a push to `dev` runs checkout -> `npm ci` -> fontTools ->
+`fonts:build` -> `media:pull` -> `npm run verify` -> deploy. **Branch protection is not
+configured**: every branch reports `protected: false` (measured 2026-11-06). GitHub refused it
+while the repository was private on the Free plan, but the repository is public now, so that
+reason is gone. Until someone sets it, no-deletion and no-force-push are enforced only
+client-side by `scripts/hooks/pre-push` (`git config core.hooksPath scripts/hooks`), which
+protects only the machine that has it.
 
-**Next phases, not started:** Step 15 — DNS cutover, the custom domain and the media
-hostname — and the NEWSLETTER endpoint (D18). The site IS installable, IS deployed to both
-Workers, and HAS passed QA on the deployed URL.
+**Still not started:** the media hostname (D20) and the NEWSLETTER endpoint (D18). The site's
+domains are already bound (above). The site IS installable and IS deployed to both Workers.
 
 Do not redesign, touch DNS, attach a domain, make a bucket public, or create a database or
 CMS until the user explicitly says to. Deploying is now a push; deploying to PRODUCTION is
-a deliberate `dev -> master` merge and nothing else may trigger it.
+a deliberate `dev -> master` merge or an owner's Publicar in the admin (decision A10), and
+nothing else may trigger it.
 
 Standing rules that outlive this phase:
 
-1. **The live site is already preserved** (`docs/SOURCE_ARCHIVE.md`) — 34 pages, 9
-   endpoints, 39 media originals. Work from the archive, not the live site. Re-run
-   `npm run archive:source` only to refresh; it is read-only and resumable.
+1. **The WordPress site is already preserved** (`docs/SOURCE_ARCHIVE.md`) — 34 pages, 9
+   endpoints, 39 media originals. Work from the archive. **Do not re-run
+   `npm run archive:source`:** its origin is `https://www.nextvisionfilms.com`, which now
+   serves this rebuild, so it would capture the rebuild and write it over the record.
 2. **Design work is gated.** Five review checkpoints (A–E) precede any site-wide
    propagation. Build one representative artefact, get it accepted, *then* apply it.
 3. `docs/Smash/` is 469 MB of owner source media. It is gitignored, **read-only**, and
@@ -412,7 +442,8 @@ Standing rules that outlive this phase:
    and the legal pages' in-page anchors.
 9. **Published copy declares where it was published**, and the build checks the claim.
    `v('...', '/sobre/')` is verified against `docs/source-archive/pages.json` by
-   `npm run validate:data` — 50 strings, word for word. Copy may be SELECTED for a shorter
+   `npm run validate:data` — 49 strings, word for word, plus any the owners edited in the
+   admin, which carry `owner` provenance (decision A2; 1 on 2026-11-06). Copy may be SELECTED for a shorter
    context and never rewritten; the services excerpt rule is now a schema refinement, and
    since Phase 11 every meta description is a selection checked the same way.
 10. **The legal text may never be edited, and that is enforced, not trusted.**
@@ -438,8 +469,9 @@ Standing rules that outlive this phase:
     a site that works with no network; setting it is the only change that moves delivery to
     R2. `npm run validate:media` fails the build on an upscale, a missing intrinsic size, a
     rendition whose name disagrees with its own bytes, a content key the manifest does not
-    hold, or a media URL typed into a component. Adding media is a recipe entry plus
-    `media:build` — never a hand-edited path (`docs/MEDIA_PIPELINE.md` §5).
+    hold, or a media URL typed into a component. A developer adds media with a recipe entry
+    plus `media:build`, and the owners with an upload in the admin — never a hand-edited
+    path (`docs/MEDIA_PIPELINE.md` §5).
 13. **`media:sync` and `media:backup` are DRY RUNS unless given `--execute`, and neither
     deletes anything by default.** Remote deletion needs `--delete` as well, and only ever
     removes objects the current manifest does not reference. `media:backup` has no
@@ -457,8 +489,9 @@ Standing rules that outlive this phase:
     secret is ever read from `import.meta.env`, and no message content is ever logged, in
     any adapter, in any mode. `npm run test:forms` drives the live endpoint and needs no
     account and no secret.
-15. **The canonical contact email is still unknown, and there are now THREE candidates**
-    (D2): `nextvisionfilmsagency@gmail.com` displayed on `/contactos/`,
+15. **The contact form sends to `geral@nextvisionfilms.com`** (the user's choice, 2026-11-06,
+    `env.prod.vars` in `wrangler.jsonc`), **but which address to PUBLISH is still open, with THREE
+    candidates** (D2): `nextvisionfilmsagency@gmail.com` displayed on `/contactos/`,
     `hello@nextvisionfilms.com` linked from the same element and used in the footer, and
     `geral@nextvisionfilms.com` named in `/termos-e-condicoes/`. No page publishes any of
     them and `Organization.email` is omitted site-wide. The slot is reserved:
@@ -493,14 +526,15 @@ Standing rules that outlive this phase:
     — the worker's own header explains that it never calls `skipWaiting()` on its own, and
     reading that sentence as code is the same prose trap §16 names for the beacon.
 
-19. **A staging deploy may never acquire a capability production has not been granted**
+19. **The `dev` Worker (first called staging) may never acquire a capability production has not been granted**
     (step 12). `PUBLIC_MEDIA_BASE_URL` stays unset rather than pointed at a hostname that
     does not exist, no bucket's privacy is changed, no production Turnstile widget is
     created, and no analytics token is invented — an unset value already has a defined,
     safe meaning everywhere, which is why the whole deployment needed no secret. The
-    contact endpoint answers `503 not-configured` on staging and CANNOT be configured into
+    contact endpoint answers `503 not-configured` on `dev` and CANNOT be configured into
     doing otherwise, because `IS_DEV` is false in every build: that is §14 holding at a URL
-    a person could actually type.
+    a person could actually type. The one deliberate difference runs the other way: the prod
+    Worker alone carries the admin's Access variables and `SOURCES` bucket (decision A8).
 
 20. **What only a real deploy can check, only a real deploy checks** (step 12). Cloudflare
     validates `_headers` and `_redirects` SERVER-SIDE at deploy time, and miniflare's local
@@ -545,8 +579,8 @@ Standing rules that outlive this phase:
     intention** (step 14). `@astrojs/cloudflare` writes a REDIRECTED wrangler configuration
     resolved for exactly one environment, so `CLOUDFLARE_ENV` selects the Worker and
     `wrangler deploy --env x` only cross-checks it — and the check has a hole: a build made
-    with no `CLOUDFLARE_ENV` resolves to the top-level name, and `--env production` against
-    it exits 0 with no warning and deploys to STAGING. `scripts/deploy.mjs` is the ONE way
+    with no `CLOUDFLARE_ENV` resolves to the top-level name, and `--env prod` against
+    it exits 0 with no warning and deploys to `dev`. `scripts/deploy.mjs` is the ONE way
     this project reaches Cloudflare: it sets the variable, reads `dist/server/wrangler.json`
     back, and refuses if the resolved name is not the target's. The Worker names are read
     out of `wrangler.jsonc`, never copied into the script. Never call `wrangler deploy`
@@ -601,7 +635,8 @@ And one routing fact: `trailingSlash: 'always'` DOES apply to endpoints whose ro
 no file extension, so `src/pages/api/contact.ts` answers on `/api/contact/`. The unslashed
 form 308s, which preserves the method and the body.
 
-Before every commit: `npm run verify` (validate:data → validate:legal → **icons:check** →
+Before every commit: `npm run verify` (validate:data → test:access → test:admin →
+validate:legal → **icons:check** →
 check → redirects:build → build → validate:routes → validate:seo → validate:analytics →
 **validate:pwa** → validate:media). `icons:check` runs BEFORE the build because a drifted
 icon should fail in a second, not after a full build; `validate:pwa` and `validate:media`
@@ -610,6 +645,11 @@ run after it because what they check is the built output.
 `npm run test:forms` is deliberately NOT in `verify`: it needs a running server, and a
 verification step that fails when a dev server is not up is a step people learn to ignore.
 Run it against `npm run dev` whenever the endpoint or the form changes.
+
+**On Windows, `verify` fails on a default checkout.** With `core.autocrlf=true` and no
+`.gitattributes`, `test:admin` and `validate:legal` fail because they expect LF; both pass on
+an LF export of the same commit (measured 2026-11-06). CI runs on Linux and never sees this.
+`docs/HANDOVER.md` §4 lists the rest of a Windows setup.
 
 ---
 
