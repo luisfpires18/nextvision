@@ -91,6 +91,9 @@ jobs:
         run: npm run verify
         env:
           CLOUDFLARE_ENV: prod
+          # The public Turnstile site key, a repository VARIABLE. Unset, the build falls back
+          # to Cloudflare's test key and the endpoint still refuses every submission.
+          PUBLIC_TURNSTILE_SITE_KEY: ${{ vars.PUBLIC_TURNSTILE_SITE_KEY }}
 
       # --built reuses the dist/ the previous step produced. scripts/deploy.mjs reads the
       # generated config back and refuses to deploy if it resolved to the other Worker.
