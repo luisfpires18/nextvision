@@ -53,8 +53,15 @@ export function initCinema(): Teardown {
   const avif = root.querySelector<HTMLSourceElement>('[data-poster-avif]');
   const title = root.querySelector<HTMLElement>('[data-poster-title]');
   const meta = root.querySelector<HTMLElement>('[data-poster-meta]');
-  const links = [...root.querySelectorAll<HTMLAnchorElement>('[data-poster-link]')];
+  const imdb = root.querySelector<HTMLAnchorElement>('[data-poster-imdb]');
+  const trailer = root.querySelector<HTMLAnchorElement>('[data-poster-trailer]');
   const spines = [...root.querySelectorAll<HTMLAnchorElement>('[data-spine]')];
+  /** A details link follows the film standing up, and is hidden when that film has none. */
+  const point = (link: HTMLAnchorElement | null, url: string | undefined) => {
+    if (!link) return;
+    link.hidden = !url;
+    if (url) link.href = url; else link.removeAttribute('href');
+  };
   const stand = (spine: HTMLAnchorElement) => {
     for (const s of spines) s.toggleAttribute('aria-current', s === spine);
     if (img && spine.dataset['src']) {
@@ -65,10 +72,8 @@ export function initCinema(): Teardown {
     }
     if (title) title.textContent = spine.dataset['title'] ?? '';
     if (meta) meta.textContent = spine.dataset['meta'] ?? '';
-    for (const l of links) {
-      l.href = spine.href;
-      if (l.hasAttribute('aria-label')) l.setAttribute('aria-label', spine.dataset['title'] ?? '');
-    }
+    point(imdb, spine.dataset['imdb']);
+    point(trailer, spine.dataset['trailer']);
   };
   for (const s of spines) {
     on(s, 'pointerenter', () => stand(s));

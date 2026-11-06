@@ -20,7 +20,7 @@
  */
 
 import { Document, parseDocument, isMap } from 'yaml';
-import { EditError } from './edit.ts';
+import { EditError, youtubeId } from './edit.ts';
 import { slugFrom } from './slug.ts';
 import { applyBlocks, blocksValue } from './blocks.ts';
 
@@ -32,7 +32,7 @@ export const PROJECTS_DIR = 'src/content/projects';
 export const projectFilePath = (slug: string): string => `${PROJECTS_DIR}/${slug}.mdx`;
 export const projectDraftFile = (slug: string): string => `${PROJECT_FILE}/${slug}`;
 
-export type ProjectKind = 'title' | 'tagline' | 'year' | 'category' | 'film' | 'visibility' | 'image' | 'video' | 'blocks';
+export type ProjectKind = 'title' | 'tagline' | 'year' | 'category' | 'film' | 'filmKind' | 'imdb' | 'trailer' | 'visibility' | 'image' | 'video' | 'blocks';
 
 export interface ProjectField {
   /** Dotted path into the front matter. */
@@ -48,6 +48,9 @@ export const PROJECT_FIELDS: ProjectField[] = [
   { path: 'year', label: 'Ano', kind: 'year' },
   { path: 'categories', label: 'Categoria', kind: 'category' },
   { path: 'film.id', label: 'Filme no YouTube', kind: 'film', note: 'Cole o endereço do vídeo no YouTube, ou só o código de 11 caracteres.' },
+  { path: 'filmKind', label: 'O vídeo é', kind: 'filmKind', note: 'Muda o botão por cima do vídeo: «Ver o filme» ou «Ver trailer».' },
+  { path: 'imdb', label: 'Página no IMDb', kind: 'imdb', note: 'Cole o endereço da página do filme no IMDb. Deixe vazio para não mostrar o link.' },
+  { path: 'trailer', label: 'Trailer no YouTube', kind: 'trailer', note: 'Cole o endereço do trailer no YouTube, ou só o código de 11 caracteres. Deixe vazio para não mostrar o link.' },
   { path: 'draft', label: 'No site', kind: 'visibility', note: 'Um projeto escondido sai do portfólio e a sua página deixa de existir, mas fica guardado aqui: pode voltar a mostrá-lo quando quiser.' },
   { path: 'poster.key', label: 'Capa', kind: 'image', note: 'A imagem do projeto no portfólio e nas partilhas. Todos os projetos têm capa: pode trocá-la, não tirá-la.' },
   { path: 'heroVideo', label: 'Vídeo de abertura', kind: 'video', note: 'O excerto que corre em silêncio no topo da página do projeto. A capa vem com ele. Escolha «(nenhum)» para o tirar.' },
@@ -80,18 +83,18 @@ export const writeFront = (doc: Document) => doc.toString({ lineWidth: 0 });
 export const projectData = (text: string): Record<string, unknown> =>
   parseFront(splitMdx(text).front).toJS() as Record<string, unknown>;
 
-/** A YouTube id from an id or any of the usual YouTube addresses; null if neither. */
-export function youtubeId(input: string): string | null {
-  const v = input.trim();
-  if (/^[A-Za-z0-9_-]{11}$/.test(v)) return v;
-  const m = /(?:youtube\.com\/(?:watch\?(?:.*&)?v=|embed\/|shorts\/|live\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/.exec(v);
-  return m ? m[1]! : null;
+export { youtubeId };
+
+/** An IMDb page's https address from what an owner pastes; null if it is not one. */
+export function imdbUrl(input: string): string | null {
+  const m = /^(?:https?:\/\/)?((?:www\.|m\.)?imdb\.com\/\S*)$/i.exec(input.trim());
+  return m ? `https://${m[1]}` : null;
 }
 
 /** Which fields this project offers: the film only when its film is on YouTube. */
 export function fieldsFor(data: Record<string, unknown>): ProjectField[] {
   const film = data['film'] as { provider?: string } | undefined;
-  return PROJECT_FIELDS.filter((f) => f.kind !== 'film' || film?.provider === 'youtube');
+  return PROJECT_FIELDS.filter((f) => (f.kind !== 'film' && f.kind !== 'filmKind') || film?.provider === 'youtube');
 }
 
 /**
@@ -104,6 +107,7 @@ export function projectValue(data: Record<string, unknown>, path: string, lang?:
   if (path === 'tagline') return ((v as Record<string, string> | undefined)?.[lang ?? 'pt']) ?? '';
   if (path === 'categories') return Array.isArray(v) ? String(v[0] ?? '') : '';
   if (path === 'draft') return v === true ? 'true' : 'false';
+  if (path === 'filmKind') return v === 'film' ? 'film' : 'trailer';
   return v === undefined || v === null ? '' : String(v);
 }
 
@@ -182,6 +186,27 @@ export function applyProjectEdits(text: string, edits: Record<string, string>, c
       case 'film': {
         const id = youtubeId(value);
         if (!id) throw new EditError('«Filme no YouTube»: não reconheço este endereço. Cole o link do vídeo, por exemplo https://www.youtube.com/watch?v=…');
+        if (id === projectValue(data, f.path)) continue;
+        set(f.path, id);
+        break;
+      }
+      case 'filmKind':
+        if (value !== 'film' && value !== 'trailer') throw new EditError('«O vídeo é»: valor inválido.');
+        // `trailer` is the default, so the file only says so when it is the full film.
+        if (value === 'trailer') doc.deleteIn(steps(f.path)); else set(f.path, value);
+        break;
+      case 'imdb': {
+        if (!value) { doc.deleteIn(steps(f.path)); break; }
+        const url = imdbUrl(value);
+        if (!url) throw new EditError('«Página no IMDb»: não reconheço este endereço. Cole o link da página, por exemplo https://www.imdb.com/title/…');
+        if (url === projectValue(data, f.path)) continue;
+        set(f.path, url);
+        break;
+      }
+      case 'trailer': {
+        if (!value) { doc.deleteIn(steps(f.path)); break; }
+        const id = youtubeId(value);
+        if (!id) throw new EditError('«Trailer no YouTube»: não reconheço este endereço. Cole o link do vídeo, por exemplo https://www.youtube.com/watch?v=…');
         if (id === projectValue(data, f.path)) continue;
         set(f.path, id);
         break;

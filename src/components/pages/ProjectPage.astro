@@ -107,6 +107,7 @@ const filmAr = frameRatio(getMedia(heroPosterKey));
 const taglineIsProse = blocks.some(
   (b) => b.type === 'text' && (b.body[locale] ?? b.body.pt).trim() === project.tagline?.trim(),
 );
+const playLabel = t(project.filmKind === 'trailer' ? 'media.playTrailer' : 'media.playFilm', locale);
 const captionLead = taglineIsProse ? null : project.tagline;
 
 /* ── SEO ───────────────────────────────────────────────────────────────────── */
@@ -212,16 +213,16 @@ if (project.filmUrl && project.posterSrc) {
         {youtubeId && (
           <>
             <button class="pj-play" type="button" data-film-play>
-              <span class="pj-play__label">{t('media.playFilm', locale)}</span>
-              <span class="visually-hidden">{`${t('media.playFilm', locale)}: ${project.title}`}</span>
+              <span class="pj-play__label">{playLabel}</span>
+              <span class="visually-hidden">{`${playLabel}: ${project.title}`}</span>
             </button>
             {/* The façade is a script that swaps a player in, so with scripting off the
                 button is inert and the film would be unreachable. Every other route on
                 this page is an ordinary anchor; this makes the film one too. */}
             <noscript>
               <a class="pj-play" href={project.filmUrl!} rel="noopener" target="_blank">
-                <span class="pj-play__label">{t('media.playFilm', locale)}</span>
-                <span class="visually-hidden">{`${t('media.playFilm', locale)}: ${project.title}`}</span>
+                <span class="pj-play__label">{playLabel}</span>
+                <span class="visually-hidden">{`${playLabel}: ${project.title}`}</span>
               </a>
             </noscript>
           </>
@@ -239,11 +240,17 @@ if (project.filmUrl && project.posterSrc) {
               The page states the fact rather than offering a film that is not there. */}
           {project.filmUnavailable && <span class="item__flag">{t('project.noFilm', locale)}</span>}
         </p>
+        {(project.imdbUrl || project.trailerUrl) && (
+          <p class="film-links">
+            {project.imdbUrl && <a href={project.imdbUrl} rel="noopener" target="_blank">{t('project.imdb', locale)}</a>}
+            {project.trailerUrl && <a href={project.trailerUrl} rel="noopener" target="_blank">{t('project.trailer', locale)}</a>}
+          </p>
+        )}
       </div>
     </div>
   </section>
 
-  <ProjectBlocks blocks={blocks} title={project.title} locale={locale} filmAr={filmAr} />
+  <ProjectBlocks blocks={blocks} title={project.title} locale={locale} filmAr={filmAr} filmLabel={playLabel} />
 
   <NextProject next={next} previous={previous} locale={locale}>
     <RelatedWork projects={related} category={project.categoryName} locale={locale} />

@@ -54,9 +54,17 @@ export function expandFields(defs: FieldDef[], docs: Partial<Record<PageFileName
   return out;
 }
 
+/** A YouTube id from an id or any of the usual YouTube addresses; null if neither. */
+export function youtubeId(input: string): string | null {
+  const v = input.trim();
+  if (/^[A-Za-z0-9_-]{11}$/.test(v)) return v;
+  const m = /(?:youtube\.com\/(?:watch\?(?:.*&)?v=|embed\/|shorts\/|live\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/.exec(v);
+  return m ? m[1]! : null;
+}
+
 export interface Published { text: string; from: string; en?: string }
 
-/** Form field names: `file:path#pt` / `file:path#en` for text, `file:path` for media. */
+/** Form field names: `file:path#pt` / `file:path#en` for text, `file:path` for everything else. */
 export const fieldName = (f: Field, lang?: 'pt' | 'en') => `${f.file}:${f.key}${lang ? `#${lang}` : ''}`;
 
 export interface Applied {
@@ -110,9 +118,16 @@ export function applyEdits(
       setAt(doc, f.key, { text, from, en: english });
       changed.push({ file: f.file, label: f.label });
     } else {
-      const value = edits[fieldName(f)];
-      if (value === undefined) continue;
-      if (!value.trim()) throw new EditError(`«${f.label}»: escolha um ficheiro.`);
+      const raw = edits[fieldName(f)];
+      if (raw === undefined) continue;
+      if (!raw.trim()) {
+        throw new EditError(f.kind === 'line' || f.kind === 'film' ? `«${f.label}» não pode ficar vazio.` : `«${f.label}»: escolha um ficheiro.`);
+      }
+      const id = f.kind === 'film' ? youtubeId(raw) : null;
+      if (f.kind === 'film' && !id) {
+        throw new EditError(`«${f.label}»: não reconheço este endereço. Cole o link do vídeo, por exemplo https://www.youtube.com/watch?v=…`);
+      }
+      const value = id ?? (f.kind === 'line' ? raw.trim() : raw);
       if (getAt(doc, f.key) === value) continue;
       setAt(doc, f.key, value);
       changed.push({ file: f.file, label: f.label });

@@ -19,12 +19,14 @@ interface Props {
   posterKey: string;
   /** Used for the button's accessible name, so it is never a bare "play". */
   title: string;
+  /** The button's words. A project page passes its own; elsewhere it is "Ver o filme". */
+  label?: string | undefined;
   locale?: Locale;
 }
 
-const { videoId, posterKey, title, locale = DEFAULT_LOCALE } = Astro.props;
+const { videoId, posterKey, title, label: givenLabel, locale = DEFAULT_LOCALE } = Astro.props;
 const poster = imageProps(posterKey, { sizes: '(min-width: 72rem) 1140px, 92vw' });
-const label = t('media.playFilm', locale);
+const label = givenLabel ?? t('media.playFilm', locale);
 ---
 
 <div class="pj-film" data-film data-embed={youtubeEmbedUrl(videoId)} data-title={title}>

@@ -105,6 +105,25 @@ await check('drafts from several pages and files apply in one go', () => {
   assert.equal(next.services.leadImage, other);
 });
 
+await check('the film field takes an address or an id, and refuses anything else', () => {
+  const docs = { services: read('services') };
+  const fields = expandFields(SCREENS.services.filter((d) => d.file === 'services'), docs);
+  const film = fields.find((f) => f.key === 'film.id');
+  const name = fieldName(film);
+  const id = 'dQw4w9WgXcQ';
+  for (const given of [id, `https://www.youtube.com/watch?v=${id}`, `https://youtu.be/${id}?t=3`]) {
+    const { docs: next, changed } = applyEdits(fields, docs, { [name]: given }, TODAY);
+    assert.equal(next.services.film.id, id);
+    assert.equal(changed.length, 1);
+  }
+  assert.throws(() => applyEdits(fields, docs, { [name]: 'https://vimeo.com/123' }, TODAY), /não reconheço/);
+  assert.throws(() => applyEdits(fields, docs, { [name]: ' ' }, TODAY), /não pode ficar vazio/);
+  assert.equal(applyEdits(fields, docs, { [name]: docs.services.film.id }, TODAY).changed.length, 0);
+  const title = fieldName(fields.find((f) => f.key === 'film.title'));
+  assert.throws(() => applyEdits(fields, docs, { [title]: '' }, TODAY), /não pode ficar vazio/);
+  assert.equal(applyEdits(fields, docs, { [title]: '  Outro  ' }, TODAY).docs.services.film.title, 'Outro');
+});
+
 await check('every offered field exists in its file', () => {
   for (const [screen, defs] of Object.entries(SCREENS)) {
     const docs = docsFor(screen);
@@ -129,6 +148,23 @@ await check('every offered field exists in its file', () => {
   await check('every project file survives a read and a write byte for byte', () => {
     const bad = fs.readdirSync(dir).filter((f) => !roundTrips(fs.readFileSync(`${dir}/${f}`, 'utf8')));
     assert.deepEqual(bad, []);
+  });
+  await check('a project video can be marked the full film, and trailer is the default', () => {
+    const { text } = applyProjectEdits(leonor, { filmKind: 'film' }, ctx);
+    assert.equal(projectData(text).filmKind, 'film');
+    assert.equal(projectData(applyProjectEdits(text, { filmKind: 'trailer' }, ctx).text).filmKind, undefined);
+    assert.throws(() => applyProjectEdits(leonor, { filmKind: 'nope' }, ctx), /O vídeo é/);
+    assert.equal(applyProjectEdits(leonor, { filmKind: 'trailer' }, ctx).changed.length, 0);
+  });
+  await check('IMDb and trailer links are optional, take an address, and refuse anything else', () => {
+    const { text } = applyProjectEdits(leonor, { imdb: 'www.imdb.com/title/tt0000001/', trailer: 'https://youtu.be/dQw4w9WgXcQ' }, ctx);
+    assert.equal(projectData(text).imdb, 'https://www.imdb.com/title/tt0000001/');
+    assert.equal(projectData(text).trailer, 'dQw4w9WgXcQ');
+    assert.throws(() => applyProjectEdits(leonor, { imdb: 'https://example.com/x' }, ctx), /IMDb/);
+    assert.throws(() => applyProjectEdits(leonor, { trailer: 'nope' }, ctx), /Trailer/);
+    const cleared = projectData(applyProjectEdits(text, { imdb: '', trailer: '' }, ctx).text);
+    assert.equal(cleared.imdb, undefined);
+    assert.equal(cleared.trailer, undefined);
   });
   await check('a title change touches only that line, keeping its quotes and every comment', () => {
     const { text, changed } = applyProjectEdits(leonor, { 'title.pt': 'Words' }, ctx);

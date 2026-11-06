@@ -103,7 +103,7 @@ export interface MediaRequest {
 export function planUpload(fields: UploadField[], req: MediaRequest, id: string, by: string, at: string): UploadEntry {
   const [file = '', path = ''] = req.target.split(':');
   const field = fields.find((f) => f.file === file && f.key === path);
-  if (!field || field.kind === 'text') throw new EditError('Este campo não aceita ficheiros.');
+  if (!field || (field.kind !== 'image' && field.kind !== 'video')) throw new EditError('Este campo não aceita ficheiros.');
   if (field.locked) throw new EditError(`«${field.label}» não pode ser alterado aqui.`);
   if (!isUploadKey(req.source)) throw new EditError('O ficheiro carregado não foi encontrado. Volte a carregá-lo.');
 

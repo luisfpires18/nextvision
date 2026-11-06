@@ -59,6 +59,14 @@ const rows = (v: string) => Math.min(8, Math.ceil(v.length / 60) + v.split('\n')
               {categories.map((c) => <option value={c.id} selected={c.id === value}>{c.name}</option>)}
             </select>
           </label>
+        ) : f.kind === 'filmKind' ? (
+          <label class="ed-media__pick">
+            <span class="f-lang">Tipo</span>
+            <select name={name(f)} data-original={value} data-label={named(f)}>
+              <option value="trailer" selected={value === 'trailer'}>Trailer</option>
+              <option value="film" selected={value === 'film'}>Filme</option>
+            </select>
+          </label>
         ) : f.kind === 'visibility' ? (
           <label class="ed-media__pick">
             <span class="f-lang">Estado</span>
@@ -92,7 +100,7 @@ const rows = (v: string) => Math.min(8, Math.ceil(v.length / 60) + v.split('\n')
           </>
         ) : (
           <label class="ed-media__pick">
-            <span class="f-lang">{f.kind === 'year' ? 'Ano' : f.kind === 'film' ? 'Endereço ou código' : 'Português e inglês'}</span>
+            <span class="f-lang">{f.kind === 'year' ? 'Ano' : f.kind === 'film' || f.kind === 'trailer' ? 'Endereço ou código' : f.kind === 'imdb' ? 'Endereço' : 'Português e inglês'}</span>
             <input
               type="text"
               name={name(f)}

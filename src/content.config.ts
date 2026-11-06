@@ -200,6 +200,12 @@ const projects = defineCollection({
 
     // --- media
     film: filmRef.optional(),
+    /** What `film` is, which names the play button: "Ver trailer" (the default) or "Ver o filme". */
+    filmKind: z.enum(['film', 'trailer']).default('trailer'),
+    /** The film's IMDb page. Optional; set in the admin. */
+    imdb: z.string().regex(/^https:\/\/(www\.|m\.)?imdb\.com\/\S*$/, 'must be an https://www.imdb.com address').optional(),
+    /** The trailer's YouTube id. Optional; set in the admin. */
+    trailer: z.string().regex(/^[A-Za-z0-9_-]{11}$/, 'must be an 11-character YouTube video id').optional(),
     poster: mediaRef,
     heroStill: mediaRef.optional(),
     heroVideo: z.string().optional(),

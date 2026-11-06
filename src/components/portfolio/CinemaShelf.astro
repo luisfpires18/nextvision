@@ -4,8 +4,13 @@
  *
  * Every project as the spine of a VHS cassette, and one of them stood up as a poster.
  * Each spine is a real link to its project, so the shelf is a complete index on its own;
- * pointing at or focusing a spine stands it up in the poster slot (portfolio-filter.ts
- * owns that small script), and pressing it goes to the film.
+ * pointing at or focusing a spine stands it up in the poster slot (cinema.ts owns that small
+ * script), and pressing it goes to the film. The spine is the ONLY way in from the shelf: the
+ * poster is a preview, not a link. Its details link out to IMDb and the trailer when the
+ * project has them, both set in the admin.
+ *
+ * A title's size follows its length (`--vhs-chars`, `.vhs__title` in sections.css), so a long
+ * one shrinks to fit its spine at any viewport height, with no script and no measuring.
  *
  * The spines are drawn here from each project's own title, number and category — not
  * Tatiana's artwork, which has not been delivered (docs/BLOCKED_TODOS.md). When it is,
@@ -32,11 +37,14 @@ const no = (i: number): string => String(i + 1).padStart(3, '0');
         <a
           href={p.href}
           data-spine
+          style={`--vhs-chars:${p.title.length}`}
           data-title={p.title}
           data-meta={`${p.categoryName} · ${p.date}`}
           data-src={p.posterSrc ?? undefined}
           data-srcset={p.posterSrcset ?? undefined}
           data-avifset={p.posterAvifSrcset ?? undefined}
+          data-imdb={p.imdbUrl ?? undefined}
+          data-trailer={p.trailerUrl ?? undefined}
           aria-current={p.slug === lead?.slug ? 'true' : undefined}
         >
           <span class="vhs__tag" aria-hidden="true">NVF</span>
@@ -51,8 +59,7 @@ const no = (i: number): string => String(i + 1).padStart(3, '0');
 
   {lead && (
     <figure class="poster" data-poster aria-live="polite">
-      {/* The image is decorative (alt=""), so the link takes the film's own title. */}
-      <a class="poster__frame" href={lead.href} aria-label={lead.title} data-poster-link>
+      <div class="poster__frame">
         {/* The visible poster is this page's LCP: eager and high priority. */}
         {lead.posterSrc && (
           <picture>
@@ -71,11 +78,14 @@ const no = (i: number): string => String(i + 1).padStart(3, '0');
             />
           </picture>
         )}
-      </a>
+      </div>
       <figcaption>
         <span class="poster__title" data-poster-title>{lead.title}</span>
         <span class="poster__meta" data-poster-meta>{`${lead.categoryName} · ${lead.date}`}</span>
-        <a class="poster__go" href={lead.href} data-poster-link>{t('cinema.watch', locale)}</a>
+        <span class="film-links">
+          <a href={lead.imdbUrl ?? undefined} hidden={!lead.imdbUrl} rel="noopener" target="_blank" data-poster-imdb>{t('project.imdb', locale)}</a>
+          <a href={lead.trailerUrl ?? undefined} hidden={!lead.trailerUrl} rel="noopener" target="_blank" data-poster-trailer>{t('project.trailer', locale)}</a>
+        </span>
       </figcaption>
     </figure>
   )}
