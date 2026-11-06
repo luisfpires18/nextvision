@@ -97,6 +97,25 @@
       "start": 0,
       "duration": 8,
       "posterAt": 1
+    },
+    {
+      "id": "c76986dd585c",
+      "key": "owner/c76986dd585c/hero",
+      "kind": "video",
+      "source": "uploads/2026-11-06/c76986dd585c/We-are-NVF.mp4",
+      "name": "We are NVF.mp4",
+      "target": {
+        "screen": "home",
+        "file": "home",
+        "path": "heroVideo",
+        "label": "Vídeo da página inicial"
+      },
+      "by": "nextvisionfilmsagency@gmail.com",
+      "at": "2026-11-06T21:38:57.348Z",
+      "status": "pending",
+      "start": 0,
+      "duration": 8,
+      "posterAt": 1
     }
   ]
 }
