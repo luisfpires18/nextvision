@@ -85,10 +85,14 @@ const projects = fs.readdirSync(PROJECT_DIR)
 const published = projects.filter((p) => !p.draft);
 
 // Twenty were migrated; owners add more from the admin, so this is a FLOOR, not a count.
-// Losing one is still a failure: a project is never removed by accident.
+// Losing one is still a failure: a project is never removed by accident. Removed on
+// purpose is a project the admin deleted AND recorded (src/data/removed-projects.json);
+// a hidden one (`draft: true`) still has its file. Either is the owners' decision.
 const MIGRATED = 20;
-if (published.length < MIGRATED) {
-  errors.push(`content: at least ${MIGRATED} published projects expected, found ${published.length}`);
+const removed = JSON.parse(read(path.join(ROOT, 'src', 'data', 'removed-projects.json'))).removed
+  .filter((r) => !projects.some((p) => p.slug === r.slug));
+if (projects.length + removed.length < MIGRATED) {
+  errors.push(`content: at least ${MIGRATED} projects expected (files, plus those removed in the admin), found ${projects.length} + ${removed.length} removed — a project file went missing without being recorded as removed`);
 }
 
 /* ------------------------------------------------------ evidence: the build */
@@ -300,6 +304,27 @@ for (const page of STATIC_PAGES) {
   }
 
   staticOk += 1;
+}
+
+/* ----------------------------------------------------------- /servicos/ */
+/* The stage. It needs a frame in front and one on each side, and every frame that links
+   must open a project page that was built. The built HTML has to stay real links, because
+   that is the page without scripting (src/lib/stage.ts). */
+try {
+  const html = read(path.join(DIST, 'servicos', 'index.html'));
+  const slots = [...html.matchAll(/class="stage__frame"[^>]*data-slot="([a-z]+)"/g)].map((m) => m[1]);
+  for (const slot of ['centre', 'left', 'right']) {
+    if (slots.filter((s) => s === slot).length !== 1) errors.push(`page: /servicos/ stage needs exactly one "${slot}" frame`);
+  }
+  const hrefs = [...html.matchAll(/<a class="stage__link" href="([^"]+)"/g)].map((m) => m[1]);
+  if (hrefs.length === 0) errors.push('page: /servicos/ stage has no project links');
+  for (const href of hrefs) {
+    if (!exists(path.join(DIST, href.replace(/^\/|\/$/g, ''), 'index.html'))) errors.push(`page: /servicos/ frame ${href} was not built`);
+  }
+  if (!/class="cm__film"[\s\S]*?data-film-play/.test(html)) errors.push('page: /servicos/ has no film under the stage');
+  if (/<iframe/.test(html)) errors.push('page: /servicos/ loads a player before anyone pressed play');
+} catch (e) {
+  errors.push(`page: /servicos/ could not be read — ${e.message}`);
 }
 
 /* ---------------------------------------------------------- /contactos/ */

@@ -3,7 +3,9 @@
  * The spine — DESIGN V2 (Tatiana). The active section's tab, docked on the left edge.
  *
  * Top to bottom, as in the storyboard: the language switch, the "Let's talk" reel (a link
- * to /contactos/), the section's name set vertically, and an arrow to the next section.
+ * to /contactos/) and the section's name set vertically. The storyboard's arrow to the next
+ * section read as a stuck mouse pointer and was removed (2026-11-06); the rail reaches every
+ * section.
  * It wears the section's colour through --sec / --sec-ink, so this file names no colour.
  * On a phone it becomes a bar across the top.
  *
@@ -38,7 +40,6 @@ const rail = (navigation?.data.items ?? [])
 
 const index = rail.findIndex((i) => i.section === section);
 const current = index >= 0 ? rail[index] : null;
-const next = rail[(index + 1) % rail.length] ?? rail[0];
 
 const locales = activeLocales();
 const here = Astro.url.pathname;
@@ -82,11 +83,4 @@ const here = Astro.url.pathname;
   </a>
 
   {current && <span class="spine__label" aria-hidden="true">{t(current.labelKey as UIKey, locale)}</span>}
-
-  {next && (
-    <a class="spine__next" href={navHref(next.pageId, locale)}>
-      <svg viewBox="0 0 22 22" aria-hidden="true"><path d="M2 2l18 7-8 3-3 8z" /></svg>
-      <span class="visually-hidden">{`${t('rail.next', locale)}: ${t(next.labelKey as UIKey, locale)}`}</span>
-    </a>
-  )}
 </aside>

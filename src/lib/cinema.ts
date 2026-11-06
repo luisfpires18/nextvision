@@ -12,6 +12,20 @@
 
 interface Teardown { destroy(): void }
 
+/** The view a URL asks for. The ONE reading of `?view=`, shared with the router hook. */
+const viewOf = (url: URL): 'list' | 'shelf' => (url.searchParams.get('view') === 'list' ? 'list' : 'shelf');
+
+/**
+ * Sets the view on an INCOMING document, before the router swaps it in. The server sends
+ * `data-view="both"` (the no-script state), and `initCinema` runs only at page-load, so
+ * without this the view-transition snapshot showed the shelf AND the list, which then
+ * collapsed after the slide.
+ */
+export function presetCinemaView(doc: Document, url: URL): void {
+  const root = doc.querySelector<HTMLElement>('[data-cinema]');
+  if (root) root.dataset['view'] = viewOf(url);
+}
+
 export function initCinema(): Teardown {
   const root = document.querySelector<HTMLElement>('[data-cinema]');
   if (!root) return { destroy() { /* not this page */ } };
@@ -31,24 +45,35 @@ export function initCinema(): Teardown {
     if (view === 'list') url.searchParams.set('view', 'list'); else url.searchParams.delete('view');
     history.replaceState(history.state, '', url);
   };
-  setView(new URL(location.href).searchParams.get('view') === 'list' ? 'list' : 'shelf', false);
+  setView(viewOf(new URL(location.href)), false);
   for (const b of buttons) on(b, 'click', () => setView(b.dataset['viewSet'] ?? 'shelf', true));
 
   /* ── poster ── */
   const img = root.querySelector<HTMLImageElement>('[data-poster-img]');
+  const avif = root.querySelector<HTMLSourceElement>('[data-poster-avif]');
   const title = root.querySelector<HTMLElement>('[data-poster-title]');
   const meta = root.querySelector<HTMLElement>('[data-poster-meta]');
-  const links = [...root.querySelectorAll<HTMLAnchorElement>('[data-poster-link]')];
+  const imdb = root.querySelector<HTMLAnchorElement>('[data-poster-imdb]');
+  const trailer = root.querySelector<HTMLAnchorElement>('[data-poster-trailer]');
   const spines = [...root.querySelectorAll<HTMLAnchorElement>('[data-spine]')];
+  /** A details link follows the film standing up, and is hidden when that film has none. */
+  const point = (link: HTMLAnchorElement | null, url: string | undefined) => {
+    if (!link) return;
+    link.hidden = !url;
+    if (url) link.href = url; else link.removeAttribute('href');
+  };
   const stand = (spine: HTMLAnchorElement) => {
     for (const s of spines) s.toggleAttribute('aria-current', s === spine);
     if (img && spine.dataset['src']) {
       img.src = spine.dataset['src'];
       if (spine.dataset['srcset']) img.srcset = spine.dataset['srcset'];
+      // The <source> outranks the <img> in AVIF browsers, so it must follow the spine too.
+      if (avif) avif.srcset = spine.dataset['avifset'] ?? spine.dataset['srcset'] ?? '';
     }
     if (title) title.textContent = spine.dataset['title'] ?? '';
     if (meta) meta.textContent = spine.dataset['meta'] ?? '';
-    for (const l of links) l.href = spine.href;
+    point(imdb, spine.dataset['imdb']);
+    point(trailer, spine.dataset['trailer']);
   };
   for (const s of spines) {
     on(s, 'pointerenter', () => stand(s));

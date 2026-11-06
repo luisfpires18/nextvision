@@ -268,7 +268,7 @@ button.admin-publish-link { border: 0; font: inherit; font-weight: 600; text-ali
 .pub-dialog::backdrop { background: color-mix(in srgb, var(--brand-black) 70%, transparent); }
 .pub-dialog h2 { margin: 0 0 var(--space-4); font-family: var(--font-display); font-weight: var(--w-display); font-size: var(--t-display-s); }
 .pub-dialog h3 { margin: var(--space-4) 0 var(--space-2); font-size: var(--t-ui); }
-.pub-dialog .pub-list li { grid-template-columns: minmax(0, var(--admin-name-w)) 1fr; background: var(--a-raise); }
+.pub-dialog .pub-list li { grid-template-columns: minmax(0, var(--admin-name-w)) 1fr auto; background: var(--a-raise); }
 .pub-dialog .pub-fields { overflow-wrap: anywhere; }
 .pub-dialog .pub-actions { display: flex; flex-wrap: wrap; gap: var(--space-4); align-items: center; margin-block-start: var(--space-5); }
 .pub-list { display: grid; gap: var(--admin-hairline); margin-block-end: var(--space-6); list-style: none; }

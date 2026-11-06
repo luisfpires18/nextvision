@@ -1,7 +1,9 @@
 # Admin dashboard — plan
 
-**Status:** PLAN ONLY, 2026-10-22. Nothing here is built or provisioned. Decisions A1–A6
-are made (§7); the in-text **DECISION** markers point there.
+**Status:** BUILT AND LIVE at `nextvisionfilms.com/admin`. This was written as the plan on
+2026-10-22 and is kept as the design record. Where it differs from the build, decisions A8
+and A10 (§7) win, and `docs/HANDOVER.md` §11 describes what runs today. The in-text
+**DECISION** markers point to §7.
 
 **The ask.** The owners must change the site themselves — "today there is a video, tomorrow
 it might be another" — without Claude Code and without a developer. A login, and access to
@@ -23,6 +25,11 @@ first (§2.2), and the media pipeline must learn to run in CI instead of on Luí
 > `nextvisionfilms.com/admin`, not on dev. Saves still commit to `dev`, which is still the
 > preview, and Publish still merges `dev → master`. Where this document says the admin is
 > on the dev Worker, read prod. §3.1 records the first setup as it happened.
+>
+> **Amended again (decision A10):** there is no separate save, dev preview or PR. Edits are
+> browser drafts, and one **Publicar** commits them all straight to `master`, with uploads and
+> `media-ingest.yml` on `master` too. Where this document says saves go to `dev`, read `master`
+> (`PROJECT_CONTEXT.md` §26).
 
 A small **custom admin at `/admin/`, served only by the `prod` Worker**, behind
 **Cloudflare Access** (email one-time code — no passwords stored by us, no user table).
@@ -163,6 +170,10 @@ silently and break saving.
 ---
 
 ## 4. How a save becomes the live site
+
+> **Superseded by decision A10.** The diagram and §4.1 describe the first design, through
+> `dev`. Today Publicar and the ingest commit go directly to `master`
+> (`PROJECT_CONTEXT.md` §26).
 
 ```
  owner (browser)               prod Worker                GitHub                    Cloudflare
@@ -355,11 +366,11 @@ Each phase ships on its own and is useful without the next.
 | # | Phase | Delivers | Size |
 |---|---|---|---|
 | A0 ✅ | Content extraction (§2.2) | Hero video, page images, page copy, BTS frames become data in `src/content/page-content/*.json`. Done 2026-10-22; `PROJECT_CONTEXT.md` §20 | S |
-| A1 ✅ | Access + shell | `/admin/` on dev Worker only, Cloudflare Access, JWT check, read-only browse of all content. Done 2026-10-22; `PROJECT_CONTEXT.md` §21 | S |
-| A2 ◐ | Text & settings editing — **slice 1 done 2026-10-22** (the seven page screens: texts and media picks; `PROJECT_CONTEXT.md` §23). Collections (projects, services, team, settings) still to come | Forms for every §2.1 collection, schema validation server-side, commit via GitHub App, build status | M |
-| A3 ✅ | Publish | `dev → master` PR/merge button, with the list of what is waiting to go live, refused unless everything waiting is owner content. No undo (A9). Done 2026-10-22; `PROJECT_CONTEXT.md` §24 | S |
-| A4 ◐ | Media ingest — **built 2026-10-22, not yet live** (`PROJECT_CONTEXT.md` §25) | R2 multipart upload, `recipes.json`, `media-ingest.yml`, video window picker, image upload | L |
-| A5 | Ordering & blocks | Drag-to-order homepage/portfolio, project page block editor (the 9 closed types) | M |
+| A1 ✅ | Access + shell | `/admin/` on the dev Worker at first, prod since A8, Cloudflare Access, JWT check, read-only browse of all content. Done 2026-10-22; `PROJECT_CONTEXT.md` §21 | S |
+| A2 ✅ | Text & settings editing — page screens, projects, services, team, categories and contacts (`PROJECT_CONTEXT.md` §23, §27, §30) | Forms for every §2.1 collection, schema validation server-side, commit via GitHub App, build status | M |
+| A3 ✅ | Publish (replaced by A10, `PROJECT_CONTEXT.md` §26) | `dev → master` PR/merge button, with the list of what is waiting to go live, refused unless everything waiting is owner content. No undo (A9). Done 2026-10-22; `PROJECT_CONTEXT.md` §24 | S |
+| A4 ✅ | Media ingest — live; `media-ingest.yml` last ran green on 2026-11-06 (`PROJECT_CONTEXT.md` §25) | R2 multipart upload, `recipes.json`, `media-ingest.yml`, video window picker, image upload | L |
+| A5 ✅ | Ordering & blocks (`PROJECT_CONTEXT.md` §28, §31) | Portfolio order and project page block editor. Blocks move with ↑/↓ | M |
 
 **Smallest useful slice for "change the video tomorrow":** A0 + A1 + A3 + the video path
 of A4. Text editing (A2) can follow.

@@ -1,5 +1,8 @@
 # Route Migration Map
 
+> **Status, 2026-11-06:** the domain now serves the rebuild, so this map is live. The crawl diff
+> this file mentions (Phase 16) has no recorded result: UNKNOWN whether it was run.
+
 **Generated:** 2026-09-02 · **Data:** [`src/data/routes.json`](../src/data/routes.json) · **Built by:** `scripts/build-route-map.mjs`
 
 Every URL the WordPress site serves, and what happens to it. This file explains the map;
@@ -68,6 +71,12 @@ emitted them at all, so `/blog` — linked from the "Ver Tudo" button on all twe
 pages — 404ed in every build. Two groups are still deliberately not emitted: the
 `/wp-content/uploads/*` map needs R2, and the 410 patterns need a Worker, since
 `_redirects` speaks only in 3xx. The generated file says both.
+
+**Projects removed in the admin** (2026-10-29) are redirected from data, not from this
+map: `src/data/removed-projects.json`, written by the same commit that deletes the
+project, makes `build-redirects.mjs` emit `/portfolio/<slug>/ → /portfolio/` and
+`/en/portfolio/<slug>/ → /en/portfolio/`, 301. A slug that has a project file again is
+skipped, so a new project with the same title is not hidden behind a redirect.
 
 ---
 

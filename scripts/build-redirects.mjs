@@ -76,6 +76,20 @@ for (const r of routes.redirects) {
   count += 1;
 }
 
+/**
+ * Projects the owners removed in the admin (src/data/removed-projects.json, written by the
+ * same commit that deleted the file). A shared link to one lands on the portfolio, in its
+ * own language, instead of a 404. A slug that has a project file again (a new project
+ * with the same title) is a real page, and a redirect would hide it, so it is skipped.
+ */
+const removed = JSON.parse(fs.readFileSync(path.join(ROOT, 'src/data/removed-projects.json'), 'utf8')).removed;
+const gone = removed.filter((r) => !['.md', '.mdx'].some((ext) => fs.existsSync(path.join(ROOT, 'src/content/projects', `${r.slug}${ext}`))));
+if (gone.length) lines.push('', '# Projects removed in the admin (src/data/removed-projects.json).');
+for (const r of gone) {
+  lines.push(`/portfolio/${r.slug}/    /portfolio/    301`, `/en/portfolio/${r.slug}/    /en/portfolio/    301`);
+  count += 2;
+}
+
 lines.push(
   '',
   '# Trailing slash is NOT a rule here. `build.format: directory` writes every route as',

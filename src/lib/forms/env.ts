@@ -40,6 +40,8 @@ export const ENV_KEYS = {
   recipient: 'CONTACT_RECIPIENT',
   /** The From: address. Must be on a domain the provider has verified. */
   sender: 'CONTACT_SENDER',
+  /** Cloudflare Email Service's `send_email` binding. An object, read with readBinding(). */
+  emailBinding: 'EMAIL',
   resendKey: 'RESEND_API_KEY',
   brevoKey: 'BREVO_API_KEY',
   /** The admin's Cloudflare Access team and application (docs/ADMIN_DASHBOARD_PLAN.md §3.1). Not secrets. */
@@ -69,6 +71,16 @@ export function readEnv(key: string): string | undefined {
   return undefined;
 }
 
+/** A Worker binding by name, or undefined. Guarded like readEnv, and never logged. */
+export function readBinding<T>(key: string): T | undefined {
+  try {
+    const value = (workerEnv as Record<string, unknown>)[key];
+    return typeof value === 'object' && value !== null ? (value as T) : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 /**
  * Whether this process is a development surface.
  *
@@ -85,6 +97,7 @@ export function describeEnv(): Record<string, boolean> {
     turnstileSecret: readEnv(ENV_KEYS.turnstileSecret) !== undefined,
     recipient: readEnv(ENV_KEYS.recipient) !== undefined,
     sender: readEnv(ENV_KEYS.sender) !== undefined,
+    emailBinding: readBinding(ENV_KEYS.emailBinding) !== undefined,
     resendKey: readEnv(ENV_KEYS.resendKey) !== undefined,
     brevoKey: readEnv(ENV_KEYS.brevoKey) !== undefined,
   };

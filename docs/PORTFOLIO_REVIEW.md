@@ -1,5 +1,8 @@
 # Portfolio & Navigation — Review C
 
+> **Historical record.** Design v2 (2026-10-22) replaced this page's look and its navigation with
+> the Cinema shelf and list. Routes and filtering carried over. Current design: `docs/DESIGN_V2_ROLLOUT.md`.
+
 > **⚠ Correction applied 2026-09-03 (Review E).** Two of the five archives documented
 > below were rendering their masthead and **no project cards**: `Corporativo` and
 > `Moda & Identidade` each hold one project, and the row cursor advanced for rows that

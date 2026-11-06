@@ -1,5 +1,8 @@
 # Design References — Next Vision Films
 
+> **Historical record, from before Review A.** The design that shipped is
+> `docs/DESIGN_V2_ROLLOUT.md`.
+
 **Date:** 2026-09-01
 **Purpose:** extract reusable principles from the owners' reference sites, name the traps,
 and put a small number of concrete visual directions in front of the owners for **Review A**.

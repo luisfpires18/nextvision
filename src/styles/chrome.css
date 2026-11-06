@@ -23,17 +23,17 @@
 }
 
 /* ═══════════════════════════════════════════════════════════════════ marks ══ */
-.brand-mark { display: block; inline-size: 100%; block-size: auto; }
+/* Both branches carry --mark-ar: `block-size: auto` overrides an <img>'s height
+   attribute, so without it the browser cannot reserve the box before the bytes arrive. */
+.brand-mark { display: block; inline-size: 100%; block-size: auto; aspect-ratio: var(--mark-ar); }
 span.brand-mark {
-  aspect-ratio: var(--mark-ar);
   background: currentColor;
   -webkit-mask: var(--mark) center / contain no-repeat;
   mask: var(--mark) center / contain no-repeat;
 }
 
 .reel { display: block; inline-size: 100%; block-size: auto; color: var(--reel-disc, var(--brand-yellow)); overflow: visible; }
-.reel__holes, .reel__text { fill: var(--reel-hole, var(--ground-cream)); }
-.reel__text { font-family: var(--font-display); font-weight: 700; letter-spacing: var(--tracking-brand); }
+.reel__text { fill: var(--reel-text, var(--ground-cream)); font-family: var(--font-display); font-weight: 700; letter-spacing: var(--tracking-brand); }
 
 /* ════════════════════════════════════════════════════════════════════ rail ══
    Five stripes. The gaps between them are each stripe's own cream border, not the rail's
@@ -55,6 +55,8 @@ span.brand-mark {
   color: var(--sec-ink);
   border-inline-start: var(--rail-gap) solid var(--ground-cream);
   --focus-ring: var(--brand-ink);
+  -webkit-touch-callout: none;
+  -webkit-user-drag: none;
 }
 .rail__name {
   position: absolute; inline-size: 1px; block-size: 1px; overflow: hidden;
@@ -104,6 +106,8 @@ span.brand-mark {
   .rail__tab { display: none; }
   .rail__name {
     position: static; inline-size: auto; block-size: auto; overflow: visible; clip-path: none;
+    white-space: normal;
+    text-align: center;
     font-family: var(--font-display);
     font-weight: 500;
     font-size: var(--t-metaline);
@@ -127,7 +131,6 @@ span.brand-mark {
   background: var(--sec);
   color: var(--sec-ink);
   --reel-disc: var(--sec-ink);
-  --reel-hole: var(--sec);
   --focus-ring: var(--sec-ink);
 }
 .spine__lang { display: flex; flex-direction: column; align-items: center; gap: var(--space-1); }
@@ -138,19 +141,19 @@ span.brand-mark {
   font-size: var(--t-spine-meta);
   letter-spacing: var(--tracking-eyebrow);
   padding: var(--space-2) var(--space-1);
-  opacity: 0.7;
 }
-.spine__lang [aria-current] { opacity: 1; font-weight: 700; }
+/* The other language is a link at full ink: at 0.7 opacity it measured 3.11:1 on the
+   cinema ground, under the 4.5:1 floor. Weight alone marks the current one. A locale
+   with no translation stays dimmed — it is disabled, not text to be read. */
+.spine__lang [aria-current] { font-weight: 700; }
 .spine__lang .spine__lang-off { opacity: 0.35; }
 .spine__talk { display: block; inline-size: var(--reel-s); }
 .spine__talk .reel { transition: transform var(--dur-ui) var(--ease-ui); }
 .spine__talk:is(:hover, :focus-visible) .reel { transform: rotate(45deg); }
 .spine__label { margin-block: auto; }
-.spine__next { display: grid; place-items: center; inline-size: var(--space-6); block-size: var(--space-6); }
-.spine__next svg { inline-size: var(--space-5); fill: currentColor; }
 
 /* The homepage is full-bleed film; the spine floats over it instead of framing it. */
-[data-section='home'] .spine { background: none; --reel-hole: var(--brand-black); }
+[data-section='home'] .spine { background: none; }
 [data-section='home'] .spine__label { visibility: hidden; }
 [data-section='home'] .site { padding-inline-start: 0; }
 
@@ -168,7 +171,6 @@ span.brand-mark {
   .spine__lang > * { writing-mode: horizontal-tb; transform: none; }
   .spine__label { writing-mode: horizontal-tb; transform: none; margin: 0; margin-inline-end: auto; order: 1; font-size: var(--t-service); }
   .spine__talk { order: 2; }
-  .spine__next { display: none; }
   [data-section='home'] .spine { background: var(--sec); }
 }
 
@@ -194,12 +196,13 @@ span.brand-mark {
 
 /* ══════════════════════════════════════════════════════════════════ cursor ══
    Decision C1: a native CSS cursor image, fine pointers only. Nothing follows the pointer
-   in script. The light variant is red on cream; the dark one is yellow, for film, the
-   spine, the rail and the lights-down state. */
+   in script. The light star is red on cream; the dark one is yellow, for film, the
+   spine and the lights-down state. On the rail it becomes the mockup's small arrow. */
 @media (hover: hover) and (pointer: fine) {
   html { cursor: var(--cursor-light); }
-  .ground-dark, .spine, .rail, .site-footer, [data-cursor='dark'],
+  .ground-dark, .spine, .site-footer, [data-cursor='dark'],
   :root:has(.rail:hover) .site { cursor: var(--cursor-dark); }
+  .rail { cursor: var(--cursor-arrow); }
   a, button, label, summary, [role='button'] { cursor: inherit; }
   input, textarea, select { cursor: text; }
 }
@@ -300,8 +303,8 @@ span.brand-mark {
 .loader__hello {
   position: absolute;
   inset-inline: 0;
-  inset-block-start: 89.5vh;
-  block-size: 6vh;
+  inset-block-start: 89vh;
+  block-size: 8vh;
   overflow: hidden;
   text-align: center;
 }
@@ -309,7 +312,7 @@ span.brand-mark {
   display: inline-block;
   font-family: var(--font-display);
   font-weight: var(--w-display);
-  font-size: 3.6vh;
+  font-size: var(--t-intro-hello);
   line-height: 1.4;
   color: var(--brand-black);
   transform: translateY(110%);

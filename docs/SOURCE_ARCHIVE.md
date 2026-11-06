@@ -1,5 +1,9 @@
 # Source Archive — preservation of the live WordPress site
 
+> **Do not re-run `npm run archive:source`.** Its origin, `https://www.nextvisionfilms.com`, now
+> serves the rebuild, not WordPress, so it would capture the rebuild and write it over this
+> record. The capture below is final. It is backed up in `nvf-source-archive`.
+
 **Captured:** 2026-09-02 · **Script:** `scripts/archive-source.mjs` · **Result:** 34/34 pages, 9/9 endpoints, 39/39 media originals, **0 failures**
 
 The owners expect nextvisionfilms.com to become unavailable around the end of 2026.

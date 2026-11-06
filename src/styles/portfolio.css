@@ -30,7 +30,6 @@
   letter-spacing: var(--tracking-display);
   margin: 0;
 }
-.pf-lead { margin-block-start: var(--space-4); max-inline-size: 34ch; }
 
 /* ══════════════════════════════════════════════════════════════════ filters ══
    Real links to real routes, styled as a quiet row of words. Not buttons, not chips,

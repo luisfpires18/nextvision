@@ -19,6 +19,8 @@ type Block = CollectionEntry<'projects'>['data']['blocks'][number];
 interface Props {
   blocks: Block[];
   title: string;
+  /** The words on a film block's play button, the same as the project's own. */
+  filmLabel: string;
   locale?: Locale;
   /**
    * The film's own aspect ratio, read from the project's hero media rather than typed
@@ -28,7 +30,7 @@ interface Props {
    */
   filmAr?: number;
 }
-const { blocks, title, locale = DEFAULT_LOCALE, filmAr } = Astro.props;
+const { blocks, title, filmLabel, locale = DEFAULT_LOCALE, filmAr } = Astro.props;
 const ratioStyle = filmAr ? `--film-ar:${filmAr}` : undefined;
 
 /**
@@ -97,7 +99,7 @@ const SIZES_STRIP: readonly [string, string, string] = [
     return (
       <section class={`${cls} pj-room`} style={ratioStyle} data-ground={ground} data-header={ground}>
         <div class="pj-room__inner">
-          <FilmFacade videoId={block.film.id} posterKey={block.poster.key} title={title} locale={locale} />
+          <FilmFacade videoId={block.film.id} posterKey={block.poster.key} title={title} label={filmLabel} locale={locale} />
         </div>
       </section>
     );

@@ -55,12 +55,21 @@ interface Props {
   section?: 'home' | 'about' | 'commercial' | 'cinema' | 'bts' | 'contact' | undefined;
   /** The full opening sequence instead of the short hold. Homepage only (decision C5). */
   intro?: boolean | undefined;
+  /** The site footer. Off only on the homepage, which is one full-bleed frame (2026-11-06). */
+  footer?: boolean | undefined;
+  /**
+   * The faces this page paints above the fold, by file stem in /__generated/fonts/. The
+   * default pair is what most pages render first; a page whose first screen is set in
+   * other weights names its own. Measured with `document.fonts`, never guessed (rule 24).
+   */
+  preloadFonts?: string[] | undefined;
 }
 
 const {
   title, description, ogDescription, locale = DEFAULT_LOCALE, ogImage = null, ogImageAlt,
   ogType = 'website', noindex = false, chrome = true, ground = 'cream', schema = [],
-  langAlternate, section, intro = false,
+  langAlternate, section, intro = false, footer = true,
+  preloadFonts = ['barlow-400', 'barlow-condensed-700'],
 } = Astro.props;
 
 const seo = buildSeo({
@@ -89,7 +98,7 @@ const manifest = JSON.parse(manifestSource) as { theme_color: string };
 ---
 
 <!doctype html>
-<html lang={seo.htmlLang} data-header-over={ground === 'dark' ? 'media' : 'cream'} data-section={section}>
+<html lang={seo.htmlLang} data-section={section}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -138,9 +147,10 @@ const manifest = JSON.parse(manifestSource) as { theme_color: string };
         so out loud ("preloaded using link preload but not used"); step 13 measured it
         against the live staging URL, where `document.fonts` reported Barlow 500 as
         `unloaded` on a fully painted page. Check both names against the weights the
-        tokens resolve to before changing either. */}
-    <link rel="preload" as="font" type="font/woff2" href="/__generated/fonts/barlow-400.woff2" crossorigin />
-    <link rel="preload" as="font" type="font/woff2" href="/__generated/fonts/barlow-condensed-700.woff2" crossorigin />
+        tokens resolve to before changing either. The homepage passes its own pair. */}
+    {preloadFonts.map((face) => (
+      <link rel="preload" as="font" type="font/woff2" href={`/__generated/fonts/${face}.woff2`} crossorigin />
+    ))}
 
     {schema.length > 0 && (
       <script type="application/ld+json" is:inline set:html={jsonLdGraph(schema)} />
@@ -195,18 +205,22 @@ const manifest = JSON.parse(manifestSource) as { theme_color: string };
           <main class="site__main" id="main">
             <slot />
           </main>
-          <Footer locale={locale} />
+          {footer && <Footer locale={locale} />}
         </div>
 
         <script>
           import { initSite } from '../lib/site-motion.ts';
           import { initPortfolio } from '../lib/portfolio-filter.ts';
-          import { initCinema } from '../lib/cinema.ts';
+          import { initCinema, presetCinemaView } from '../lib/cinema.ts';
           import { initTransitions } from '../lib/motion/transitions.ts';
+          import { initRail, stripRailLinks } from '../lib/rail.ts';
+          import { initStage } from '../lib/stage.ts';
 
           // Wired ONCE, to the document, because the router outlives every page. Putting
           // this in `start()` would add a second set of listeners on every navigation.
           initTransitions();
+          initRail();
+          stripRailLinks(document);
 
           // `astro:page-load` fires on the FIRST load as well as after every client-side
           // navigation, so a naive "init now, init again on page-load" doubles every
@@ -219,12 +233,14 @@ const manifest = JSON.parse(manifestSource) as { theme_color: string };
           let instance: { destroy(): void } | null = null;
           let portfolio: { destroy(): void } | null = null;
           let cinema: { destroy(): void } | null = null;
+          let stage: { destroy(): void } | null = null;
           const start = () => {
             if (live) return;
             live = true;
             instance = initSite();
             portfolio = initPortfolio();
             cinema = initCinema();
+            stage = initStage();
           };
 
           /**
@@ -242,6 +258,7 @@ const manifest = JSON.parse(manifestSource) as { theme_color: string };
             instance?.destroy(); instance = null;
             portfolio?.destroy(); portfolio = null;
             cinema?.destroy(); cinema = null;
+            stage?.destroy(); stage = null;
           };
 
           // The incoming document is served with the loader markup in its un-hidden
@@ -258,6 +275,12 @@ const manifest = JSON.parse(manifestSource) as { theme_color: string };
             // rule keyed on it (the section slide among them) silently stopped applying.
             const tier = document.documentElement.dataset['motion'];
             if (tier) doc.documentElement.dataset['motion'] = tier;
+            // `class="js"` goes the same way, and `initSite()` re-adds it only after
+            // page-load — so the transition snapshot rendered the no-script state (both
+            // portfolio views at once) and collapsed after the slide. Same defect class.
+            doc.documentElement.classList.add('js');
+            presetCinemaView(doc, (event as unknown as { to: URL }).to);
+            stripRailLinks(doc);
             // `[data-loader-overlay]`, NOT `[data-loader]`. The root carries the STATE
             // flag and comes first in document order, so the shorter selector matched
             // <html> and put `hidden` on the whole document (see site-motion.ts).

@@ -20,5 +20,5 @@ const ratio = `${m.width} / ${m.height}`;
     aria-hidden={label ? undefined : 'true'}
   ></span>
 ) : (
-  <img class:list={['brand-mark', cls]} src={m.src} width={m.width} height={m.height} alt={label ?? ''} decoding="async" />
+  <img class:list={['brand-mark', cls]} style={`--mark-ar:${ratio}`} src={m.src} width={m.width} height={m.height} alt={label ?? ''} decoding="async" />
 )}

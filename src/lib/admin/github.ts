@@ -130,7 +130,8 @@ async function json<T>(res: Response, what: string): Promise<T> {
  * `expected` maps each path to the blob SHA the editor opened. Every one is checked
  * against the branch head before anything is written, and the branch is then moved with a
  * fast-forward-only update, so a save that raced another one is refused (409) instead of
- * overwriting it. A screen that touches two files can never land half-saved.
+ * overwriting it. A screen that touches two files can never land half-saved. A file given
+ * as `remove` is deleted in the same commit, checked against its SHA the same way.
  */
 /** Every file in a tree (a commit's, or a branch's), path → blob SHA. */
 async function treeBlobs(cfg: GitHubConfig, tree: string, opts: Opts): Promise<Map<string, string>> {
@@ -148,7 +149,7 @@ export async function listFiles(cfg: GitHubConfig, dir: string, opts: Opts = {})
 
 export async function commitFiles(
   cfg: GitHubConfig,
-  files: { path: string; text: string }[],
+  files: ({ path: string; text: string } | { path: string; remove: true })[],
   expected: Record<string, string>,
   message: string,
   opts: Opts = {},
@@ -172,7 +173,8 @@ export async function commitFiles(
 
   const tree = await json<{ sha: string }>(await post('/git/trees', {
     base_tree: parent.tree.sha,
-    tree: files.map((f) => ({ path: f.path, mode: '100644', type: 'blob', content: f.text })),
+    // `sha: null` is how the trees API deletes a path.
+    tree: files.map((f) => ({ path: f.path, mode: '100644', type: 'blob', ...('remove' in f ? { sha: null } : { content: f.text }) })),
   }), 'could not build the commit');
   const commit = await json<{ sha: string; html_url?: string }>(
     await post('/git/commits', { message, tree: tree.sha, parents: [head] }), 'could not create the commit');

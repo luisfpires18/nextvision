@@ -1,5 +1,8 @@
 # Project rollout — Phase 9
 
+> **Historical record (Phase 9).** There are 21 project files now: the owners added one in the
+> admin, and they can add and remove more. Design v2 changed the chrome around these pages.
+
 **Date:** 2026-09-03 · **Scope:** all twenty `/portfolio/{slug}/` routes
 **Status:** ✅ **complete** — twenty production pages, zero placeholders
 **Built on:** the Review D system, approved at `/portfolio/leonor/`. No new design.

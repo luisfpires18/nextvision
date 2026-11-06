@@ -47,7 +47,15 @@ git switch dev
 `--no-ff` is the point: `dev -> master` must leave a visible merge commit, so the history
 shows what was released and when. **Never** squash or rebase that merge.
 
-No development happens on `master`. It only ever receives merges from `dev`.
+No development happens on `master`. It receives merges from `dev`, and the owners' own
+commits from the admin (§11). **So before every `dev -> master` release, merge `master`
+into `dev` first:**
+
+```bash
+git switch dev && git pull
+git merge origin/master
+git push origin dev
+```
 
 ---
 
@@ -60,15 +68,18 @@ No development happens on `master`. It only ever receives merges from `dev`.
 
 Renamed 2026-10-22 from `staging` / `production`. The dev Worker was renamed (old `next-vision-films` deleted); the prod Worker keeps its name because the live domains are bound to it. Never rename it.
 
-Both Workers are on the company Cloudflare account, both serve from Workers Static
-Assets, and neither has a custom domain — that is Step 15.
+Both Workers are on the company Cloudflare account and both serve from Workers Static
+Assets. Their domains are listed at the end of this file. `dev.next-vision-films.workers.dev`
+and `next-vision-films-production.next-vision-films.workers.dev` also answer. A third
+workflow, `.github/workflows/media-ingest.yml`, processes the owners' uploads on `master`.
 
 **The deployment target is chosen at BUILD time, not at deploy time.** `@astrojs/cloudflare`
 writes a *redirected* wrangler configuration (`dist/server/wrangler.json`) that is resolved
 for exactly one environment, and `CLOUDFLARE_ENV` is what selects it. `wrangler deploy --env x`
 is only a cross-check — and it has a hole that was measured, not assumed: a build made with
-no `CLOUDFLARE_ENV` resolves to the *top-level* Worker name, and `wrangler deploy --env production`
-against it exits 0 with no error and no warning, deploying to **staging**.
+no `CLOUDFLARE_ENV` resolves to the *top-level* Worker name, and `wrangler deploy --env prod`
+against it exits 0 with no error and no warning, deploying to **`dev`** (measured under the
+old names, `production` and staging).
 
 `scripts/deploy.mjs` exists to close that hole. It sets `CLOUDFLARE_ENV`, then reads the
 built configuration back and refuses to deploy if the resolved Worker name is not the one
@@ -85,17 +96,22 @@ Manual deploys are emergency tooling. The normal path is `git push`.
 
 ## 3. What CI does, and what it needs
 
-Both workflows: checkout → Node 22 → `npm ci` → fontTools → `fonts:build` → `media:pull` →
-`npm run verify` → deploy. A failing verify ends the job, so nothing reaches the edge that
-has not passed all eleven validators. A push to `dev` takes about 1m20s end to end.
+`dev.yml` and `prod.yml`: checkout → Node 22 → `npm ci` → fontTools → `fonts:build` →
+`media:pull` → `npm run verify` → deploy. A failing verify ends the job, so nothing reaches
+the edge that has not passed every step of it. `prod.yml` ignores a push that only touches
+`src/data/media-uploads.json`.
+
+`media-ingest.yml` runs on a push to `master` touching that list. It encodes the owner's
+original, uploads the renditions add-only, points the field at the new media and commits as
+the admin's GitHub App, which is what triggers the deploy.
 
 fontTools is installed by the workflow because `fonts:build` shells out to
 `python -m fontTools.subset`, which is not an npm dependency. It is version-pinned: font
 subsetting produces bytes, and different bytes are a different service-worker precache hash.
 
-**All four secrets are set and the pipeline is live.** If `CLOUDFLARE_API_TOKEN` is ever
-removed, both workflows fall back to doing nothing and passing green with a notice, rather
-than failing on every push.
+**The pipeline is live.** `prod.yml` and `media-ingest.yml` last ran green on 2026-11-06, and
+`dev.yml` on 2026-11-03. If `CLOUDFLARE_API_TOKEN` is ever removed, `dev.yml` and `prod.yml` fall back to
+doing nothing and passing green with a notice, rather than failing on every push.
 
 Repository secrets (Settings → Secrets and variables → Actions):
 
@@ -103,11 +119,16 @@ Repository secrets (Settings → Secrets and variables → Actions):
 |---|---|---|
 | `CLOUDFLARE_API_TOKEN` | deploy the Worker | Account → *Workers Scripts: Edit* |
 | `CLOUDFLARE_ACCOUNT_ID` | the account to deploy into, and the R2 endpoint host | — (`c87adf05b555c1ff52167b53030b8e39`) |
-| `R2_ACCESS_KEY_ID` | fetch the media mirror | R2 → *Object Read only*, bucket `nvf-media` |
+| `R2_ACCESS_KEY_ID` | fetch the media mirror; `media-ingest.yml` also uploads renditions | R2 → *Object Read & Write*, bucket `nvf-media` |
 | `R2_SECRET_ACCESS_KEY` | the other half of that key | — |
+| `R2_SOURCE_ACCESS_KEY_ID` | `media-ingest.yml` reads the owner's original | R2 → *Object Read only*, bucket `nvf-source-archive` |
+| `R2_SOURCE_SECRET_ACCESS_KEY` | the other half of that key | — |
+| `NVF_ADMIN_APP_ID` | `media-ingest.yml` commits as the admin's GitHub App | — |
+| `NVF_ADMIN_APP_PRIVATE_KEY` | the App's key | — |
 
-Nothing else. No zone permission, no DNS permission, no R2 write, and no access to
-`nvf-source-archive`. CI never uploads to R2 and never deletes anything.
+No zone or DNS permission. CI never deletes anything from R2, and its only writes are
+`media-ingest.yml`'s add-only uploads to `nvf-media`. The permissions listed are what
+`docs/ADMIN_DASHBOARD_PLAN.md` §4.1 specifies; a key's real scope is visible only in Cloudflare.
 
 ---
 
@@ -117,9 +138,23 @@ Two build inputs are generated and deliberately not in the repository:
 
 ```bash
 npm install
-npm run fonts:build     # six WOFF2 faces, derived from source-assets/fonts/*.ttf
-npm run media:pull      # 384 renditions, 16.69 MB, fetched from R2 and hash-verified
+npm run fonts:build     # eight WOFF2 faces, derived from source-assets/fonts/*.ttf
+npm run media:pull      # every rendition in the manifest, fetched from R2 and hash-verified
 ```
+
+`fonts:build` needs Python with `fonttools[woff]==4.64.0` and `brotli==1.2.1`, the versions
+CI pins. `media:pull` needs an R2 key in `.env` (`.env.example`).
+
+**On Windows, three more things**, all found on a fresh checkout on 2026-11-06:
+
+- **The Visual C++ Redistributable (x64).** Without `VCRUNTIME140.dll`, the native binding
+  Astro's markdown uses and `workerd` both fail to load, so `astro check` and `astro build`
+  crash with `Cannot find native binding`. The error's advice to delete the lockfile is wrong
+  here.
+- **Line endings.** With `core.autocrlf=true`, `test:admin` and `validate:legal` fail on CRLF.
+  Clone with `git clone -c core.autocrlf=false` or check the repository out on Linux until
+  the repository has a `.gitattributes`.
+- **Node 22.** CI runs Node 22; a newer local major may behave differently.
 
 `media/dist/` is the local delivery mirror. `npm run media:build` reproduces it from the
 sources — but the sources (`docs/Smash/`, `source-archive/`, 646 MB) are gitignored too,
@@ -133,9 +168,10 @@ the SHA-256 the manifest records before it is written.
 
 ## 5. Editing content
 
-All content is files. There is no CMS and no database.
+All content is files. There is no CMS and no database. The owners edit those same files
+through the admin (§11); a developer edits them directly.
 
-- **Projects** — `src/content/projects/*.md`. Front matter is validated by the Zod schema
+- **Projects** — `src/content/projects/*.mdx`. Front matter is validated by the Zod schema
   in `src/content.config.ts`; a malformed project fails the build rather than rendering
   wrong. A project page is composed from what the content *has*, not from a tier flag:
   give a project more material and its page gets longer. Never add a per-project branch to
@@ -150,8 +186,9 @@ All content is files. There is no CMS and no database.
   never by retyping.
 
 Published copy declares where it was published — `v('…', '/sobre/')` — and
-`npm run validate:data` checks all 50 strings against the archived original, word for word.
-Copy may be *selected* for a shorter context. It may not be rewritten. See `CLAUDE.md` §2.
+`npm run validate:data` checks it against the archived original, word for word (49 strings on
+2026-11-06, plus 1 the owners edited in the admin, which carries `owner` provenance). A
+developer may *select* copy for a shorter context and may not rewrite it. See `CLAUDE.md` §2.
 
 After every content change: `npm run verify`.
 
@@ -159,8 +196,8 @@ After every content change: `npm run verify`.
 
 ## 6. Portuguese and English
 
-Portuguese is the source language and lives at `/`; English lives at `/en/`. 73 built
-pages, 52 in the sitemap.
+Portuguese is the source language and lives at `/`; English lives at `/en/`. On 2026-11-06:
+75 built pages and 54 sitemap URLs on `dev`, 77 and 56 on `master`.
 
 `PAGE_LOCALES` in `src/i18n/routes.ts` is the **one** declaration of which pages exist in
 which locale. Routes, hreflang, the sitemap, the language switch and the footer all read
@@ -178,8 +215,8 @@ title, a broken internal link, or a sitemap that disagrees with `robots.txt`.
 
 ## 7. Media
 
-`src/data/media-manifest.json` is the site's **only** media authority: 86 assets, 384
-renditions, 16.69 MB, every file content-addressed as `{key}/{width}.{hash8}.{ext}`. That
+`src/data/media-manifest.json` is the site's **only** media authority: on 2026-11-06, 88
+assets / 392 renditions / 17.1 MiB on `dev` and 90 / 398 / 19.8 MiB on `master`, every file content-addressed as `{key}/{width}.{hash8}.{ext}`. That
 naming is what makes the cache immutable — a changed derivative gets a new name, so a purge
 is never needed.
 
@@ -188,20 +225,20 @@ Components ask for a *key*; `src/lib/media.ts` is the one place a delivery origi
 to an object key. `npm run validate:media` fails the build if a URL is typed into a
 component, if a rendition is an upscale, or if its bytes disagree with its own name.
 
-To add media: add a recipe entry and run `npm run media:build`, then
-`npm run media:sync -- --execute`. Never hand-edit a path. Full recipe:
-`docs/MEDIA_PIPELINE.md` §5.
+To add media as a developer: add a recipe entry and run `npm run media:build`, then
+`npm run media:sync -- --execute`. Never hand-edit a path. The owners upload from the admin
+instead. Full recipe: `docs/MEDIA_PIPELINE.md` §5.
 
 `PUBLIC_MEDIA_BASE_URL` unset means *serve the local mirror* — a fresh checkout builds a
 site that works with no network. Setting it is the only change that moves delivery to R2,
-and it stays unset until a real delivery hostname exists (Step 15).
+and it stays unset until a real delivery hostname exists (D20).
 
 ### R2 buckets — both on the company account, both private
 
 | Bucket | What | Public? |
 |---|---|---|
-| `nvf-media` | the 384 delivery renditions | No. `r2.dev` disabled, no custom domain. |
-| `nvf-source-archive` | 102 source files, 645.95 MB — the only off-machine copy of `docs/Smash/` and `source-archive/` | **Never public. Never referenced by the site.** |
+| `nvf-media` | the delivery renditions | No. `r2.dev` disabled, no custom domain. |
+| `nvf-source-archive` | the only off-machine copy of `docs/Smash/` and `source-archive/` (102 files, 645.95 MB), plus the owners' originals under `uploads/` | **Never public. Never referenced by the site.** |
 
 `media:sync` and `media:backup` are **dry runs** unless given `--execute`. Remote deletion
 additionally needs `--delete` and only ever removes objects the current manifest does not
@@ -216,13 +253,18 @@ None of these are faked, and none of them can be switched on from here.
 - **Contact form.** `POST /api/contact/` is the one route with `prerender = false`. It
   validates, checks Origin, caps the body at 16 KB, has a honeypot, and verifies Turnstile
   **server-side** on every submission, failing closed. Delivery itself is **not configured**:
-  no provider and no recipient have been decided (D17/D2), so production refuses a
+  it is not switched on yet, so production refuses a
   submission with `503 not-configured` rather than reporting a success it has no evidence
-  for. `/obrigado/` is the answer the endpoint gives to a POST and is never a link —
+  for. The recipient, `geral@nextvisionfilms.com`, and the sender are set on the prod Worker, and the
+  provider is Cloudflare Email Service; its onboarding and the binding are what is missing
+  (`BLOCKED_TODOS.md`).
+  `/obrigado/` is the answer the endpoint gives to a POST and is never a link —
   `validate:routes` fails the build if one appears. Local development needs no account and
   no secret. `npm run test:forms` drives the live endpoint.
-- **Turnstile.** No production keys. Unset, every submission is refused. Local work uses
-  Cloudflare's own always-passes test key.
+- **Turnstile.** No production keys. Both live sites serve Cloudflare's always-passes TEST
+  site key (read from `/contactos/` on 2026-11-06), which is the fallback when
+  `PUBLIC_TURNSTILE_SITE_KEY` is unset at build. With the secret unset too, every submission
+  is refused. Whether a Worker secret has been set cannot be read from here.
 - **Analytics.** Cloudflare Web Analytics only — cookieless, no banner, no GA4, no Google
   Ads (`validate:analytics` fails the build if either returns). Nothing is emitted unless
   `PUBLIC_ANALYTICS_TOKEN` is set *and* the build is production, so `astro dev` measures
@@ -241,7 +283,9 @@ None of these are faked, and none of them can be switched on from here.
 
 Configured through the API, and recorded here because a dashboard click can undo them:
 
-- **Default branch** — `dev`
+These were set on 2026-09-04; they need an authenticated call to re-check.
+
+- **Default branch** — `dev` (re-checked 2026-11-06)
 - **Allow merge commits** — ON
 - **Allow squash merging** — OFF
 - **Allow rebase merging** — OFF
@@ -250,15 +294,15 @@ Configured through the API, and recorded here because a dashboard click can undo
 A PR is a convenient way to merge `dev -> master`; no review is required and nothing
 merges itself. You decide when.
 
-**Branch protection is NOT configured, because this plan cannot have it.** Both the
-branch-protection and the ruleset APIs answer, for a private repository on GitHub Free:
+**The repository is public** since 2026-10-29, made so because GitHub billing refused every
+Actions job on the private repository. That publishes the archived source data and the
+internal project documents along with the code.
 
-    403  Upgrade to GitHub Pro or make this repository public to enable this feature.
-
-So "no deletion, no force-push" on `dev` and `master` cannot be enforced on the server.
-Two exits, whenever you want them: **GitHub Pro**, or making the repository public — and
-public would publish the archived source data and the internal project documents along
-with the site, so it is not a small decision.
+**Branch protection is NOT configured:** GitHub's API reports `protected: false` for `dev` and
+`master` (2026-11-06). While the repository was private on GitHub Free, both protection APIs
+answered `403 Upgrade to GitHub Pro or make this repository public`, so that refusal should no
+longer apply; nobody has tried since. Any protection set on `master` must still let the
+admin's GitHub App push there.
 
 Until then the rules are enforced on the CLIENT, by `scripts/hooks/pre-push`. Enable it
 once per clone:
@@ -278,9 +322,30 @@ out of your own repository. It is what is available, not a substitute for the re
 
 Everything still open — blocked items, owner decisions and deferred work — is in
 [`BLOCKED_TODOS.md`](BLOCKED_TODOS.md), updated at the end of every phase. The largest are
-the production domain and DNS, the contact recipient and email provider, production
-Turnstile keys, the analytics token, the media delivery hostname, and Review A (the visual
-identity is still provisional).
+the next `dev -> master` release, the contact recipient and email provider, production
+Turnstile keys, the analytics token and the media delivery hostname.
+
+---
+
+## 11. The owners' admin
+
+The owners edit the site at **`nextvisionfilms.com/admin`**, on the prod Worker only. `/admin/`
+is a 404 on the dev Worker, and `validate:routes` checks both builds.
+
+- **Login:** Cloudflare Access, emailed one-time code, team `royal-hall-6f88`. The Worker
+  verifies the token itself and refuses every request if `ACCESS_TEAM_DOMAIN` or `ACCESS_AUD`
+  (in `wrangler.jsonc`) is unset. Any new hostname on the prod Worker must be added to the
+  Access application.
+- **Editing:** every change is a draft kept in the browser. **Publicar** writes them all as one
+  commit to `master` through the GitHub App (its keys are prod Worker secrets), which is one
+  production deploy. Validators still run in `prod.yml`, so a bad edit fails before it deploys.
+- **Uploads:** originals go to `nvf-source-archive/uploads/`, a request is added to
+  `src/data/media-uploads.json`, and `media-ingest.yml` does the rest (§3).
+- **Not editable there:** the legal pages, ever (decision A1).
+
+Tests: `npm run test:access` and `npm run test:admin`, both in `verify`. `npm run mock:github`
+stands in for GitHub locally. Record: `docs/ADMIN_DASHBOARD_PLAN.md` and
+`docs/PROJECT_CONTEXT.md` §21–§32.
 
 
 ## Custom domains (2026-10-22)

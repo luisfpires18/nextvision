@@ -85,7 +85,7 @@ export function say(p: Provenanced, locale: Locale = DEFAULT_LOCALE): string {
  * Phase A0 — the string, the page it was published on, and its English — and are read
  * through the schema in src/lib/page-content.ts. Notes on individual strings:
  *
- *   heroLineA/B       two <h2> lines on the live homepage; here they are the single <h1>
+ *   heroLineA/B       two <h2> lines on the live homepage; no longer rendered on `/` (2026-11-06)
  *   servicesLead      the FIRST sentence of servicesLeadFull — selection, not editing
  *   aboutBodyFull     the About page's material, not rendered on `/`; source spacing kept
  *   contactTitle      the live /contactos/ <h2>

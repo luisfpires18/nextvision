@@ -88,6 +88,15 @@
       // against. Neither is a secret. Unset, the admin refuses every request; dev has no
       // admin route at all.
       "vars": {
+        // Where the contact form sends, chosen by the user on 2026-11-06. It is published in
+        // /termos-e-condicoes/ already. These two send nothing on their own: the endpoint
+        // stays 503 until the `send_email` binding exists too. Add it to this block only
+        // AFTER mail.nextvisionfilms.com is onboarded and this recipient is verified in
+        // Cloudflare Email Service, because a deploy may refuse a binding before then, and
+        // a refused deploy would also block the owners' Publicar:
+        //     "send_email": [{ "name": "EMAIL", "destination_address": "geral@nextvisionfilms.com" }]
+        "CONTACT_RECIPIENT": "geral@nextvisionfilms.com",
+        "CONTACT_SENDER": "site@mail.nextvisionfilms.com",
         "ACCESS_TEAM_DOMAIN": "royal-hall-6f88.cloudflareaccess.com",
         "ACCESS_AUD": "f1b7ab18b88a7e1085ce1e271598a9d1b31d750c195b39552a3b44d8a6abe722"
       },
@@ -132,12 +141,8 @@
   //     RESEND_API_KEY           whichever provider is chosen (decision D17)
   //     BREVO_API_KEY
   //
-  // NON-SECRET, but still not here while D17/D2 are open — a recipient in version control
-  // is a recipient nobody reviewed. Set them with `wrangler secret put` too, or add a
-  // `vars` block the day the values are decided:
-  //     CONTACT_PROVIDER         "resend" | "brevo"
-  //     CONTACT_RECIPIENT        where an accepted message goes            <- D17 / D2
-  //     CONTACT_SENDER           From:, on a domain the provider verified
+  // NON-SECRET. The recipient and sender are in `env.prod.vars` above. Optional override:
+  //     CONTACT_PROVIDER         "cloudflare" | "resend" | "brevo"
   //
   // BUILD-TIME, not a Worker variable — it is inlined into the HTML by Vite:
   //     PUBLIC_TURNSTILE_SITE_KEY

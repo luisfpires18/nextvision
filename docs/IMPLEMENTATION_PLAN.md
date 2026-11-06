@@ -22,6 +22,11 @@ fails the build if one returns.** What remains of Phase 9 is the static pages (9
 `SMASH_MEDIA_INVENTORY.md` (owner source media) · `WEBSITE_AUDIT.md` (content and URL
 source of truth) · `CLAUDE.md` (rules).
 
+> **Status, 2026-11-06: executed, and kept as the plan of record.** The build was done out of
+> this numbering (the contact form shipped as "Phase 13", for example), so the Gate column below
+> gives each row's outcome, and `CLAUDE.md` §10 is the record of what was built. Design v2 came
+> after this plan.
+
 > ### Revision 2 — what changed in this plan
 >
 > 1. **Five design review gates (A–E)** now sit between phases. Concept phases produce
@@ -57,31 +62,27 @@ source of truth) · `CLAUDE.md` (rules).
 | 0 | Repository foundation | ✅ **done** | — | no |
 | **0.5** | **Source preservation** | ✅ **done** | 0 | R12 still open |
 | 1 | Design foundation — tokens, fonts, styleguide | ✅ **Review A APPROVED** ▸ *styleguide route still to build* | 0 | ~~R3~~ resolved **by** Review A |
-| 2 | Content model & verbatim migration | ▸ **all 20 projects migrated**; pages, legal, services, team collections still empty | 0.5 | R5 (taxonomy) |
-| 3 | Media pipeline & R2 | ▸ *prototype derivatives only; R2 unprovisioned* | 0.5, 2 | **R6, R7, R9** |
-| 4 | Motion foundation | ▸ *runtime built to homepage scope* | 1 | no |
+| 2 | Content model & verbatim migration | ✅ **done** | 0.5 | R5 (taxonomy) |
+| 3 | Media pipeline & R2 | ✅ shipped as Phase 12 | 0.5, 2 | **R6, R7, R9** |
+| 4 | Motion foundation | ✅ **done** (Review E) | 1 | no |
 | 5 | Homepage concept | ✅ **Review B APPROVED** | 1, 2, 3, 4 | ~~R1, R2~~ · R13 answered by omission (silent hero) |
 | 6 | Portfolio organisation & discovery | ✅ **Review C APPROVED** | 5 | R5 answered *provisionally* — work-first, taxonomy unchanged · R8 open |
-| 7 | Project page concept | ✅ **Review D APPROVED** ▸ *one designed; nineteen still placeholders* | 6 | R7 |
-| 8 | Motion prototype | → **Review E** ⏳ built, awaiting confirmation | 5, 7 | no |
+| 7 | Project page concept | ✅ **Review D APPROVED** ▸ *rolled out in 9a* | 6 | R7 |
+| 8 | Motion prototype | ✅ **Review E APPROVED** (2026-09-03) | 5, 7 | no |
 | 9a | Propagate to the twenty project pages | ✅ **done** | Reviews A–E accepted | no |
 | 9b | The remaining static pages | ✅ **done** | 9a | D2, D4 surfaced, not answered |
-| 10 | Forms & API endpoints | | 9 | **D17, D18, D9** |
-| 11 | SEO, redirects, structured data | | 9 | D5 |
-| 11b | Reviewed copy & SEO proposals | | 11 | **owner approval per diff** |
+| 10 | Forms & API endpoints | ✅ contact endpoint (Phase 13), delivery unconfigured; newsletter not started | 9 | **D17, D18, D9** |
+| 11 | SEO, redirects, structured data | ✅ **done** | 9 | D5 |
+| 11b | Reviewed copy & SEO proposals | not started | 11 | **owner approval per diff** |
 | 12 | PWA | ✅ shipped as Phase 15 | 9 | ~~R6~~ — cleared; the vector existed and was never inspected |
-| 13 | English localisation | | 9, 11 | **R10** (translations) |
-| 14 | Analytics & consent | | 11 | **D8 / D19** |
-| 15 | Accessibility & performance hardening | | 9–14 | no |
-| 16 | Staging deploy & crawl diff | | 15 | no |
-| 17 | Production cutover | | 16 | **D20** (DNS) |
-| 18 | Handover documentation | | 17 | no |
+| 13 | English localisation | ✅ shipped in Phase 11; no owner has reviewed it | 9, 11 | **R10** (translations) |
+| 14 | Analytics & consent | ✅ built; token not set | 11 | **D8 / D19** |
+| 15 | Accessibility & performance hardening | ✅ performance audit, released 2026-11-06 | 9–14 | no |
+| 16 | Staging deploy & crawl diff | ✅ deploy and QA (steps 12–13); crawl diff UNKNOWN | 15 | no |
+| 17 | Production cutover | ✅ domains on the prod Worker; media hostname open | 16 | **D20** (DNS) |
+| 18 | Handover documentation | ✅ `HANDOVER.md` | 17 | no |
 
-Phases 0 and 0.5 are done; Reviews A, B, C and D are all approved.
-**Phase 8 is built; Review E is awaiting owner visual confirmation.**
-One project page is designed; the other nineteen still render the placeholder, and
-propagating them was Phase 9a, now complete. Phases 1–4 are complete *to the scope the
-built pages need* and are finished off alongside 9b.
+Reviews A to E are all approved. What remains is in `BLOCKED_TODOS.md`.
 
 ---
 

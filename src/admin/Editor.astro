@@ -70,6 +70,25 @@ const source = (from: string) => from.startsWith('owner:')
         </fieldset>
       );
     }
+    if (f.kind === 'film' || f.kind === 'line') {
+      const current = String(value ?? '');
+      return (
+        <fieldset class="ed-field" data-field>
+          <legend>{f.label}</legend>
+          {f.note ? <p class="ed-note">{f.note}</p> : null}
+          <input
+            type="text"
+            name={fieldName(f)}
+            value={current}
+            data-original={current}
+            data-label={named(f)}
+            aria-label={f.label}
+            placeholder={f.kind === 'film' ? 'https://www.youtube.com/watch?v=…' : undefined}
+            required
+          />
+        </fieldset>
+      );
+    }
     const key = String(value ?? '');
     const kind = f.kind === 'video' ? 'video' : 'image';
     const id = `pick-${f.file}-${f.key.replace(/\W/g, '-')}`;

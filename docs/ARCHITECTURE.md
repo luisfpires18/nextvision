@@ -1,6 +1,9 @@
 # Architecture — Next Vision Films
 
-**Status:** decisions recorded, nothing implemented.
+**Status:** implemented and live. Decisions were recorded here before the build, and sections
+are amended where the build taught something. Later changes that this document does not fully
+carry: design v2 replaced the visual layer (`DESIGN_V2_ROLLOUT.md`), and the owners' admin
+exists (`ADMIN_DASHBOARD_PLAN.md`).
 **Date:** 2026-09-01 · **Revision 2** (owner direction change, same day)
 **Supersedes:** the open technical questions D13–D22 in `PROJECT_CONTEXT.md` §6.
 
@@ -876,8 +879,8 @@ line rather than letting someone write a message and discover it on submit.
 
 ### 7.3 Delivery — the seam, and why it is empty
 
-**DECISION D17 IS OPEN**, and D2 has not settled which of three addresses reaches the
-company. So `src/lib/forms/delivery.ts` contains no address and the endpoint has no default
+**The recipient is decided** (`geral@nextvisionfilms.com`, 2026-11-06, in `wrangler.jsonc`), **and the
+provider is Cloudflare Email Service** (the user's choice). `src/lib/forms/delivery.ts` contains no address and the endpoint has no default
 one to fall back to. What exists is the boundary: one `Provider` interface, four adapters,
 one resolver that picks between them from configuration.
 
@@ -885,11 +888,21 @@ one resolver that picks between them from configuration.
 |---|---|---|
 | `unconfigured` | nothing | refuses with `503 not-configured`. Never pretends. |
 | `dev-sink` | `astro dev` only | logs `accepted, NOT DELIVERED` with field LENGTHS and no contents |
+| `cloudflare` | `EMAIL` `send_email` binding · onboarded sender domain · verified recipient · recipient · sender | one binding call |
 | `resend` | account · verified domain · `RESEND_API_KEY` · recipient · sender | one HTTPS POST |
 | `brevo` | the same three, EU-hosted | one HTTPS POST |
 
 Answering D17 is setting two or three environment variables. No component, no route and no
 validator changes. Adding a fifth adapter is one object and one line.
+
+**Measured 2026-11-06:** the zone IS on Cloudflare now, but `geral@` is hosted at Infomaniak (its MX
+and SPF point there). Turning on Email Routing for the APEX would need those MX records removed and
+cut that mailbox off, so never do that. Cloudflare's docs say Email Sending adds its records under a
+`cf-bounce` subdomain and needs no apex MX, and treats a subdomain as a separate sending domain. So the
+sender is `site@mail.nextvisionfilms.com`, which leaves the apex's mail records alone. Docs also say:
+sending to a verified destination address is free on any plan, while onboarding a domain for Email
+Sending is listed as Workers Paid. If that blocks a Free account, Email Routing on the `mail.` subdomain
+gives a routing domain to send from. Which applies to this account was not checked.
 
 **The simplest reliable option was evaluated and deferred.** Cloudflare's own **Email
 Routing `send_email` binding** needs no third party, no account and no API key — it is the
@@ -1283,6 +1296,10 @@ on `main`.
 
 ### 12.1 Step 12 — what was actually deployed (2026-09-04)
 
+> **Dated record.** There are now two Workers, `dev` and `next-vision-films-production`, with
+> custom domains and CI deploys, and the Worker and URL named below are gone
+> (`HANDOVER.md` §2).
+
 The plan above described environments that did not exist. One of them does now.
 
 **One Worker, `next-vision-films`, on the company account `c87adf05…8e39`, serving from
@@ -1316,6 +1333,10 @@ The branching and CI described above are still unbuilt: there is no GitHub remot
 
 ## 13. Owner maintainability — the workflows that must stay simple
 
+> **This table was the plan.** The owners now do most of these in the admin
+> (`HANDOVER.md` §11). A developer's media workflow is `MEDIA_PIPELINE.md` §5, not the
+> `media-staging/` steps below, and `npm run media:sync` only uploads; it does not transcode.
+
 | Task | Steps |
 |---|---|
 | **Add a portfolio project** | 1. Drop `poster.jpg` (+ optional `preview.mov`) into `media-staging/projects/{slug}/`. 2. `npm run media:sync`. 3. Create `src/content/projects/{slug}.mdx` — copy an existing file, change ~6 fields. 4. Commit. Deploy is automatic. **The build fails loudly if a field is missing or the category is misspelled.** |
@@ -1324,10 +1345,10 @@ The branching and CI described above are still unbuilt: there is no GitHub remot
 | **Change a service** | Edit one file in `src/content/services/`. |
 | **Change navigation** | Edit `src/content/settings/navigation.yml`. |
 | **Change contact details / socials** | Edit `src/content/settings/site.yml` — one place, used by header, footer, contact page and structured data. |
-| **Change a colour, size or spacing step** | Edit `src/styles/tokens.css`. |
+| **Change a colour, size or spacing step** | Edit the matching `src/styles/tokens.*.css`. |
 | **Add a CMS later** | Point a git-backed CMS at `src/content/`. **Zero code change** (§4.4). |
 
-`README.md` and `docs/CONTENT_GUIDE.md` document these for a non-developer.
+`docs/HANDOVER.md` documents these for a developer. No separate guide for non-developers exists.
 
 ---
 

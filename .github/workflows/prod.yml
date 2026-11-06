@@ -49,6 +49,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+          check-latest: true
           cache: npm
 
       - name: Not configured yet
@@ -66,7 +67,7 @@ jobs:
       # a different service-worker precache hash.
       - name: Install fontTools
         if: env.CLOUDFLARE_API_TOKEN != ''
-        run: python -m pip install --quiet "fonttools[woff]==4.64.0" "brotli==1.2.0"
+        run: python -m pip install --quiet "fonttools[woff]==4.64.0" "brotli==1.2.1"
 
       # Generated, never committed: build-fonts.mjs derives the six WOFF2 faces from the
       # TTF originals in source-assets/fonts/, which ARE in the repository.
@@ -90,6 +91,9 @@ jobs:
         run: npm run verify
         env:
           CLOUDFLARE_ENV: prod
+          # The public Turnstile site key, a repository VARIABLE. Unset, the build falls back
+          # to Cloudflare's test key and the endpoint still refuses every submission.
+          PUBLIC_TURNSTILE_SITE_KEY: ${{ vars.PUBLIC_TURNSTILE_SITE_KEY }}
 
       # --built reuses the dist/ the previous step produced. scripts/deploy.mjs reads the
       # generated config back and refuses to deploy if it resolved to the other Worker.

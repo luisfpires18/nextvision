@@ -107,6 +107,7 @@ const filmAr = frameRatio(getMedia(heroPosterKey));
 const taglineIsProse = blocks.some(
   (b) => b.type === 'text' && (b.body[locale] ?? b.body.pt).trim() === project.tagline?.trim(),
 );
+const playLabel = t(project.filmKind === 'trailer' ? 'media.playTrailer' : 'media.playFilm', locale);
 const captionLead = taglineIsProse ? null : project.tagline;
 
 /* ── SEO ───────────────────────────────────────────────────────────────────── */
@@ -168,6 +169,13 @@ if (project.filmUrl && project.posterSrc) {
       no second player lower down, and no YouTube contact until that press. */}
   <section class="pj-hero ground-dark" data-hero data-ground="dark" data-header="dark" style={`--film-ar:${filmAr}`}>
     <div class="pj-hero__inner">
+      {/* Back to the work. A real link to the portfolio, so it works with scripting off
+          and from a shared URL; the script below turns it into history.back() when the
+          reader came from inside the site, so the portfolio keeps its filter and scroll. */}
+      <a class="pj-back" href={pagePath('portfolio', locale)} data-back>
+        <svg viewBox="0 0 22 22" aria-hidden="true"><path d="M14 4l-7 7 7 7" /></svg>
+        <span>{t('ui.back', locale)}</span>
+      </a>
       <div
         class={`pj-screen${screenAr < 1 ? ' pj-screen--poster' : ''}`}
         style={`--screen-ar:${screenAr}`}
@@ -197,7 +205,6 @@ if (project.filmUrl && project.posterSrc) {
             data-src-sm={heroSm}
             data-src-webm-lg={heroWebmLg ?? undefined}
             data-src-webm-sm={heroWebmSm ?? undefined}
-            poster={heroPoster.src}
             width={heroItem?.width}
             height={heroItem?.height}
             muted loop playsinline preload="none" aria-hidden="true"
@@ -206,16 +213,16 @@ if (project.filmUrl && project.posterSrc) {
         {youtubeId && (
           <>
             <button class="pj-play" type="button" data-film-play>
-              <span class="pj-play__label">{t('media.playFilm', locale)}</span>
-              <span class="visually-hidden">{`${t('media.playFilm', locale)}: ${project.title}`}</span>
+              <span class="pj-play__label">{playLabel}</span>
+              <span class="visually-hidden">{`${playLabel}: ${project.title}`}</span>
             </button>
             {/* The façade is a script that swaps a player in, so with scripting off the
                 button is inert and the film would be unreachable. Every other route on
                 this page is an ordinary anchor; this makes the film one too. */}
             <noscript>
               <a class="pj-play" href={project.filmUrl!} rel="noopener" target="_blank">
-                <span class="pj-play__label">{t('media.playFilm', locale)}</span>
-                <span class="visually-hidden">{`${t('media.playFilm', locale)}: ${project.title}`}</span>
+                <span class="pj-play__label">{playLabel}</span>
+                <span class="visually-hidden">{`${playLabel}: ${project.title}`}</span>
               </a>
             </noscript>
           </>
@@ -233,13 +240,43 @@ if (project.filmUrl && project.posterSrc) {
               The page states the fact rather than offering a film that is not there. */}
           {project.filmUnavailable && <span class="item__flag">{t('project.noFilm', locale)}</span>}
         </p>
+        {(project.imdbUrl || project.trailerUrl) && (
+          <p class="film-links">
+            {project.imdbUrl && <a href={project.imdbUrl} rel="noopener" target="_blank">{t('project.imdb', locale)}</a>}
+            {project.trailerUrl && <a href={project.trailerUrl} rel="noopener" target="_blank">{t('project.trailer', locale)}</a>}
+          </p>
+        )}
       </div>
     </div>
   </section>
 
-  <ProjectBlocks blocks={blocks} title={project.title} locale={locale} filmAr={filmAr} />
+  <ProjectBlocks blocks={blocks} title={project.title} locale={locale} filmAr={filmAr} filmLabel={playLabel} />
 
   <NextProject next={next} previous={previous} locale={locale}>
     <RelatedWork projects={related} category={project.categoryName} locale={locale} />
   </NextProject>
 </BaseLayout>
+
+<script>
+  /**
+   * The back link goes BACK when there is somewhere in the site to go back to: an earlier
+   * ClientRouter entry (it numbers its history states) or a same-origin referrer on a full
+   * load. Otherwise it stays the plain link to the portfolio.
+   *
+   * Capture phase, on the document once: it runs before the router's own click handler,
+   * which ignores a click whose default was already prevented. A modified click (new tab)
+   * is left to the browser.
+   */
+  const cameFromSite = () => {
+    if ((history.state?.index ?? 0) > 0) return true;
+    try { return new URL(document.referrer).origin === location.origin; } catch { return false; }
+  };
+
+  document.addEventListener('click', (e) => {
+    const link = (e.target as Element | null)?.closest?.('[data-back]');
+    if (!link || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    if (history.length < 2 || !cameFromSite()) return;
+    e.preventDefault();
+    history.back();
+  }, true);
+</script>

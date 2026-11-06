@@ -19,7 +19,7 @@ import { SCREENS, pageFilePath } from '../src/lib/admin/fields.ts';
 import { applyEdits, expandFields, fieldName, liveValue, serialise, EditError } from '../src/lib/admin/edit.ts';
 import { readFile, commitFiles, latestRun, gitBlobSha, resetGitHubToken, GitHubError } from '../src/lib/admin/github.ts';
 import { planUpload, appendUpload, safeName, kindOf, uploadKey, isUploadKey, UPLOADS_PATH } from '../src/lib/admin/uploads.ts';
-import { applyProjectEdits, applyOrder, newProjectText, portfolioSequence, projectData, projectValue, fieldsFor, roundTrips, slugFrom, youtubeId } from '../src/lib/admin/projects.ts';
+import { applyProjectEdits, applyOrder, newProjectText, removalWrites, projectFilePath, REMOVED_PATH, portfolioSequence, projectData, projectValue, fieldsFor, roundTrips, slugFrom, youtubeId } from '../src/lib/admin/projects.ts';
 import { ENTRY_TYPES, applyEntryEdits, entryData, entryFields, entryRoundTrips } from '../src/lib/admin/entries.ts';
 import { createMockGitHub, gitBlobSha as nodeBlobSha } from './lib/mock-github.mjs';
 
@@ -85,29 +85,43 @@ const TODAY = '2026-10-22';
 }
 
 await check('per-field freshness reads the live value each draft name points at', () => {
-  const docs = { home: read('home'), bts: read('bts') };
+  const docs = { home: read('home'), services: read('services') };
   assert.equal(liveValue(docs, 'home:copy.heroLineA#pt'), docs.home.copy.heroLineA.text);
   assert.equal(liveValue(docs, 'home:copy.heroLineA#en'), docs.home.copy.heroLineA.en);
   assert.equal(liveValue(docs, 'home:heroVideo'), docs.home.heroVideo);
-  assert.equal(liveValue(docs, 'bts:frames.2'), docs.bts.frames[2]);
+  assert.equal(liveValue(docs, 'services:leadImage'), docs.services.leadImage);
   assert.equal(liveValue(docs, 'home:nope#pt'), undefined, 'an unknown field is never "fresh"');
 });
 await check('drafts from several pages and files apply in one go', () => {
-  const docs = { home: read('home'), about: read('about'), bts: read('bts') };
-  const fields = [...expandFields(SCREENS.home, docs), ...expandFields(SCREENS.about, docs), ...expandFields(SCREENS.bts, docs)];
+  const docs = { home: read('home'), about: read('about'), services: read('services') };
+  const other = read('contact').banner;
+  const fields = [...expandFields(SCREENS.home, docs), ...expandFields(SCREENS.about, docs), ...expandFields(SCREENS.services, docs)];
   const { docs: next, changed } = applyEdits(fields, docs, {
     'home:copy.heroLineA#en': 'We capture feeling',
     'about:copy.storyB#en': 'x',
-    'bts:frames.0': docs.bts.frames[1],
+    'services:leadImage': other,
   }, TODAY);
-  assert.deepEqual([...new Set(changed.map((c) => c.file))].sort(), ['about', 'bts', 'home']);
-  assert.equal(next.bts.frames[0], docs.bts.frames[1]);
+  assert.deepEqual([...new Set(changed.map((c) => c.file))].sort(), ['about', 'home', 'services']);
+  assert.equal(next.services.leadImage, other);
 });
-await check('lists expand to one field per item', () => {
-  const about = expandFields(SCREENS.about, docsFor('about'));
-  assert.equal(about.filter((f) => f.key.startsWith('copy.closing.')).length, read('about').copy.closing.length);
-  const bts = expandFields(SCREENS.bts, docsFor('bts'));
-  assert.deepEqual(bts.map((f) => f.key), read('bts').frames.map((_, i) => `frames.${i}`));
+
+await check('the film field takes an address or an id, and refuses anything else', () => {
+  const docs = { services: read('services') };
+  const fields = expandFields(SCREENS.services.filter((d) => d.file === 'services'), docs);
+  const film = fields.find((f) => f.key === 'film.id');
+  const name = fieldName(film);
+  const id = 'dQw4w9WgXcQ';
+  for (const given of [id, `https://www.youtube.com/watch?v=${id}`, `https://youtu.be/${id}?t=3`]) {
+    const { docs: next, changed } = applyEdits(fields, docs, { [name]: given }, TODAY);
+    assert.equal(next.services.film.id, id);
+    assert.equal(changed.length, 1);
+  }
+  assert.throws(() => applyEdits(fields, docs, { [name]: 'https://vimeo.com/123' }, TODAY), /não reconheço/);
+  assert.throws(() => applyEdits(fields, docs, { [name]: ' ' }, TODAY), /não pode ficar vazio/);
+  assert.equal(applyEdits(fields, docs, { [name]: docs.services.film.id }, TODAY).changed.length, 0);
+  const title = fieldName(fields.find((f) => f.key === 'film.title'));
+  assert.throws(() => applyEdits(fields, docs, { [title]: '' }, TODAY), /não pode ficar vazio/);
+  assert.equal(applyEdits(fields, docs, { [title]: '  Outro  ' }, TODAY).docs.services.film.title, 'Outro');
 });
 
 await check('every offered field exists in its file', () => {
@@ -134,6 +148,23 @@ await check('every offered field exists in its file', () => {
   await check('every project file survives a read and a write byte for byte', () => {
     const bad = fs.readdirSync(dir).filter((f) => !roundTrips(fs.readFileSync(`${dir}/${f}`, 'utf8')));
     assert.deepEqual(bad, []);
+  });
+  await check('a project video can be marked the full film, and trailer is the default', () => {
+    const { text } = applyProjectEdits(leonor, { filmKind: 'film' }, ctx);
+    assert.equal(projectData(text).filmKind, 'film');
+    assert.equal(projectData(applyProjectEdits(text, { filmKind: 'trailer' }, ctx).text).filmKind, undefined);
+    assert.throws(() => applyProjectEdits(leonor, { filmKind: 'nope' }, ctx), /O vídeo é/);
+    assert.equal(applyProjectEdits(leonor, { filmKind: 'trailer' }, ctx).changed.length, 0);
+  });
+  await check('IMDb and trailer links are optional, take an address, and refuse anything else', () => {
+    const { text } = applyProjectEdits(leonor, { imdb: 'www.imdb.com/title/tt0000001/', trailer: 'https://youtu.be/dQw4w9WgXcQ' }, ctx);
+    assert.equal(projectData(text).imdb, 'https://www.imdb.com/title/tt0000001/');
+    assert.equal(projectData(text).trailer, 'dQw4w9WgXcQ');
+    assert.throws(() => applyProjectEdits(leonor, { imdb: 'https://example.com/x' }, ctx), /IMDb/);
+    assert.throws(() => applyProjectEdits(leonor, { trailer: 'nope' }, ctx), /Trailer/);
+    const cleared = projectData(applyProjectEdits(text, { imdb: '', trailer: '' }, ctx).text);
+    assert.equal(cleared.imdb, undefined);
+    assert.equal(cleared.trailer, undefined);
   });
   await check('a title change touches only that line, keeping its quotes and every comment', () => {
     const { text, changed } = applyProjectEdits(leonor, { 'title.pt': 'Words' }, ctx);
@@ -167,6 +198,19 @@ await check('every offered field exists in its file', () => {
     assert.equal(data.heroStill.key, 'projects/the-end/hero/poster');
     assert.throws(() => applyProjectEdits(leonor, { heroVideo: 'projects/the-end/poster' }, ctx), /vídeo/);
     assert.throws(() => applyProjectEdits(leonor, { 'poster.key': 'projects/the-end/hero' }, ctx), /imagem/);
+  });
+  await check('an opening video can be taken off, its own still with it; the cover cannot', () => {
+    const { text, changed } = applyProjectEdits(leonor, { heroVideo: '' }, ctx);
+    const data = projectData(text);
+    assert.deepEqual(changed, ['Vídeo de abertura']);
+    assert.equal(data.heroVideo, undefined);
+    assert.equal(data.heroStill, undefined);
+    assert.equal(data.poster.key, projectData(leonor).poster.key, 'the cover stays');
+    assert.ok(roundTrips(text));
+    assert.throws(() => applyProjectEdits(leonor, { 'poster.key': '' }, ctx), /imagem/);
+    const noFilm = leonor.replace(/^film:\n(?: {2}.*\n)+/m, '').replace(/^previewVideo: .*\n/m, '');
+    assert.equal(projectData(noFilm).film, undefined);
+    assert.throws(() => applyProjectEdits(noFilm, { heroVideo: '' }, ctx), /não pode sair/);
   });
   await check('unknown or unoffered fields are refused; no change writes nothing', () => {
     assert.throws(() => applyProjectEdits(leonor, { date: '2020-01-01' }, ctx), /desconhecido/);
@@ -419,11 +463,55 @@ await check('the build of a save is followed from queued to completed', async ()
   assert.equal(done.headSha, commit);
 });
 
+/* ── removing a project ─────────────────────────────────────────────────── */
+
+{
+  const dir = 'src/content/projects';
+  const all = fs.readdirSync(dir).map((f) => ({ slug: f.replace(/\.mdx$/, ''), text: fs.readFileSync(`${dir}/${f}`, 'utf8') }));
+  const removedText = fs.readFileSync(REMOVED_PATH, 'utf8');
+  const leonorTitle = projectValue(projectData(all.find((p) => p.slug === 'leonor').text), 'title.pt');
+
+  await check('removing a project needs its current title confirmed', () => {
+    assert.throws(() => removalWrites(all, new Map([['leonor', '']]), removedText, TODAY), /confirme/);
+    assert.throws(() => removalWrites(all, new Map([['leonor', 'Outro']]), removedText, TODAY), /confirme/);
+    assert.throws(() => removalWrites(all, new Map([['nao-existe', 'x']]), removedText, TODAY), /já não existe/);
+  });
+  await check('a project another one lists as related cannot be removed', () => {
+    const linked = all.map((p) => (p.slug === 'the-end' ? { ...p, text: p.text.replace(/^related: \[\]$/m, 'related:\n  - leonor') } : p));
+    assert.throws(() => removalWrites(linked, new Map([['leonor', leonorTitle]]), removedText, TODAY), /relacionado/);
+  });
+  await check('removing a project is ONE commit: its file deleted, the removal recorded, nothing else', async () => {
+    const start = { ...files, [REMOVED_PATH]: removedText, ...Object.fromEntries(all.map((p) => [projectFilePath(p.slug), p.text])) };
+    const { gh, cfg, opts } = setup({ files: start });
+    const writes = removalWrites(all, new Map([['leonor', leonorTitle]]), (await readFile(cfg, REMOVED_PATH, opts)).text, TODAY);
+    assert.deepEqual(writes.map((w) => w.path).sort(), [REMOVED_PATH, projectFilePath('leonor')].sort(), 'only the project and the removal list');
+    const expected = {};
+    for (const w of writes) expected[w.path] = (await readFile(cfg, w.path, opts)).sha;
+    await commitFiles(cfg, writes, expected, 'content: Projeto', opts);
+    assert.equal(gh.runs.length, 1, 'one push, one build');
+    assert.equal(gh.file(projectFilePath('leonor')), undefined, 'the file is gone');
+    assert.deepEqual(JSON.parse(gh.file(REMOVED_PATH)).removed, [{ slug: 'leonor', title: leonorTitle, at: TODAY }]);
+    const touched = Object.keys(start).filter((p) => gh.file(p) !== start[p]).sort();
+    assert.deepEqual(touched, [REMOVED_PATH, projectFilePath('leonor')].sort(), 'no other file changed');
+  });
+  await check('a removal from a stale project file is refused and deletes nothing', async () => {
+    const start = { ...files, [REMOVED_PATH]: removedText, [projectFilePath('leonor')]: all.find((p) => p.slug === 'leonor').text };
+    const { gh, cfg, opts } = setup({ files: start });
+    const before = await readFile(cfg, projectFilePath('leonor'), opts);
+    gh.pushElsewhere(projectFilePath('leonor'), `${before.text}\n`);
+    await assert.rejects(
+      commitFiles(cfg, [{ path: projectFilePath('leonor'), remove: true }], { [projectFilePath('leonor')]: before.sha }, 'm', opts),
+      (e) => e instanceof GitHubError && e.status === 409,
+    );
+    assert.ok(gh.file(projectFilePath('leonor')), 'still there');
+  });
+}
+
 /* ── new media from the owners (A4) ─────────────────────────────────────── */
 
 {
   const homeFields = expandFields(SCREENS.home, docsFor('home'));
-  const btsFields = expandFields(SCREENS.bts, docsFor('bts'));
+  const servicesFields = expandFields(SCREENS.services, docsFor('services'));
   const src = 'uploads/2026-10-22/abc12345/clip.mp4';
   const film = { screen: 'home', target: 'home:heroVideo', source: src, name: 'Clip Final.MOV', start: 10, end: 18, posterAt: 12 };
   const plan = (fields, req) => planUpload(fields, req, 'abc12345', 'o@x', '2026-10-22T18:00:00Z');
@@ -435,14 +523,14 @@ await check('the build of a save is followed from queued to completed', async ()
     assert.deepEqual([e.start, e.duration, e.posterAt, e.status], [10, 8, 12, 'pending']);
     assert.deepEqual(e.target, { screen: 'home', file: 'home', path: 'heroVideo', label: 'Vídeo da página inicial' });
   });
-  await check('a still for a BTS frame becomes owner/<id>/image, with no window', () => {
-    const e = plan(btsFields, { screen: 'bts', target: 'bts:frames.2', source: src.replace('clip.mp4', 'f.jpg'), name: 'frame.JPG' });
+  await check('a still for an image field becomes owner/<id>/image, with no window', () => {
+    const e = plan(servicesFields, { screen: 'services', target: 'services:leadImage', source: src.replace('clip.mp4', 'f.jpg'), name: 'frame.JPG' });
     assert.equal(e.key, 'owner/abc12345/image');
     assert.equal(e.start, undefined);
   });
   await check('the wrong kind for the field is refused, in words', () => {
     assert.throws(() => plan(homeFields, { ...film, name: 'photo.jpg' }), /precisa de um vídeo/);
-    assert.throws(() => plan(btsFields, { screen: 'bts', target: 'bts:frames.0', source: src, name: 'clip.mp4' }), /precisa de uma imagem/);
+    assert.throws(() => plan(servicesFields, { screen: 'services', target: 'services:leadImage', source: src, name: 'clip.mp4' }), /precisa de uma imagem/);
   });
   await check('a text field, an unknown field and a locked field take no file', () => {
     assert.throws(() => plan(homeFields, { ...film, target: 'home:copy.heroLineA' }), /não aceita ficheiros/);

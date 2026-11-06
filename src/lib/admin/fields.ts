@@ -8,8 +8,11 @@
  *
  * What is NOT here is deliberate:
  *   - strings the current design does not render (home.json workLineA/B, workBodyB,
- *     ctaPortfolio, servicesLead, aboutBodyB; portfolio.json `more`) — editing them would
- *     change nothing anyone can see;
+ *     ctaPortfolio, servicesLead, aboutBodyB; about.json closing, workLineA/B — the
+ *     About closing block the owners removed on 2026-10-29; portfolio.json `more`;
+ *     bts.json `frames`, whose grid the owners had taken off /bts/; services.json
+ *     `lead` and `copy`, off the page since 2026-10-29) — editing them
+ *     would change nothing anyone can see;
  *   - the WordPress excerpts, which are an archive record and not published.
  * And what is LOCKED says why, in the owners' words.
  *
@@ -23,7 +26,8 @@ export interface FieldDef {
   /** Dotted path into the file. `*` expands to every item of a list that exists. */
   path: string;
   label: string;
-  kind: 'text' | 'image' | 'video';
+  /** `film` is a YouTube id, entered as an id or an address. `line` is one plain string. */
+  kind: 'text' | 'image' | 'video' | 'film' | 'line';
   note?: string;
   /** Shown but not editable, and why. */
   locked?: string;
@@ -45,19 +49,15 @@ export const SCREENS: Record<PageFileName, FieldDef[]> = {
     { file: 'home', path: 'copy.aboutLead', label: 'Título da página', kind: 'text', note: 'Também é usado na descrição para pesquisa.' },
     { file: 'home', path: 'copy.aboutBodyFull', label: 'História, 1.º parágrafo', kind: 'text' },
     { file: 'about', path: 'copy.storyB', label: 'História, 2.º parágrafo', kind: 'text' },
-    { file: 'about', path: 'copy.closing.*', label: 'Fecho, parágrafo', kind: 'text' },
-    { file: 'about', path: 'copy.workLineA', label: 'Convite ao portfólio, 1.ª linha', kind: 'text' },
-    { file: 'about', path: 'copy.workLineB', label: 'Convite ao portfólio, 2.ª linha', kind: 'text' },
-    { file: 'about', path: 'copy.ctaPortfolio', label: 'Botão do portfólio', kind: 'text' },
   ],
   services: [
     { file: 'home', path: 'copy.servicesTitle', label: 'Título da página', kind: 'text' },
-    { file: 'services', path: 'leadImage', label: 'Imagem ao lado do texto de abertura', kind: 'image' },
-    { file: 'services', path: 'collage.*', label: 'Colagem, imagem', kind: 'image' },
-    { file: 'home', path: 'copy.servicesLeadFull', label: 'Texto de abertura', kind: 'text', locked: LOCK_LEAD },
-    { file: 'services', path: 'copy.closeLineA', label: 'Fecho, 1.ª linha', kind: 'text' },
-    { file: 'services', path: 'copy.closeLineB', label: 'Fecho, 2.ª linha', kind: 'text' },
-    { file: 'services', path: 'copy.closeBody', label: 'Fecho, texto', kind: 'text' },
+    { file: 'services', path: 'collage.*', label: 'Imagem do carrossel', kind: 'image', note: 'As três primeiras imagens do carrossel: esquerda, centro e direita.' },
+    { file: 'services', path: 'film.id', label: 'Vídeo no YouTube', kind: 'film', note: 'O vídeo por baixo do carrossel. Cole o endereço do vídeo no YouTube.' },
+    { file: 'services', path: 'film.title', label: 'Nome do vídeo', kind: 'line', note: 'Não aparece na página: é o nome que os leitores de ecrã anunciam. Mude-o quando mudar de vídeo.' },
+    { file: 'services', path: 'film.poster', label: 'Imagem do vídeo', kind: 'image', note: 'Aparece antes de carregar em ver o filme.' },
+    { file: 'services', path: 'leadImage', label: 'Imagem de partilha', kind: 'image', note: 'Não aparece na página: é a imagem mostrada quando a página é partilhada.' },
+    { file: 'home', path: 'copy.servicesLeadFull', label: 'Frase para pesquisa no Google', kind: 'text', locked: LOCK_LEAD, note: 'Não aparece na página: é a descrição que o Google mostra para esta página.' },
   ],
   contact: [
     { file: 'contact', path: 'banner', label: 'Imagem de topo', kind: 'image' },
@@ -75,15 +75,14 @@ export const SCREENS: Record<PageFileName, FieldDef[]> = {
     { file: 'thanks', path: 'copy.title', label: 'Título', kind: 'text' },
     { file: 'thanks', path: 'copy.lineA', label: 'Mensagem, 1.ª linha', kind: 'text' },
     { file: 'thanks', path: 'copy.lineB', label: 'Mensagem, 2.ª linha', kind: 'text' },
+    { file: 'about', path: 'copy.ctaPortfolio', label: 'Botão do portfólio', kind: 'text' },
   ],
   portfolio: [
-    { file: 'portfolio', path: 'copy.title', label: 'Título', kind: 'text' },
-    { file: 'portfolio', path: 'copy.lead', label: 'Frase', kind: 'text', note: 'Também é usada na descrição para pesquisa.' },
+    { file: 'portfolio', path: 'copy.title', label: 'Título', kind: 'text', note: 'Não aparece na página: é o título para leitores de ecrã e para a pesquisa.' },
+    { file: 'portfolio', path: 'copy.lead', label: 'Frase', kind: 'text', note: 'Não aparece na página: é usada na descrição para pesquisa.' },
     { file: 'portfolio', path: 'copy.all', label: 'Filtro «todos»', kind: 'text' },
   ],
-  bts: [
-    { file: 'bts', path: 'frames.*', label: 'Imagem', kind: 'image' },
-  ],
+  bts: [],
 };
 
 /** Each screen's name, as the admin's navigation shows it. */
@@ -94,7 +93,7 @@ export const SCREEN_LABELS: Record<PageFileName, string> = {
   contact: 'Página Contactos',
   thanks: 'Página Obrigado',
   portfolio: 'Página Portfólio',
-  bts: 'Página BTS',
+  bts: 'Página Know more about us',
 };
 
 /** Every repository path a screen may write. */

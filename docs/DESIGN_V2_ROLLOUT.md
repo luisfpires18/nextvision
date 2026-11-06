@@ -15,20 +15,20 @@ copy, verified by `validate:data`. Where the storyboard proposes new copy, it is
 | Area | Before (Review B) | Now (design v2) |
 |---|---|---|
 | Menu | Top header with four links and a mobile menu | **Rail:** five stripes on the right edge, one per section in logo order. On a phone it is a bottom bar of five labelled tabs |
-| Page frame | None | **Spine:** the section's tab on the left (language switch, "Let's talk" reel, section name, next-section arrow). On a phone it is a bar across the top |
-| Sections | Portfolio / About / Services / Contact | Homepage `/` · About `/sobre/` · Commercial `/servicos/` · Cinema `/portfolio/` · **BTS `/bts/` (new)** |
+| Page frame | None | **Spine:** the section's tab on the left (language switch, "Let's talk" reel, section name). On a phone it is a bar across the top. The storyboard's next-section arrow was removed on 2026-11-06 |
+| Sections | Portfolio / About / Services / Contact | Homepage `/` · About `/sobre/` · Commercial `/servicos/` · Cinema `/portfolio/` · **BTS `/bts/` (new), labelled "Know more about us" since 2026-11-06** |
 | Navigation motion | Dissolve | **Slide:** the new page enters from the rail and the old one dims (`full` tier only). Back reverses it; contact drops in from the top |
 | Rail hover | — | **Lights-down:** the page desaturates and darkens behind the rail |
 | Opening | Four-colour bar, at most 900 ms | **Homepage:** fill → drop → HELLO → stand → travel → wipe. **Other pages:** the fill only |
-| Homepage | Hero, work rows, feature, services, about, close | The film full-bleed, "We are NVF", the published statement, the cycling logo |
-| About | Editorial cream page | Poster-size wordmark, story and close in two columns, LOVING EVERY FRAME, founders on a blue panel that slides in, a reel rolling with the scroll |
-| Commercial | Ruled services list | Colour NVF, three-frame collage, each service set like "VIDEO PRODUCTION", a reel that rolls in and becomes LET'S TALK |
-| Cinema | Composed contact sheet | **Shelf** (a VHS spine per project, one stood up as a poster) and **list** (thumbnail rows with a category-coloured rule), switched with `?view=list` |
+| Homepage | Hero, work rows, feature, services, about, close | The film full-bleed, "We are NVF" as the `<h1>`, the tagline. The published statement and the cycling logo were removed on 2026-11-06 |
+| About | Editorial cream page | Poster-size wordmark, story and close in two columns, LOVING EVERY FRAME, founders on a blue panel that slides in, a reel rolling with the scroll. **After owner round 1 (2026-10-29):** no closing block, centred, founders with icons, and the reel rests as LET'S TALK |
+| Commercial | Ruled services list | Colour NVF, three-frame collage, each service set like "VIDEO PRODUCTION", a reel that rolls in and becomes LET'S TALK. **After owner round 1 (2026-10-29):** two category carousels, with the LET'S TALK reel. **Since 2026-11-06:** one stage carousel, the storyboard's collage made to rotate, instead of the two rows, with the NVF showreel under it |
+| Cinema | Composed contact sheet | **Shelf** (a VHS spine per project, one stood up as a poster) and **list** (thumbnail rows with a category-coloured rule), switched with `?view=list`. Since 2026-11-06 the title and lead above them are gone, with the `<h1>` kept for screen readers and search. The poster is a preview, not a link; the spines are the way in. Its details link to IMDb and the trailer when a project has them |
 | Contact | Form | The same form with numbered fields and stripe-coloured rules |
-| Footer | One metaline | Black panel: NVF mark, the five sections plus contact as full-size links, then the legal links and socials as before |
+| Footer | One metaline | Black panel: NVF mark, the five sections plus contact as full-size links, then the legal links and socials as before. On every page except the homepage, since 2026-11-06 |
 | Palette | Sampled from `colors.png` | **The brand guide's p. 10:** green `#124A43`, blue `#2B3990`, red `#D52B27`, orange `#F36E21`, yellow `#F9C914`, cream `#FFFAEC` |
 | Type | Barlow Condensed 500/700 | Barlow Condensed **300** (labels) and **900** (display) added; 8 faces, 110.8 KB |
-| Cursor | System | Red arrow on cream, yellow on dark. Native CSS, fine pointers only |
+| Cursor | System | Asterisk (the storyboard star — owners, 2026-10-29), red on cream, yellow on dark; a small arrow over the rail (mockup pp. 28–39). Native CSS, fine pointers only |
 
 ## 2. How the rule conflicts were resolved
 
@@ -36,7 +36,7 @@ copy, verified by `validate:data`. Where the storyboard proposes new copy, it is
 |---|---|---|
 | C1 cursor | Native `cursor: url()` gated on `(hover: hover) and (pointer: fine)`, with no script. CLAUDE.md §11 amended to allow exactly this | `tokens.colour.css`, `chrome.css` |
 | C2 grey-out | Two **sibling** fixed layers: a `mix-blend-mode: saturation` grey and a dark shade, faded by opacity. They must be siblings, because a blend mode inside an opacity-faded parent only blends with that parent's own group. Pure CSS (`:has(.rail:hover)`) | `chrome.css` |
-| C3 navigation | Real pages. The slide is a `::view-transition` rule on the existing ClientRouter. The rail is its own named group, so it holds still | `chrome.css` |
+| C3 navigation | Real pages. The slide is a `::view-transition` rule on the existing ClientRouter. The rail is its own named group, so it holds still. Since 2026-11-06 the stripes lose their `href` once scripting runs, so the browser shows no link bubble on the menu; the built HTML stays real links | `chrome.css`, `rail.ts` |
 | C4 contrast | Each section carries `--sec` / `--sec-ink`: cinema and contact take ink, the rest cream. Yellow is never text on cream | `tokens.colour.css` |
 | C5 opening | Armed by the existing bootstrap (first document of a session, `full` tier). The long version is homepage-only. Click or any key skips it, and it is capped at the sum of its own tokens | `chrome.css`, `site-motion.ts` |
 | C6 scroll reel | `animation-timeline: scroll(root)` / `view()` under `@supports`, `full` tier only. Without support the reel rests and the team panel is in place | `sections.css` |
@@ -68,10 +68,10 @@ then confirmed with `document.getAnimations()`: `nvf-slide-in` / `nvf-recede`, 9
 ## 4. What did not change, on purpose
 
 - **Every route, canonical, hreflang pair, redirect and the sitemap.** BTS adds two URLs
-  (54 in the sitemap).
-- **Every published string, including the H1s that `validate:routes` asserts.** The
-  homepage's `<h1>` is still the published statement; "We are NVF" is display type above
-  it, taken from the live `<title>`.
+  (54 in the sitemap, and 56 on `master` with the owners' new project).
+- **Every published string, including the H1s that `validate:routes` asserts.** Design v2
+  kept the homepage's published statement as its `<h1>`. On 2026-11-06 the user had it
+  removed, so "We are NVF", taken from the live `<title>`, is the `<h1>` now.
 - **The contact form's contract.** The storyboard's "Company/brand" field is NOT added,
   because the honeypot is already named `empresa`; adding it is a contract change (§5).
 - **The founders' e-mails and phones from the storyboard are not published.** D2 is open,
@@ -89,8 +89,8 @@ Mirrored in `docs/BLOCKED_TODOS.md`.
 - **Founders' roles:** "Co-Founder & Creative director" / "Co-Founder & Producer" differ
   from the live roles.
 - **Assets:** the VHS spine artwork (the spines are drawn from titles until it arrives),
-  the NOWHERE poster and project, Need to Talk, Agente Imobiliário, the About team-photo
-  carousel, and a vector export of the logos.
+  the NOWHERE poster and project, Need to Talk, the About team-photo carousel, and a vector
+  export of the logos.
 - **Mobile:** not designed in the storyboard. The bottom-bar / top-bar adaptation here is
   ours, for Tatiana to confirm.
 - **Contact "Company/brand" field:** needs the honeypot renamed first, then a contract change

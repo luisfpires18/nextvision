@@ -24,6 +24,7 @@ secrets.json
 *.m4v
 *.psd
 *.ai
+!/.ai/
 *.zip
 *.tar.gz
 /media/
@@ -96,3 +97,5 @@ coverage/
 # src/styles/fonts.css IS committed: it is the record of which faces and which real
 # usWeightClass values are declared, and a fresh clone must still build. Without the
 # binaries the faces simply fall back to the system stack until build-fonts.mjs runs.
+# Playwright CLI output (may contain credentials)
+.playwright-cli/

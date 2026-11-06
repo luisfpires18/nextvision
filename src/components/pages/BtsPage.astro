@@ -2,11 +2,9 @@
 /**
  * /bts/ — DESIGN V2 (Tatiana). Behind the scenes.
  *
- * The storyboard's last panel: black, the NVF mark, the company's three channels, and a
- * grid of frames that leads to Instagram. The channels are the ones site.yml already
- * publishes. The grid is CURATED and STATIC — frames from the manifest, each linking to
- * the Instagram profile — never an Instagram embed, which would load a third party's
- * script and cookies that validate:analytics forbids and the privacy position rules out.
+ * The section's yellow, the NVF mark and the company's three channels — the ones site.yml
+ * already publishes. The storyboard's grid of frames was taken out at the owners' request
+ * ("Tira a Cena dos BTS, deixa só amarelo", 2026-10-29); bts.json keeps its keys, unused.
  *
  * No meta description: the live site has no such page and so no sentence to select one
  * from (src/lib/page-meta.ts says so, which is what validate:seo checks).
@@ -14,8 +12,6 @@
 import { getEntry } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import BrandMark from '../site/BrandMark.astro';
-import { imageProps } from '../../lib/media.ts';
-import { PAGE_CONTENT } from '../../lib/page-content.ts';
 import { organizationSchema, breadcrumbSchema } from '../../lib/seo.ts';
 import { pagePath } from '../../i18n/routes.ts';
 import { pageTitle } from '../../lib/page-meta.ts';
@@ -28,9 +24,6 @@ const { locale } = Astro.props;
 
 const settings = await getEntry('settings', 'site');
 const socials = settings?.data.socials ?? [];
-const instagram = socials.find((s) => s.platform === 'instagram') ?? null;
-
-const frames = PAGE_CONTENT.bts.frames.map((key) => imageProps(key, { alt: '', sizes: '(min-width: 48rem) 18vw, 30vw' }));
 
 const schema = [
   organizationSchema({
@@ -44,8 +37,8 @@ const schema = [
 ];
 ---
 
-<BaseLayout section="bts" title={pageTitle('bts', locale)} locale={locale} ground="dark" schema={schema}>
-  <section class="bts ground-dark" data-ground="dark">
+<BaseLayout section="bts" title={pageTitle('bts', locale)} locale={locale} schema={schema}>
+  <section class="bts">
     <div class="bts__side">
       <BrandMark mark="mono" class="bts__mark" />
       <h1 class="bts__title">{t('rail.bts', locale)}</h1>
@@ -55,18 +48,5 @@ const schema = [
         ))}
       </ul>
     </div>
-    <ul class="bts__grid">
-      {frames.map((img) => img && (
-        <li>
-          <a href={instagram?.url ?? '#'} rel="noopener" target="_blank">
-            <picture>
-              {img.avifSrcset && <source type="image/avif" srcset={img.avifSrcset} sizes={img.sizes} />}
-              <img src={img.src} srcset={img.srcset} sizes={img.sizes} alt="" width={img.width} height={img.height} loading="lazy" decoding="async" />
-            </picture>
-            <span class="visually-hidden">{instagram?.label ?? 'Instagram'}</span>
-          </a>
-        </li>
-      ))}
-    </ul>
   </section>
 </BaseLayout>

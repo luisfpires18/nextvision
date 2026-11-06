@@ -15,7 +15,9 @@
  *   4. the rules (edit.ts): only fields the admin offers, never locked ones, both
  *      languages, `owner:` provenance when the Portuguese changes (422);
  *   5. the build's own schema for every file written (422);
- *   6. one commit or none (github.ts `commitFiles`, fast-forward only).
+ *   6. one commit or none (github.ts `commitFiles`, fast-forward only). Removing a
+ *      project (`projeto/<slug>:apagar`) is part of the same commit: its file deleted and
+ *      recorded (projects.ts `removalWrites`), its media left where it is.
  * Nothing the owner typed is logged.
  */
 import type { APIRoute } from 'astro';
@@ -27,7 +29,8 @@ import { SCREENS, SCREEN_LABELS, pageFilePath, type PageFileName } from '../../l
 import { applyEdits, expandFields, liveValue, serialise, EditError, type Field } from '../../lib/admin/edit.ts';
 import { PAGE_SCHEMAS } from '../../lib/page-content.ts';
 import {
-  ORDER_DRAFT, PROJECT_FILE, SLUG, applyOrder, applyProjectEdits, portfolioSequence, projectData, projectFilePath, projectValue, PROJECTS_DIR,
+  ORDER_DRAFT, PROJECT_FILE, REMOVE_FIELD, REMOVED_PATH, SLUG, applyOrder, applyProjectEdits, portfolioSequence, projectData, projectFilePath, projectValue,
+  removalWrites, PROJECTS_DIR, type ProjectWrite,
 } from '../../lib/admin/projects.ts';
 import { projectContext } from '../../lib/admin/project-context.ts';
 import { ENTRY_ID, applyEntryEdits, entryData, entryFilePath, entryTypeOf, entryValue } from '../../lib/admin/entries.ts';
@@ -57,6 +60,8 @@ export const POST: APIRoute = async ({ request }) => {
   /** Services, team, categories, contacts (entries.ts), by `prefix/id`. */
   const entryDrafts = new Map<string, Record<string, { from: string; to: string }>>();
   const orderDraft = drafts[ORDER_DRAFT];
+  /** Projects to remove: slug → the title the owner confirmed. */
+  const removals = new Map<string, string>();
   for (const [name, d] of Object.entries(drafts)) {
     const [file = '', field = ''] = name.split(':');
     if (name === ORDER_DRAFT) continue;
@@ -69,9 +74,12 @@ export const POST: APIRoute = async ({ request }) => {
     if (file.startsWith(`${PROJECT_FILE}/`)) {
       const slug = file.slice(PROJECT_FILE.length + 1);
       if (!SLUG.test(slug)) return answer(400, { error: 'Pedido inválido.' });
+      if (field === REMOVE_FIELD) { removals.set(slug, d.to); continue; }
       projectDrafts.set(slug, { ...projectDrafts.get(slug), [field]: d });
     } else pageDrafts[name] = d;
   }
+  // Edits to a project that is being removed go with it.
+  for (const slug of removals.keys()) projectDrafts.delete(slug);
   const pageEdits = Object.fromEntries(Object.entries(pageDrafts).map(([n, d]) => [n, d.to]));
 
   // The page files the drafts touch: the `file` part of every `file:path#lang` name.
@@ -129,15 +137,31 @@ export const POST: APIRoute = async ({ request }) => {
       file.text = applied.text;
       projectChanged.push(...applied.changed.map((c) => `${name} — ${c}`));
     }
-    if (orderDraft && !stale.length) {
+    const allSlugs = async () => {
       const slugs = (await listFiles(cfg, PROJECTS_DIR)).filter((p) => p.endsWith('.mdx')).map((p) => p.slice(PROJECTS_DIR.length + 1, -'.mdx'.length));
       for (const slug of slugs) await load(slug);
+      return slugs;
+    };
+    const today = new Date().toISOString().slice(0, 10);
+    if (orderDraft && !stale.length) {
+      const slugs = await allSlugs();
       const all = slugs.map((slug) => ({ slug, text: projects.get(slug)!.original }));
       if (portfolioSequence(all).join(',') !== orderDraft.from) stale.push('Ordem do portfólio');
       else {
         const moved = applyOrder(slugs.map((slug) => ({ slug, text: projects.get(slug)!.text })), orderDraft.to);
         for (const m of moved) projects.get(m.slug)!.text = m.text;
         if (moved.length) projectChanged.push('Ordem do portfólio — Ordem');
+      }
+    }
+    let removed: ProjectWrite[] = [];
+    if (removals.size && !stale.length) {
+      const slugs = await allSlugs();
+      const list = await readFile(cfg, REMOVED_PATH);
+      current[REMOVED_PATH] = list.sha;
+      removed = removalWrites(slugs.map((slug) => ({ slug, text: projects.get(slug)!.original })), removals, list.text, today);
+      for (const [slug, title] of removals) {
+        current[projectFilePath(slug)] = projects.get(slug)!.sha;
+        projectChanged.push(`Projeto «${title}» — Apagado do site`);
       }
     }
     // The smaller entries: the same read, freshness check and apply, one file each.
@@ -157,7 +181,7 @@ export const POST: APIRoute = async ({ request }) => {
         if (entryValue(data, p, lang) !== d.from) stale.push(`${name} — ${field}`);
       }
       if (stale.length) continue;
-      const applied = applyEntryEdits(t, read.text, Object.fromEntries(Object.entries(ed).map(([f, d]) => [f, d.to])), { ...ctx, today: new Date().toISOString().slice(0, 10) });
+      const applied = applyEntryEdits(t, read.text, Object.fromEntries(Object.entries(ed).map(([f, d]) => [f, d.to])), { ...ctx, today });
       if (!applied.changed.length) continue;
       entryWrites.push({ path, text: applied.text });
       current[path] = read.sha;
@@ -166,7 +190,7 @@ export const POST: APIRoute = async ({ request }) => {
 
     const projectWrites: { path: string; text: string }[] = [];
     for (const [slug, f] of projects) {
-      if (f.text === f.original) continue;
+      if (f.text === f.original || removals.has(slug)) continue;
       projectWrites.push({ path: projectFilePath(slug), text: f.text });
       current[projectFilePath(slug)] = f.sha;
     }
@@ -178,9 +202,8 @@ export const POST: APIRoute = async ({ request }) => {
       });
     }
 
-    const today = new Date().toISOString().slice(0, 10);
     const { docs: next, changed } = applyEdits([...fields.values()], docs, pageEdits, today);
-    if (!changed.length && !projectWrites.length && !entryWrites.length) return answer(200, { nothing: true });
+    if (!changed.length && !projectWrites.length && !entryWrites.length && !removed.length) return answer(200, { nothing: true });
 
     const touched = [...new Set(changed.map((c) => c.file))];
     for (const file of touched) {
@@ -191,7 +214,7 @@ export const POST: APIRoute = async ({ request }) => {
     const labels = [...changed.map((c) => c.label), ...projectChanged];
     const pages = [...new Set(labels.map((l) => l.split(' — ')[0]))];
     const message = `content: ${pages.join(', ')}\n\n${labels.map((l) => `- ${l}`).join('\n')}\n\nPublicado no admin por ${g.who.email}.`;
-    const writes = [...touched.map((file) => ({ path: pageFilePath(file), text: serialise(next[file]) })), ...projectWrites, ...entryWrites];
+    const writes = [...touched.map((file) => ({ path: pageFilePath(file), text: serialise(next[file]) })), ...projectWrites, ...entryWrites, ...removed];
     const { commit } = await commitFiles(
       cfg,
       writes,

@@ -117,7 +117,9 @@ const body = t(notFound ? 'error.404.body' : 'error.offline.body', locale);
     const retry = document.querySelector<HTMLButtonElement>('[data-er-retry]');
     // `reload()` rather than a link to the same URL: the point is to ask the network
     // again, and a same-URL link can be answered from the cache that served this page.
-    retry?.addEventListener('click', () => window.location.reload());
+    // A property, not addEventListener: the first load runs `fill` twice (the direct call
+    // and page-load), and assigning is idempotent where adding a listener is not.
+    if (retry) retry.onclick = () => window.location.reload();
   };
 
   fill();

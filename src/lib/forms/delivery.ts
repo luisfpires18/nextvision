@@ -1,38 +1,38 @@
 /**
  * Where an accepted contact message goes — the seam, and the reason there is one.
  *
- * **DECISION D17 IS OPEN.** Neither the provider nor the recipient has been chosen, and
- * D2 has not settled which of three addresses even reaches the company. So this file
- * deliberately does NOT contain an address, and the endpoint deliberately does not have a
- * default one to fall back to. Inventing a recipient would mean sending a stranger's phone
- * number to a mailbox nobody confirmed is read (CLAUDE.md §8).
+ * The recipient is `geral@nextvisionfilms.com`, chosen by the user on 2026-11-06 and set in
+ * `env.prod.vars` in wrangler.jsonc, and the provider is Cloudflare Email Service. This file
+ * deliberately does NOT contain an address, and the endpoint has no default one to fall back
+ * to, because guessing would mean sending a stranger's phone number to a mailbox nobody chose
+ * (CLAUDE.md §8).
  *
  * What exists instead is the boundary: one interface, four adapters behind it, and one
  * resolver that picks between them from configuration. Answering D17 is setting two or
  * three environment variables. No component, no route and no validator changes.
  *
- * ── The four adapters ────────────────────────────────────────────────────────
+ * ── The adapters ─────────────────────────────────────────────────────────────
  *   unconfigured    nothing is set. Refuses, loudly, with 503. Never pretends.
  *   dev-sink        `astro dev` only. Records that a submission was ACCEPTED AND NOT SENT,
  *                   with no field contents and no secrets, and says so in the words
  *                   "NOT DELIVERED" so it cannot be mistaken for production behaviour.
+ *   cloudflare      Cloudflare Email Service, through the `EMAIL` send_email binding. No
+ *                   third party and no API key. Ready once the binding, recipient and sender
+ *                   exist. The sender's domain must be onboarded, and the recipient verified.
  *   resend          one HTTPS POST. https://resend.com — needs an account, a verified
  *                   sending domain and an API key.
  *   brevo           one HTTPS POST. https://brevo.com — the same three things, hosted in
  *                   the EU, which suits a Portuguese data controller.
  *
- * Adding a fifth is a `Provider` object and one line in `ADAPTERS`. Cloudflare's own
- * Email Routing `send_email` binding is the option with the least infrastructure of all —
- * no third party, no API key — and it is NOT here because it requires the zone to be on
- * Cloudflare with Email Routing enabled, which is decision D20 and a later phase.
- * docs/ARCHITECTURE.md §7 records that evaluation.
+ * Adding another is a `Provider` object and one line in `ADAPTERS`. docs/ARCHITECTURE.md §7.3
+ * records why the Email Service route must not turn on Email Routing for the apex.
  *
  * ── What is never done here ──────────────────────────────────────────────────
  * No submission is stored. No message content is logged, in any adapter, in any mode. The
  * message exists for the duration of one request and then does not.
  */
 
-import { ENV_KEYS, IS_DEV, readEnv } from './env.ts';
+import { ENV_KEYS, IS_DEV, readBinding, readEnv } from './env.ts';
 import type { ContactSubmission } from './contact.ts';
 
 /* ══════════════════════════════════════════════════════════════ the seam ══ */
@@ -119,7 +119,7 @@ const unconfigured: Provider = {
     ok: false,
     provider: 'unconfigured',
     reason: 'not-configured',
-    detail: 'no delivery provider is configured — decision D17 is open',
+    detail: 'no delivery provider is configured',
   }),
 };
 
@@ -150,6 +150,49 @@ const devSink: Provider = {
       }),
     );
     return { ok: true, provider: 'dev-sink', detail: 'not delivered — development sink' };
+  },
+};
+
+/** The part of the `send_email` binding this project uses. */
+interface EmailBinding {
+  send(message: {
+    to: string; from: { email: string; name: string }; subject: string; text: string;
+    replyTo: { email: string; name?: string };
+  }): Promise<{ messageId: string }>;
+}
+
+/** https://developers.cloudflare.com/email-service/api/send-emails/workers-api/ */
+const cloudflare: Provider = {
+  id: 'cloudflare',
+  ready: () => Boolean(
+    readBinding(ENV_KEYS.emailBinding) && readEnv(ENV_KEYS.recipient) && readEnv(ENV_KEYS.sender),
+  ),
+  deliver: async (message) => {
+    const binding = readBinding<EmailBinding>(ENV_KEYS.emailBinding);
+    const to = readEnv(ENV_KEYS.recipient);
+    const from = readEnv(ENV_KEYS.sender);
+    if (!binding || !to || !from) {
+      return { ok: false, provider: 'cloudflare', reason: 'not-configured' };
+    }
+    const { subject, text } = render(message);
+    try {
+      await binding.send({
+        to,
+        from: { email: from, name: 'Next Vision Films' },
+        subject,
+        text,
+        // So that hitting Reply answers the person who wrote in, rather than the Worker.
+        replyTo: { email: message.email, ...(message.name ? { name: message.name } : {}) },
+      });
+      return { ok: true, provider: 'cloudflare' };
+    } catch (error) {
+      // The error's code, never its message: a message can echo the addresses back.
+      const code = (error as { code?: unknown } | null)?.code;
+      return {
+        ok: false, provider: 'cloudflare', reason: 'provider-error',
+        detail: typeof code === 'string' ? code : 'send failed',
+      };
+    }
   },
 };
 
@@ -223,7 +266,7 @@ const brevo: Provider = {
   },
 };
 
-const ADAPTERS: Provider[] = [resend, brevo];
+const ADAPTERS: Provider[] = [cloudflare, resend, brevo];
 
 /* ═════════════════════════════════════════════════════════════ resolution ══ */
 

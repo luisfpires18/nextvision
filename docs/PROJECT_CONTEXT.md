@@ -3,12 +3,27 @@
 Living state document. **Update this file as work progresses**, in the same commit as the
 work it describes. Read it at the start of every session.
 
-**Last updated:** 2026-09-04 (session 15)
-**Current phase:** **Phase 15 ✅ COMPLETE — PWA finalised; the site is installable.**
-**Next:** step 12 — Cloudflare staging/deploy and DNS. Then the newsletter endpoint (D18)
+**Last updated:** 2026-11-06
+**Current state:** live at www.nextvisionfilms.com in design v2, with the owners' admin at
+`/admin`. `dev` and `master` were released together on 2026-11-06.
+**Next:** contact email (paused, `BLOCKED_TODOS.md`), the media hostname (D20) and the newsletter
+endpoint (D18). The review notes below and the numbered sessions are a dated record, so
+read `HANDOVER.md` and `CLAUDE.md` §10 for what is true today.
 
 > **Open items now live in one place: [`BLOCKED_TODOS.md`](BLOCKED_TODOS.md).** Update it
 > at the end of every phase.
+
+> ### Owner feedback round 1 on design v2 (2026-10-29), on `dev`
+> Checked against the mockup PDF (`next_vision_info/review/_extracted/mockup`). The
+> storyboard star is the POINTER (cursor tokens), with the mockup's arrow over the rail; the
+> static stars are gone. "Loving every frame" sits under the hero logo. The film line is
+> tied to its reel (tip = reel centre) on About and on Services' LET'S TALK, and About's
+> reel now rests as LET'S TALK linking to contacts. About lost its closing block and is
+> centred; the founders have icons and owner-supplied roles. `/servicos/` is two category
+> carousels (data: `services.json` `categories`). Project pages have VOLTAR. `/bts/` is
+> yellow only. The admin can delete a project (301 to the portfolio via
+> `removed-projects.json`), take off an opening video, and undo one draft. Open points:
+> `BLOCKED_TODOS.md`.
 
 > ### ✅ Review A — APPROVED (owner, 2026-09-02)
 > **Contact Sheet as the overall website system + Projection for immersive/cinematic
@@ -2014,3 +2029,194 @@ and from then on it is in the list.
 - the draft survived a reload and published as one commit;
 - that file built, the film rendered as the YouTube embed, and every validator passed;
 - the screen fits 375 px.
+
+## 32. Admin: deleting what the owners can create (2026-10-29)
+
+The owners asked "como apago cenas aqui?". What the admin could already remove: a page
+block (× on the block, with a confirm), an image inside a gallery, a tagline (empty both
+languages), and every unpublished draft at once («Descartar todos os rascunhos»). What it
+could NOT remove, and now can:
+
+- **A project.** «Apagar projeto», at the end of the project form, behind a confirm that
+  names it. It is ONE draft, `projeto/<slug>:apagar`, whose value is the confirmed title;
+  the server refuses if that is not the current title, or if another project lists it as
+  `related` (the build would fail on the dangling reference). Publicar deletes the `.mdx`
+  and appends `{slug, title, at}` to `src/data/removed-projects.json` in the same commit.
+  Its media is NOT touched: the manifest and R2 keep it (§10.13), so the project can be
+  restored from git history. Edits to a project being removed go with it.
+  - `scripts/build-redirects.mjs` turns each recorded removal into
+    `/portfolio/<slug>/` and `/en/portfolio/<slug>/` → the portfolio, 301, unless a
+    project file with that slug exists again.
+  - `validate:routes` keeps its floor of 20 migrated projects, now counted as project
+    FILES plus recorded removals. A file that vanishes without a record still fails.
+    This also fixes a latent defect: the floor counted only `draft: false`, so hiding
+    one of the twenty with «No site → Escondido» would have failed the deploy.
+- **The opening video** of a project: «(nenhum)» in «Vídeo de abertura». Its still goes
+  with it when the still is the video's own poster, and the page falls back to the cover.
+  Refused for a project with no film, no preview and no `filmUnavailable` (the schema
+  needs one). The cover is mandatory, so it can be swapped but not removed, and the field
+  says so.
+- **One draft.** Each line of the Publicar list has «Desfazer», with a confirm.
+
+The softer option is named next to the delete: «No site → Escondido» keeps the project.
+`npm run test:admin`: 62 checks, including a removal that is exactly one commit touching
+exactly the project file and the removal list, and a stale removal that deletes nothing.
+
+## 33. Performance audit (2026-10-29)
+
+Lighthouse (PageSpeed Insights, mobile) on production: `/` 95 / LCP 2.6 s / CLS 0,
+`/portfolio/` 94 / A11y 92 / CLS 0.14. The site was already fast; the audit found ten
+measured defects plus two missing header classes, all fixed on `claude/perf-audit-006eb2`,
+one commit each. Full record, with the font measurements and what was verified locally:
+`docs/PERFORMANCE_AUDIT.md`.
+
+- `public/_headers` (new): `/__media/*` immutable, fonts and brand PNGs finite TTLs, HSTS,
+  `nosniff`, `Referrer-Policy`, `Permissions-Policy`, `X-Frame-Options: SAMEORIGIN` (the
+  admin's page preview frames the site).
+  `validate:media` asserts the immutable `/__media/*` rule in the built file.
+- No `poster` on videos that sit over a `<picture>` (six 1400w WebPs on `/portfolio/`).
+- The shelf poster is the eager, high-priority, AVIF LCP image; the hidden list no longer
+  claims priority; list `sizes` is `17rem`.
+- Brand `<img>` reserves its box from `--mark-ar` (the CLS culprit Lighthouse named).
+- `BaseLayout` `preloadFonts` prop; the homepage and the portfolio preload the faces they
+  were measured to paint first.
+- The service worker precaches what the shells reference: 24 entries / 333 KB → 18 / 199 KB.
+- `class="js"` and the cinema view are set on the incoming document before a swap, so the
+  transition snapshot shows one view.
+- Dead header/progress/menu/feature/sound code removed from `site-motion.ts`.
+- `a.poster__frame` named by the film title; the spine's other-language link lifted from
+  3.11:1 to full ink.
+- The contact form wires on every visit (a second visit in a session had no Turnstile and
+  no fetch), and Turnstile now loads on first interaction. The error page's retry no longer
+  gets two listeners.
+- `npm run brand:build`: marks at twice their largest rendered width (homepage sign
+  112 KB → 11 KB, footer mono 49 KB → 27 KB).
+
+**Measured after the dev deploy (`b7f69e0`, 2026-10-30):** `/` 98 / LCP 1.7 s / CLS 0;
+`/portfolio/` 100 / A11y 100 / LCP 0.9 s / CLS 0. `/__media/*` is immutable at the edge,
+fonts 30 days, and the five security headers are on every route
+(`docs/PERFORMANCE_AUDIT.md` §2). Tier 3 items (the curtain, CSP, the 5.6 MB media prune) are
+in `docs/BLOCKED_TODOS.md`. New standing rule: CLAUDE.md §10 rule 29.
+
+## 34. HTTP2Shell, CVE-2026-111497 (2026-11-03)
+
+An out-of-bounds write in the Brotli DECODER, 1.0.3–1.2.0 (GHSA-9v8h-qqgm-4m35). Fixed in PyPI
+`brotli` 1.2.1 and Node 22.23.4. Production was not vulnerable through this repository: the
+deployed Worker never decodes Brotli, and the WOFF2 files are compressed data the browser decodes.
+Only CI carried vulnerable copies.
+
+- `dev.yml` / `prod.yml` pinned `brotli==1.2.0` for font generation. That path only COMPRESSES
+  repository TTFs, so the decoder was never reached. Bumped to `brotli==1.2.1`.
+- `setup-node` asked for `'22'`, which prefers the runner's cached 22.x and may predate 22.23.4.
+  `check-latest: true` added in `dev.yml`, `prod.yml` and `media-ingest.yml`.
+- Measured, not assumed: the eight WOFF2 faces are byte-identical under 1.2.0 and 1.2.1 (same
+  SHA-256), and `src/styles/fonts.css` is unchanged. `BUILD_ID` hashes the precache URL list,
+  not font bytes, so the change cannot touch the service worker.
+- Not fixable here: Cloudflare's workerd patch status is UNKNOWN; the workerd that wrangler
+  4.128.0 bundles predates the fix (local preview only, raise with `compatibility_date`, rule 21);
+  the local workstation ran Node 22.23.2 and needs a manual upgrade.
+
+## 35. Documentation pass (2026-11-06)
+
+The living documents had fallen behind the project, so they were checked against the code,
+GitHub's public API and the two live sites, and corrected. Words on the site, the archive and
+`docs/content/` were not touched.
+
+**Measured on 2026-11-06:**
+- `master` is 36 commits behind `dev`, and `dev` is 3 behind `master`. Prod therefore lacks owner
+  round 1, the performance audit, `_headers` and the CVE bump. `dev` lacks the owners' publish of
+  «Agente Imobiliário».
+- The repository is public, and every branch reports `protected: false`.
+- Sitemaps: 54 URLs on `dev`, 56 on `master`. Built pages are worked out from those (75 and 77):
+  the build could not run on this machine.
+- Manifest: 88 assets / 392 renditions / 17.1 MiB on `dev`, 90 / 398 / 19.8 MiB on `master`.
+- Both sites serve the Turnstile test site key. The old Worker's workers.dev URL answers 404.
+
+**Corrections that change what someone would do:**
+- `npm run archive:source` must not be re-run. Its origin now serves the rebuild, so it would
+  write the rebuild over the record of the WordPress site. `CLAUDE.md` used to recommend it for
+  refreshing.
+- `master` also receives the owners' commits, so `dev -> master` needs `master` merged into `dev`
+  first. The rule was recorded only in §26, while `HANDOVER.md` and the README said the opposite.
+- `HANDOVER.md` now has the eight CI secrets, the admin (§11) and what a Windows checkout needs.
+  CI does write to R2, through `media-ingest.yml`, which it used to say it never did.
+- `IMPLEMENTATION_PLAN.md`, `ADMIN_DASHBOARD_PLAN.md` and `ARCHITECTURE.md` no longer present
+  finished work as planned. Review E is recorded as approved in `MOTION_REVIEW.md`.
+
+**Dated records were annotated, not rewritten.** The reviews, the rollouts, `STAGING_DEPLOY.md`
+and the numbered sections above carry a note at most, because each is true of its date.
+
+**Not verified:** the numbers that need a build, the repository's merge settings and the R2 keys'
+real scopes, none of which can be read from here. Stale comments in code were left and are listed
+in `BLOCKED_TODOS.md`.
+
+## 36. Homepage: the arrow and the statement removed (2026-11-06)
+
+At the user's request:
+
+- **The spine's next-section arrow is gone on every page.** It read as a stuck mouse pointer. The
+  rail still reaches every section, and the arrow was already hidden on a phone.
+- **"Captamos emoções / Contamos Histórias" is off the homepage, in both languages.** It was the
+  page's `<h1>`, so "We are NVF" is now the `<h1>` and no longer `aria-hidden`. The strings stay in
+  `home.json` and the archive, so `validate:data` still verifies them. The share image's alt text
+  is now "We are NVF", and `barlow-500` is no longer preloaded on `/` (rule 24).
+- **Left open:** the admin still offers the two lines (`BLOCKED_TODOS.md`).
+
+Also at the user's request, HELLO in the opening is 50% larger: 5.4vh, now the token
+`--t-intro-hello`. Its clipping box grew from 6vh to 8vh so the larger word is not cut off.
+
+The footer is off on the homepage, in both languages, through a `footer` prop on `BaseLayout`.
+Every other page keeps it. That removed the larger equivalent of the rail's 12 px stripes on `/`
+(`BLOCKED_TODOS.md`).
+
+Holding a rail link no longer drags a link ghost or opens a long-press preview, and the browser's
+link bubble is gone from the rail. The built HTML is still real links, so nothing changes without
+scripting or for a crawler. Once scripting runs, `src/lib/rail.ts` moves each `href` to
+`data-rail-href`, and restores the link role, the tab stop, Enter, and new-tab clicks. The one
+thing lost is "open in new tab" in the right-click menu. Other links on the site still show the
+bubble.
+
+`/servicos/` has a stage carousel instead of the two category rows: the storyboard's large frame
+over two smaller ones, made to rotate, with no library (`src/lib/stage.ts`, `.stage` in
+`sections.css`, geometry in `tokens.space.css`). No autoplay. Without scripting the frames are a row
+of plain links. The `collage` list is back on the page and editable in the admin.
+
+Under it is the showreel (`iUGq6AtzUuY`, «NVF showreel 2026» on the owners' YouTube channel), on the
+project pages' façade, so nothing reaches YouTube before play. It is `film` in `services.json`, and
+the admin's Services screen edits all of it: the video (an address or an id), its name and its
+poster. That added two field kinds to the page screens, `film` and `line`.
+
+"Portfólio" and "Na NVF, transformamos ideias em imagens." are off `/portfolio/`, in both languages.
+The `<h1>` stays, visually hidden, because `CLAUDE.md` §11 needs one per page. The lead is off the
+category archives too, which keep their visible category name. The strings stay in `portfolio.json`,
+and the lead is still the meta description.
+
+On the Cinema shelf, the poster and "Ver o projeto" are no longer links, so the spines are the only
+way into a project from the shelf. The view switch is now a solid dark panel. Projects gained two
+optional fields, `imdb` and `trailer`, edited in the project form in the admin. The links show under
+the Cinema poster and under the title on the project page, and only when set; no project has any
+yet, because the addresses are the owners' to give.
+
+The BTS section is labelled "Know more about us" in both languages, as the user asked: rail, spine,
+footer, page heading and page title. Its address is still `/bts/`.
+
+VHS spine titles shrink to fit: the size is worked out in CSS from the title's length and the
+spine's height, with a floor below which the title wraps onto a second line.
+
+Every portfolio project's play button now says "Ver trailer" / "Watch the trailer", as the user
+asked. A project whose video is the full film can say "Ver o filme" instead, through «O vídeo é» in
+the admin (`filmKind`, default `trailer`). The showreel on `/servicos/` keeps "Ver o filme".
+
+The contact form's recipient is `geral@nextvisionfilms.com` (user's decision), set in `env.prod.vars`.
+`prod.yml` reads the Turnstile site key from a repository variable. The provider is Cloudflare Email
+Service, the user's choice: a `cloudflare` adapter on an `EMAIL` `send_email` binding, sender
+`site@mail.nextvisionfilms.com`. The Turnstile widget and secret exist, and `geral@` is verified as a
+destination. **Sending is paused by the user:** onboarding a domain for Email Sending needs Workers Paid,
+and no plan or Brevo account was chosen, so the form still sends nothing (`BLOCKED_TODOS.md`). DNS
+checked: `geral@` is hosted at Infomaniak, so Email Routing must not be turned on for the apex.
+
+The cycling logo over the homepage film is gone; "We are NVF" and the tagline stay.
+
+The reel's windows are real holes now, cut with an SVG mask, on every page. They used to be painted
+cream, which showed as white squares on the blue of `/sobre/`. `--reel-hole` is gone, and the hub
+text's colour is `--reel-text`.

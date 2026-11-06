@@ -10,18 +10,24 @@
  *
  * A vector export (decision C8) replaces these when a converter is available; the keys
  * stay, so no component changes.
+ *
+ * Most keys name a `-{w}w` DOWNSCALE, sized to twice the largest CSS width the mark is set
+ * at (scripts/build-brand.mjs says which rule each width comes from). Only the About
+ * page's stack needs an original. Regenerate with `npm run brand:build`.
  */
 export const BRAND = {
   /** "NEXT / VISION / FILMS" stacked — the guide's "logótipo tipográfico". Mask. */
   stack: { src: '/brand/nvf-stack.png', width: 1400, height: 1087, mask: true },
+  /** The same stack for the homepage's 6rem sign; the original is 10× the bytes. Mask. */
+  stackSmall: { src: '/brand/nvf-stack-192w.png', width: 192, height: 149, mask: true },
   /** NVF with the stripes cut out of the V. Mask. */
-  mono: { src: '/brand/nvf-mono.png', width: 1200, height: 472, mask: true },
+  mono: { src: '/brand/nvf-mono-768w.png', width: 768, height: 302, mask: true },
   /** The striped N monogram. Mask. */
-  monogram: { src: '/brand/nvf-n.png', width: 600, height: 583, mask: true },
+  monogram: { src: '/brand/nvf-n-192w.png', width: 192, height: 187, mask: true },
   /** NVF with the five colour stripes. Colour, cream grounds only. */
-  colour: { src: '/brand/nvf-colour.png', width: 1200, height: 472, mask: false },
+  colour: { src: '/brand/nvf-colour-640w.png', width: 640, height: 252, mask: false },
   /** The striped N in the five colours. Colour, cream grounds only. */
-  monogramColour: { src: '/brand/nvf-n-colour.png', width: 400, height: 389, mask: false },
+  monogramColour: { src: '/brand/nvf-n-colour-192w.png', width: 192, height: 187, mask: false },
 } as const;
 
 export type BrandKey = keyof typeof BRAND;

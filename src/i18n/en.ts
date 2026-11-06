@@ -48,6 +48,7 @@ export const en: Record<UIKey, string> = {
   'media.mute': 'Mute',
   'media.unmute': 'Unmute',
   'media.playFilm': 'Watch the film',
+  'media.playTrailer': 'Watch the trailer',
   'media.loading': 'Loading',
 
   // --- project browsing
@@ -107,14 +108,14 @@ export const en: Record<UIKey, string> = {
   'rail.about': 'About',
   'rail.commercial': 'Commercial',
   'rail.cinema': 'Cinema',
-  'rail.bts': 'BTS',
+  'rail.bts': 'Know more about us',
   'rail.label': 'Sections',
-  'rail.next': 'Next section',
   'ui.letsTalk': "Let's talk",
   'cinema.view': 'View',
   'cinema.shelf': 'Shelf',
   'cinema.list': 'List',
-  'cinema.watch': 'See the project',
+  'project.imdb': 'IMDb',
+  'project.trailer': 'Trailer',
   'bts.social': 'Social',
   'intro.skip': 'Skip the opening',
 };

@@ -74,7 +74,16 @@ export const PAGE_SCHEMAS = {
   }),
   services: z.object({
     leadImage: imageKey,
+    /** The portfolio categories whose projects join the stage after the collage. Slugs from src/content/categories/. */
+    categories: z.array(z.string().regex(/^[a-z0-9-]+$/)).min(1),
+    /** The stage's opening stills: left, centre, right. */
     collage: z.array(imageKey).length(3),
+    /** The film under the stage. `title` is its name on YouTube, used only as the accessible name. */
+    film: z.object({
+      id: z.string().regex(/^[A-Za-z0-9_-]{11}$/, 'must be an 11-character YouTube video id'),
+      title: z.string().min(1),
+      poster: imageKey,
+    }),
     lead: z.array(z.object({ text: z.string().min(1), en: z.string().min(1), mark: z.boolean().optional() })).min(1),
     copy: strings('closeLineA', 'closeLineB', 'closeBody'),
     wordpressExcerpt: z.string(),

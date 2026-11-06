@@ -45,6 +45,10 @@ export interface CuratedProject {
   heroWidth: number | undefined;
   heroHeight: number | undefined;
   filmUrl: string | null;
+  filmKind: 'film' | 'trailer';
+  /** Set per project in the admin. Null means the link is not shown. */
+  imdbUrl: string | null;
+  trailerUrl: string | null;
   /** Why this project has nothing watchable, when that is the case (decision D6). */
   filmUnavailable: string | null;
   /** Canonical route for this project. */
@@ -109,6 +113,9 @@ async function build(entries: Entry[], locale: Locale): Promise<CuratedProject[]
       heroWidth: hero?.width ?? undefined,
       heroHeight: hero?.height ?? undefined,
       filmUrl: p.data.film?.provider === 'youtube' ? youtubeWatchUrl(p.data.film.id) : null,
+      filmKind: p.data.filmKind,
+      imdbUrl: p.data.imdb ?? null,
+      trailerUrl: p.data.trailer ? youtubeWatchUrl(p.data.trailer) : null,
       filmUnavailable: p.data.filmUnavailable ?? null,
       href: projectPath(p.id, locale),
       categorySlug: catRef?.id ?? '',
