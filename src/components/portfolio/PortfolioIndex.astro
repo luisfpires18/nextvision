@@ -20,6 +20,8 @@ interface Props {
   active?: string;
   /** Heading for this view. The archives get their own, which the live ones lack. */
   heading: string;
+  /** Keep the heading for screen readers and search only. `/portfolio/` shows no title. */
+  hideHeading?: boolean;
   /** Size of the whole catalogue — the "Ver Tudo" count, even on a filtered route. */
   total: number;
   /** Only the full index can filter in place; a category route has no other cards to show. */
@@ -27,7 +29,7 @@ interface Props {
   locale?: Locale;
 }
 
-const { projects, active = FILTER_ALL, heading, total, enhance = false, locale = DEFAULT_LOCALE } = Astro.props;
+const { projects, active = FILTER_ALL, heading, hideHeading = false, total, enhance = false, locale = DEFAULT_LOCALE } = Astro.props;
 const facets = await categoryFacets(locale);
 
 /* Every card here is a list row whose thumbnail track is minmax(7.5rem, 17rem)
@@ -91,8 +93,7 @@ const twoDigits = (n: number): string => String(n).padStart(2, '0');
 
 <header class="pf-head ground-cream">
   <div class="pf-head__inner">
-    <h1 class="pf-title">{heading}</h1>
-    <p class="lead pf-lead">{say(PORTFOLIO.lead, locale)}</p>
+    <h1 class={hideHeading ? 'visually-hidden' : 'pf-title'}>{heading}</h1>
 
     <nav class="pf-filters" aria-label={say(PORTFOLIO.title, locale)}>
       <ul class="pf-filters__list">

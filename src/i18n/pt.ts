@@ -39,6 +39,7 @@ export const pt = {
   'media.mute': 'Desligar som',
   'media.unmute': 'Ligar som',
   'media.playFilm': 'Ver o filme',
+  'media.playTrailer': 'Ver trailer',
   'media.loading': 'A carregar',
 
   // --- project browsing [new]
@@ -120,14 +121,14 @@ export const pt = {
   'rail.about': 'About',
   'rail.commercial': 'Commercial',
   'rail.cinema': 'Cinema',
-  'rail.bts': 'BTS',
+  'rail.bts': 'Know more about us',
   'rail.label': 'Secções',
-  'rail.next': 'Secção seguinte',
   'ui.letsTalk': "Let's talk",
   'cinema.view': 'Vista',
   'cinema.shelf': 'Prateleira',
   'cinema.list': 'Lista',
-  'cinema.watch': 'Ver o projeto',
+  'project.imdb': 'IMDb',
+  'project.trailer': 'Trailer',
   'bts.social': 'Redes sociais',
   'intro.skip': 'Saltar a abertura',
 } as const;

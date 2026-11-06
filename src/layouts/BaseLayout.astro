@@ -55,6 +55,8 @@ interface Props {
   section?: 'home' | 'about' | 'commercial' | 'cinema' | 'bts' | 'contact' | undefined;
   /** The full opening sequence instead of the short hold. Homepage only (decision C5). */
   intro?: boolean | undefined;
+  /** The site footer. Off only on the homepage, which is one full-bleed frame (2026-11-06). */
+  footer?: boolean | undefined;
   /**
    * The faces this page paints above the fold, by file stem in /__generated/fonts/. The
    * default pair is what most pages render first; a page whose first screen is set in
@@ -66,7 +68,8 @@ interface Props {
 const {
   title, description, ogDescription, locale = DEFAULT_LOCALE, ogImage = null, ogImageAlt,
   ogType = 'website', noindex = false, chrome = true, ground = 'cream', schema = [],
-  langAlternate, section, intro = false, preloadFonts = ['barlow-400', 'barlow-condensed-700'],
+  langAlternate, section, intro = false, footer = true,
+  preloadFonts = ['barlow-400', 'barlow-condensed-700'],
 } = Astro.props;
 
 const seo = buildSeo({
@@ -202,7 +205,7 @@ const manifest = JSON.parse(manifestSource) as { theme_color: string };
           <main class="site__main" id="main">
             <slot />
           </main>
-          <Footer locale={locale} />
+          {footer && <Footer locale={locale} />}
         </div>
 
         <script>
@@ -210,10 +213,14 @@ const manifest = JSON.parse(manifestSource) as { theme_color: string };
           import { initPortfolio } from '../lib/portfolio-filter.ts';
           import { initCinema, presetCinemaView } from '../lib/cinema.ts';
           import { initTransitions } from '../lib/motion/transitions.ts';
+          import { initRail, stripRailLinks } from '../lib/rail.ts';
+          import { initStage } from '../lib/stage.ts';
 
           // Wired ONCE, to the document, because the router outlives every page. Putting
           // this in `start()` would add a second set of listeners on every navigation.
           initTransitions();
+          initRail();
+          stripRailLinks(document);
 
           // `astro:page-load` fires on the FIRST load as well as after every client-side
           // navigation, so a naive "init now, init again on page-load" doubles every
@@ -226,12 +233,14 @@ const manifest = JSON.parse(manifestSource) as { theme_color: string };
           let instance: { destroy(): void } | null = null;
           let portfolio: { destroy(): void } | null = null;
           let cinema: { destroy(): void } | null = null;
+          let stage: { destroy(): void } | null = null;
           const start = () => {
             if (live) return;
             live = true;
             instance = initSite();
             portfolio = initPortfolio();
             cinema = initCinema();
+            stage = initStage();
           };
 
           /**
@@ -249,6 +258,7 @@ const manifest = JSON.parse(manifestSource) as { theme_color: string };
             instance?.destroy(); instance = null;
             portfolio?.destroy(); portfolio = null;
             cinema?.destroy(); cinema = null;
+            stage?.destroy(); stage = null;
           };
 
           // The incoming document is served with the loader markup in its un-hidden
@@ -270,6 +280,7 @@ const manifest = JSON.parse(manifestSource) as { theme_color: string };
             // portfolio views at once) and collapsed after the slide. Same defect class.
             doc.documentElement.classList.add('js');
             presetCinemaView(doc, (event as unknown as { to: URL }).to);
+            stripRailLinks(doc);
             // `[data-loader-overlay]`, NOT `[data-loader]`. The root carries the STATE
             // flag and comes first in document order, so the shorter selector matched
             // <html> and put `hidden` on the whole document (see site-motion.ts).

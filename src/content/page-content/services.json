@@ -6,6 +6,11 @@
     "projects/nazaryi/poster",
     "projects/susanarafael/poster"
   ],
+  "film": {
+    "id": "iUGq6AtzUuY",
+    "title": "NVF showreel 2026",
+    "poster": "projects/helder-praia/poster"
+  },
   "lead": [
     {
       "text": "O vídeo certo tem o poder de ",

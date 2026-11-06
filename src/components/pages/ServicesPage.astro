@@ -2,30 +2,31 @@
 /**
  * /servicos/ — PHASE 10.
  *
- * ── Owner request, 2026-10-29: no text, a carousel per category ──────────────
- * The owners asked for the page's text to go and for the work to be shown by category,
- * one carousel each, and only the categories they named. The page is now the mark, its
- * title, those carousels, and LET'S TALK. Which categories appear, and in what order, is
- * data (`categories` in services.json); each carousel is that category's projects in
- * portfolio order, as the same cards the portfolio uses, headed by the category's own
- * published name. The lead, the four services and the closing invitation stay in
+ * The page is the mark, its title, the stage and LET'S TALK. The owners asked for the text
+ * to go on 2026-10-29, so the lead, the four services and the closing invitation stay in
  * services.json and the services collection, unrendered and never deleted (CLAUDE.md §2).
  *
- * A carousel is a native horizontal scroller with scroll-snap: touch, trackpad and
- * Shift+wheel move it, and tabbing through its cards scrolls each into view. No script,
- * no autoplay, nothing that takes the page's own scroll.
+ * ── The stage, 2026-11-06 ─────────────────────────────────────────────────────
+ * The storyboard's collage (a large frame over two smaller ones), as a carousel. It opens on
+ * the three stills the data names in `collage`, then runs through the projects of the
+ * `categories` it also names, in portfolio order. A still that belongs to no published
+ * project, such as a fresh owner upload, is still shown but links nowhere. The behaviour
+ * is src/lib/stage.ts; without scripting the frames are a row of plain links.
+ *
+ * Under it, the film in `film` (services.json), on the same façade as a project page: nothing
+ * reaches YouTube until someone presses play.
  */
 import { getCollection, getEntry } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import BrandMark from '../site/BrandMark.astro';
 import Reel from '../site/Reel.astro';
-import ProjectCard from '../site/ProjectCard.astro';
+import FilmFacade from '../project/FilmFacade.astro';
 import { SERVICES_PAGE } from '../../lib/static-pages.ts';
 import { PAGE_CONTENT } from '../../lib/page-content.ts';
 import { imageProps } from '../../lib/media.ts';
 import { navHref } from '../../lib/nav.ts';
 import { portfolioProjects } from '../../lib/curated.ts';
-import { FILTERED_RATIO } from '../../lib/portfolio.ts';
+import { slotOf } from '../../lib/stage.ts';
 import { organizationSchema, breadcrumbSchema, absoluteUrl } from '../../lib/seo.ts';
 import type { Locale } from '../../config/i18n.ts';
 import { pagePath } from '../../i18n/routes.ts';
@@ -33,6 +34,7 @@ import { t } from '../../i18n/index.ts';
 import { say } from '../../lib/homepage.ts';
 import { pageTitle, pageDescription } from '../../lib/page-meta.ts';
 import '../../styles/pages.css';
+import '../../styles/project.css';
 import '../../styles/sections.css';
 
 interface Props { locale: Locale }
@@ -44,21 +46,31 @@ const settings = await getEntry('settings', 'site');
 const leadImage = imageProps(PAGE_CONTENT.services.leadImage, { alt: '' });
 
 /**
- * One carousel per category the data names. A slug that names no visible category fails
- * the build rather than shipping an empty heading. A project counts in every category it
- * carries, not only its first.
+ * The stage's frames: the collage's stills, then every project in the named categories. A
+ * category slug that names no visible category fails the build. A project counts in every
+ * category it carries, not only its first, and appears once however many it is in.
  */
 const projects = await portfolioProjects(locale);
 const inCategory = new Map((await getCollection('projects')).map((p) => [p.id, new Set(p.data.categories.map((c) => c.id))]));
-const carousels = await Promise.all(PAGE_CONTENT.services.categories.map(async (slug) => {
+for (const slug of PAGE_CONTENT.services.categories) {
   const cat = await getEntry('categories', slug);
   if (!cat || cat.data.hidden) throw new Error(`services.json categories: "${slug}" is not a visible category`);
-  return {
-    slug,
-    name: cat.data.name[locale] ?? cat.data.name.pt,
-    projects: projects.filter((p) => inCategory.get(p.slug)?.has(slug)),
-  };
-}));
+}
+const keys = [
+  ...PAGE_CONTENT.services.collage,
+  ...projects
+    .filter((p) => PAGE_CONTENT.services.categories.some((slug) => inCategory.get(p.slug)?.has(slug)))
+    .map((p) => p.posterKey),
+];
+const FRAME_SIZES = '(min-width: 48rem) 34vw, 72vw';
+const frames = [...new Set(keys)].flatMap((key) => {
+  const image = imageProps(key, { alt: '', sizes: FRAME_SIZES });
+  if (!image) return [];
+  const project = projects.find((p) => p.posterKey === key);
+  return [{ key, image, href: project?.href ?? null, title: project?.title ?? '' }];
+});
+/** The collage's middle still opens in front, as it does in the storyboard. */
+const OPENING_CENTRE = 1;
 
 const schema = [
   organizationSchema({
@@ -83,31 +95,61 @@ const schema = [
   schema={schema}
 >
   {/* ── DESIGN V2 (Tatiana) — Commercial ───────────────────────────────────
-      The colour NVF, the page title, and a carousel of films per category. The same reel
-      as /sobre/ rolls along the foot with the scroll and comes to rest as LET'S TALK, the
-      page's own invitation to /contactos/. */}
+      The colour NVF, the page title, the stage and the film. The same reel as /sobre/ rolls along
+      the foot with the scroll and comes to rest as LET'S TALK, the page's own invitation
+      to /contactos/. */}
   <section class="cm ground-cream" data-ground="cream">
     <BrandMark mark="colour" class="cm__mark" />
     <h1 class="cm__title" id="page-title">{say(SERVICES_PAGE.title, locale)}</h1>
 
-    <div class="cm__rows">
-      {carousels.map(({ slug, name, projects }) => projects.length > 0 && (
-        <section class="cm__row" aria-labelledby={`cm-${slug}`}>
-          <h2 class="cm__row-title" id={`cm-${slug}`}>{name}</h2>
-          <div class="cm__track">
-            {projects.map((p) => (
-              <ProjectCard
-                project={p}
-                ratio={FILTERED_RATIO}
-                tabletRatio={FILTERED_RATIO}
-                mobileRatio={FILTERED_RATIO}
-                sizes="(min-width: 34rem) 24rem, 80vw"
-                locale={locale}
+    <section class="stage" data-stage aria-labelledby="page-title">
+      <ul class="stage__frames">
+        {frames.map((frame, i) => {
+          const slot = slotOf(i, OPENING_CENTRE, frames.length);
+          const picture = (
+            <picture>
+              {frame.image.avifSrcset && <source type="image/avif" srcset={frame.image.avifSrcset} sizes={frame.image.sizes} />}
+              <img
+                src={frame.image.src}
+                srcset={frame.image.srcset}
+                sizes={frame.image.sizes}
+                alt=""
+                loading={slot === 'back' ? 'lazy' : 'eager'}
+                fetchpriority={slot === 'centre' ? 'high' : 'auto'}
+                decoding="async"
               />
-            ))}
-          </div>
-        </section>
-      ))}
+            </picture>
+          );
+          return (
+            <li class="stage__frame" data-slot={slot} data-title={frame.title}>
+              {frame.href ? (
+                <a class="stage__link" href={frame.href} draggable="false">
+                  {picture}
+                  <span class="visually-hidden">{frame.title}</span>
+                </a>
+              ) : picture}
+            </li>
+          );
+        })}
+      </ul>
+      <div class="stage__nav">
+        <button type="button" class="stage__step" data-stage-step="-1" aria-label={t('ui.previous', locale)}>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" /></svg>
+        </button>
+        <button type="button" class="stage__step" data-stage-step="1" aria-label={t('ui.next', locale)}>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7" /></svg>
+        </button>
+      </div>
+      <p class="visually-hidden" aria-live="polite" data-stage-status></p>
+    </section>
+
+    <div class="cm__film">
+      <FilmFacade
+        videoId={PAGE_CONTENT.services.film.id}
+        posterKey={PAGE_CONTENT.services.film.poster}
+        title={PAGE_CONTENT.services.film.title}
+        locale={locale}
+      />
     </div>
   </section>
 

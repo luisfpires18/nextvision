@@ -33,8 +33,7 @@ span.brand-mark {
 }
 
 .reel { display: block; inline-size: 100%; block-size: auto; color: var(--reel-disc, var(--brand-yellow)); overflow: visible; }
-.reel__holes, .reel__text { fill: var(--reel-hole, var(--ground-cream)); }
-.reel__text { font-family: var(--font-display); font-weight: 700; letter-spacing: var(--tracking-brand); }
+.reel__text { fill: var(--reel-text, var(--ground-cream)); font-family: var(--font-display); font-weight: 700; letter-spacing: var(--tracking-brand); }
 
 /* ════════════════════════════════════════════════════════════════════ rail ══
    Five stripes. The gaps between them are each stripe's own cream border, not the rail's
@@ -56,6 +55,8 @@ span.brand-mark {
   color: var(--sec-ink);
   border-inline-start: var(--rail-gap) solid var(--ground-cream);
   --focus-ring: var(--brand-ink);
+  -webkit-touch-callout: none;
+  -webkit-user-drag: none;
 }
 .rail__name {
   position: absolute; inline-size: 1px; block-size: 1px; overflow: hidden;
@@ -105,6 +106,8 @@ span.brand-mark {
   .rail__tab { display: none; }
   .rail__name {
     position: static; inline-size: auto; block-size: auto; overflow: visible; clip-path: none;
+    white-space: normal;
+    text-align: center;
     font-family: var(--font-display);
     font-weight: 500;
     font-size: var(--t-metaline);
@@ -128,7 +131,6 @@ span.brand-mark {
   background: var(--sec);
   color: var(--sec-ink);
   --reel-disc: var(--sec-ink);
-  --reel-hole: var(--sec);
   --focus-ring: var(--sec-ink);
 }
 .spine__lang { display: flex; flex-direction: column; align-items: center; gap: var(--space-1); }
@@ -149,11 +151,9 @@ span.brand-mark {
 .spine__talk .reel { transition: transform var(--dur-ui) var(--ease-ui); }
 .spine__talk:is(:hover, :focus-visible) .reel { transform: rotate(45deg); }
 .spine__label { margin-block: auto; }
-.spine__next { display: grid; place-items: center; inline-size: var(--space-6); block-size: var(--space-6); }
-.spine__next svg { inline-size: var(--space-5); fill: currentColor; }
 
 /* The homepage is full-bleed film; the spine floats over it instead of framing it. */
-[data-section='home'] .spine { background: none; --reel-hole: var(--brand-black); }
+[data-section='home'] .spine { background: none; }
 [data-section='home'] .spine__label { visibility: hidden; }
 [data-section='home'] .site { padding-inline-start: 0; }
 
@@ -171,7 +171,6 @@ span.brand-mark {
   .spine__lang > * { writing-mode: horizontal-tb; transform: none; }
   .spine__label { writing-mode: horizontal-tb; transform: none; margin: 0; margin-inline-end: auto; order: 1; font-size: var(--t-service); }
   .spine__talk { order: 2; }
-  .spine__next { display: none; }
   [data-section='home'] .spine { background: var(--sec); }
 }
 
@@ -304,8 +303,8 @@ span.brand-mark {
 .loader__hello {
   position: absolute;
   inset-inline: 0;
-  inset-block-start: 89.5vh;
-  block-size: 6vh;
+  inset-block-start: 89vh;
+  block-size: 8vh;
   overflow: hidden;
   text-align: center;
 }
@@ -313,7 +312,7 @@ span.brand-mark {
   display: inline-block;
   font-family: var(--font-display);
   font-weight: var(--w-display);
-  font-size: 3.6vh;
+  font-size: var(--t-intro-hello);
   line-height: 1.4;
   color: var(--brand-black);
   transform: translateY(110%);

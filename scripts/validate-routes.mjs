@@ -307,24 +307,22 @@ for (const page of STATIC_PAGES) {
 }
 
 /* ----------------------------------------------------------- /servicos/ */
-/* Owner request, 2026-10-29: no text, one carousel per category named in services.json.
-   Each must carry a heading and at least one card, and every card must open a project
-   page that was built — an empty carousel or a dead card is a defect, not a layout. */
+/* The stage. It needs a frame in front and one on each side, and every frame that links
+   must open a project page that was built. The built HTML has to stay real links, because
+   that is the page without scripting (src/lib/stage.ts). */
 try {
   const html = read(path.join(DIST, 'servicos', 'index.html'));
-  const wanted = JSON.parse(read(path.join(ROOT, 'src/content/page-content/services.json'))).categories;
-  const rows = html.split('<section class="cm__row"').slice(1);
-  if (rows.length === 0) errors.push('page: /servicos/ renders no category carousel');
-  for (const row of rows) {
-    const title = (row.match(/<h2 class="cm__row-title"[^>]*>([^<]+)<\/h2>/) ?? [])[1];
-    if (!title?.trim()) errors.push('page: /servicos/ has a carousel without a heading');
-    const hrefs = [...row.split('</section>')[0].matchAll(/<a class="card" href="([^"]+)"/g)].map((m) => m[1]);
-    if (hrefs.length === 0) errors.push(`page: /servicos/ carousel "${title}" has no cards`);
-    for (const href of hrefs) {
-      if (!exists(path.join(DIST, href.replace(/^\/|\/$/g, ''), 'index.html'))) errors.push(`page: /servicos/ card ${href} was not built`);
-    }
+  const slots = [...html.matchAll(/class="stage__frame"[^>]*data-slot="([a-z]+)"/g)].map((m) => m[1]);
+  for (const slot of ['centre', 'left', 'right']) {
+    if (slots.filter((s) => s === slot).length !== 1) errors.push(`page: /servicos/ stage needs exactly one "${slot}" frame`);
   }
-  if (rows.length > wanted.length) errors.push(`page: /servicos/ renders ${rows.length} carousels for ${wanted.length} categories`);
+  const hrefs = [...html.matchAll(/<a class="stage__link" href="([^"]+)"/g)].map((m) => m[1]);
+  if (hrefs.length === 0) errors.push('page: /servicos/ stage has no project links');
+  for (const href of hrefs) {
+    if (!exists(path.join(DIST, href.replace(/^\/|\/$/g, ''), 'index.html'))) errors.push(`page: /servicos/ frame ${href} was not built`);
+  }
+  if (!/class="cm__film"[\s\S]*?data-film-play/.test(html)) errors.push('page: /servicos/ has no film under the stage');
+  if (/<iframe/.test(html)) errors.push('page: /servicos/ loads a player before anyone pressed play');
 } catch (e) {
   errors.push(`page: /servicos/ could not be read — ${e.message}`);
 }

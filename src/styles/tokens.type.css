@@ -56,5 +56,12 @@
   --t-headline: clamp(2rem, 1rem + 3.4vw, 3.75rem);
   --t-rail: clamp(1.25rem, 0.9rem + 1.2vh, 2rem);
   --t-spine-meta: 0.6875rem;
+  /* A VHS spine's title. --vhs-char-em is a capital's measured advance in Barlow Condensed 700
+     with its tracking, rounded up; --vhs-chrome is the spine's height not left for the title. */
+  --vhs-title-min: 0.6875rem;
+  --vhs-char-em: 0.56;
+  --vhs-chrome: 7.5rem;
+  /* HELLO in the opening. It scales with the height the opening's own geometry is set in. */
+  --t-intro-hello: 5.4vh;
   --lh-poster: 0.88;
 }

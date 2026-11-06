@@ -147,7 +147,6 @@
   inline-size: var(--reel-m);
   pointer-events: auto;
   transform: translateX(calc(100cqi - 100% - var(--space-4)));
-  --reel-hole: var(--ground-cream);
 }
 @supports (animation-timeline: scroll()) {
   :root[data-motion='full'] .spool__film { animation: nvf-unspool linear both; animation-timeline: scroll(root); }
@@ -172,45 +171,96 @@
   letter-spacing: var(--tracking-eyebrow);
   text-transform: uppercase;
 }
-/* One carousel per category: the portfolio's own cards on a native scroll-snap track. */
-.cm__rows {
-  display: grid;
-  gap: var(--space-8);
-  inline-size: min(100%, 72rem);
-  margin-block: var(--space-7) var(--space-8);
-  text-align: start;
+/* The stage: the storyboard's collage as a carousel. Every frame sits in the centre box and
+   its slot moves it from there, so a change of slot is transform and opacity only, and the
+   token durations carry the motion tiers. src/lib/stage.ts writes the slots. */
+.stage { inline-size: min(100%, var(--stage-max)); margin-block: var(--space-6) var(--space-7); }
+.cm__film { inline-size: min(100%, var(--stage-max)); margin-block-end: var(--space-8); }
+.stage__frames {
+  position: relative;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  aspect-ratio: var(--stage-ar);
+  overflow: clip;
+  overflow-clip-margin: var(--space-1);
+  touch-action: pan-y;
 }
-.cm__row-title {
-  margin: 0 0 var(--space-4);
-  font-family: var(--font-display);
-  font-weight: var(--w-display);
-  font-size: var(--t-headline);
-  line-height: 1;
-  text-transform: uppercase;
+.stage__frame {
+  position: absolute;
+  inset-block-start: var(--stage-top);
+  inset-inline-start: calc((100% - var(--stage-frame-w)) / 2);
+  inline-size: var(--stage-frame-w);
+  block-size: var(--stage-frame-h);
+  transition:
+    transform var(--dur-cinematic) var(--ease-cinematic),
+    opacity var(--dur-cinematic) var(--ease-cinematic);
 }
-.cm__track {
+.stage__link { display: block; block-size: 100%; }
+.stage__frame picture { display: block; block-size: 100%; }
+.stage__frame img { display: block; inline-size: 100%; block-size: 100%; object-fit: cover; }
+.stage__frame[data-slot='centre'] { z-index: 2; }
+.stage__frame[data-slot='left'],
+.stage__frame[data-slot='right'] { z-index: 1; opacity: var(--stage-side-opacity); }
+.stage__frame[data-slot='left'] {
+  transform: translate(calc(var(--stage-side-x) * -1), var(--stage-side-y)) scale(var(--stage-side-scale));
+}
+.stage__frame[data-slot='right'] {
+  transform: translate(var(--stage-side-x), var(--stage-side-y)) scale(var(--stage-side-scale));
+}
+.stage__frame[data-slot='back'] {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(var(--stage-side-y)) scale(var(--stage-back-scale));
+}
+.stage__nav { display: flex; justify-content: center; gap: var(--space-3); margin-block-start: var(--space-4); }
+.stage__step {
   display: grid;
-  grid-auto-flow: column;
-  grid-auto-columns: min(80%, 24rem);
-  gap: var(--space-5);
+  place-items: center;
+  inline-size: var(--space-7);
+  block-size: var(--space-7);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  transition: transform var(--dur-fast) var(--ease-ui);
+}
+.stage__step svg {
+  inline-size: var(--space-5);
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+}
+@media (hover: hover) and (pointer: fine) {
+  .stage__step:hover { transform: scale(var(--stage-step-hover)); }
+}
+/* Scripting off: a row of plain links in a native scroller, none of them hidden. */
+:root:not(.js) .stage__nav { display: none; }
+:root:not(.js) .stage__frames {
+  display: flex;
+  gap: var(--space-4);
+  aspect-ratio: auto;
   overflow-x: auto;
-  overscroll-behavior-x: contain;
   scroll-snap-type: x mandatory;
-  /* Room for the focus ring, which the scroller would otherwise clip; the negative margin
-     keeps the cards aligned with the heading. */
-  padding: var(--space-1) var(--space-1) var(--space-3);
-  margin-inline: calc(var(--space-1) * -1);
-  scroll-padding-inline: var(--space-1);
 }
-.cm__track > .item { scroll-snap-align: start; }
+:root:not(.js) .stage__frame {
+  position: static;
+  flex: 0 0 var(--stage-frame-w);
+  block-size: auto;
+  opacity: 1;
+  pointer-events: auto;
+  transform: none;
+  scroll-snap-align: center;
+}
 
 /* ═════════════════════════════════════════════════════════════════ CINEMA ══
-   The tagline, the index header (its <h1> always visible), the view switch, the shelf,
-   and the list. With scripting off both views show; with it, one at a time. */
+   The tagline, the index header (its <h1> for screen readers only, since 2026-11-06), the
+   view switch, the shelf, and the list. With scripting off both views show; with it, one at
+   a time. */
 .cinema { display: flex; flex-direction: column; padding-block: var(--space-5) var(--space-9); }
 .cinema__list { display: contents; }
 .cinema__tagline { order: 0; padding-inline: var(--gutter); text-align: start; }
-.cinema .pf-head { order: 1; }
+.cinema .pf-head { order: 1; padding-block: 0; }
 .cinema .shelf-view { order: 2; }
 .cinema .pf-index { order: 3; }
 :root.js .cinema[data-view='shelf'] :is(.pf-index, .pf-filters) { display: none; }
@@ -225,15 +275,23 @@
   gap: var(--space-2);
 }
 :root:not(.js) .cinema__views { display: none; }
-.cinema__views button {
-  inline-size: var(--space-6);
+/* A solid panel, so the switch stands out over the shelf, the list and the posters. The view
+   in use wears the section's colour; the other stays fully legible on the dark. */
+.cinema__views {
   padding: var(--space-1);
-  border: 0;
-  background: var(--ground-cream);
-  color: var(--ink-on-cream);
-  opacity: 0.45;
+  background: var(--brand-ink);
+  border-radius: var(--radius-m);
+  --focus-ring: var(--brand-cream);
 }
-.cinema__views button[aria-pressed='true'] { opacity: 1; }
+.cinema__views button {
+  inline-size: var(--space-7);
+  padding: var(--space-2);
+  border: 0;
+  border-radius: var(--radius-s);
+  background: none;
+  color: var(--brand-cream);
+}
+.cinema__views button[aria-pressed='true'] { background: var(--sec); color: var(--sec-ink); }
 .cinema__views svg { display: block; fill: currentColor; }
 @media (max-width: 47.99rem) {
   .cinema__views { inset-block-end: calc(var(--rail-bar) + var(--space-3)); inset-inline-end: var(--space-3); grid-auto-flow: column; }
@@ -254,6 +312,7 @@
   gap: var(--space-1);
   inline-size: clamp(2.5rem, 3.6vw, 3.5rem);
   block-size: clamp(15rem, 42vh, 25rem);
+  container-type: size;
   padding-block: var(--space-2);
   background: var(--vhs-shell);
   color: var(--vhs-ink);
@@ -280,13 +339,20 @@
   min-block-size: 0;
   overflow: hidden;
   writing-mode: vertical-rl;
+  /* Without this the browser stands curly quotes upright, so DON'T read as DON · T. */
+  text-orientation: sideways;
   transform: rotate(180deg);
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: var(--t-project);
+  /* The space left on this spine, shared out per character: shorter titles stop at the normal
+     size, longer ones shrink. Below the floor the title wraps onto a second line instead. */
+  font-size: clamp(
+    var(--vhs-title-min),
+    (100cqh - var(--vhs-chrome)) / (var(--vhs-chars, 1) * var(--vhs-char-em)),
+    var(--t-project)
+  );
   letter-spacing: var(--tracking-brand);
   text-transform: uppercase;
-  white-space: nowrap;
 }
 .vhs__logo { inline-size: 64%; }
 .vhs__fmt { padding-inline: var(--space-1); border: 1px solid currentColor; font-family: var(--font-display); font-weight: 700; font-size: var(--t-metaline); }
@@ -308,7 +374,7 @@
   text-transform: uppercase;
 }
 .poster__meta { font-family: var(--font-display); font-weight: var(--w-label); text-transform: uppercase; }
-.poster__go { justify-self: center; margin-block-start: var(--space-2); text-decoration: underline; text-underline-offset: 0.25em; }
+.poster .film-links { justify-content: center; margin-block-start: var(--space-2); }
 
 /* The list: the Review C index re-set as rows — thumbnail, title, category, date, and a
    heavy rule in the project's category colour. Shared by the five category archives. */

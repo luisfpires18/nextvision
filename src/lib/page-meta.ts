@@ -158,7 +158,7 @@ export const PAGE_META: Record<PageId, PageMeta> = {
 
   bts: {
     // Design v2. Tatiana's label for the section, in both languages.
-    title: { pt: 'BTS', en: 'BTS' },
+    title: { pt: 'Know more about us', en: 'Know more about us' },
     description: [],
     noDescriptionBecause:
       'BTS is a new section of the design v2 identity. The live site has no such page, so '

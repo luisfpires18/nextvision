@@ -57,11 +57,35 @@
   --reel-m: 7rem;
   --reel-l: 10.5rem;
   --film-line: 0.5625rem;
+  /* The stage on /servicos/. Side offsets are percentages of the frame itself. */
+  --stage-max: 60rem;
+  --stage-ar: 15 / 7;
+  --stage-top: 12%;
+  --stage-frame-w: 51%;
+  --stage-frame-h: 86%;
+  --stage-side-scale: 0.63;
+  --stage-side-x: 67%;
+  --stage-side-y: -34%;
+  --stage-side-opacity: 0.55;
+  --stage-back-scale: 0.5;
+  --stage-step-hover: 1.15;
   --z-dim: 30;
   --z-chrome: 45;
 }
 @media (max-width: 47.99rem) {
-  :root { --spine-w: 0px; --reel-m: 4.5rem; --reel-l: 6.5rem; }
+  :root {
+    --spine-w: 0px;
+    --reel-m: 4.5rem;
+    --reel-l: 6.5rem;
+    /* A phone: the centre frame nearly fills the width and the sides peek in. */
+    --stage-ar: 5 / 4;
+    --stage-top: 8%;
+    --stage-frame-w: 76%;
+    --stage-frame-h: 84%;
+    --stage-side-scale: 0.7;
+    --stage-side-x: 74%;
+    --stage-side-y: -5%;
+  }
 }
 
 /* Design v2 frames. A thumbnail in the Cinema list and the poster slot on the shelf are

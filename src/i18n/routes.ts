@@ -31,7 +31,8 @@ export const PAGE_SLUGS: Record<PageId, Record<Locale, string>> = {
   'thank-you': { pt: 'obrigado', en: 'thank-you' },
   terms: { pt: 'termos-e-condicoes', en: 'terms-and-conditions' },
   privacy: { pt: 'politica-de-privacidade', en: 'privacy-policy' },
-  // Design v2. `BTS` is the label Tatiana gives the section in both languages, so the
+  // Design v2. `BTS` was the label Tatiana gave the section, and it reads "Know more about
+  // us" since 2026-11-06. The address stays /bts/ in both languages, so the
   // slug is the same word in both.
   bts: { pt: 'bts', en: 'bts' },
 };

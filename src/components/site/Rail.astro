@@ -12,7 +12,12 @@
  *
  * Every destination here is ALSO a plain link in the footer. A 12 px stripe is a small
  * target, and that equivalent is what satisfies WCAG 2.5.8 rather than an exception
- * nobody wrote down.
+ * nobody wrote down. THE HOMEPAGE IS THE GAP: it has no footer since 2026-11-06, so on a
+ * desktop its stripes have no equivalent (docs/BLOCKED_TODOS.md).
+ *
+ * Holding a stripe neither drags a link ghost nor opens a long-press preview
+ * (`draggable`, `.rail__stripe` in chrome.css). The built HTML is real links; once scripting
+ * runs, src/lib/rail.ts takes the `href` off so the browser shows no link bubble on hover.
  */
 import { getEntry } from 'astro:content';
 import { t } from '../../i18n/index.ts';
@@ -41,7 +46,7 @@ const home = pagePath('home', locale);
     const current = section ? section === item.section : (href === home ? here === home : here.startsWith(href));
     const label = t(item.labelKey as UIKey, locale);
     return (
-      <a class="rail__stripe" href={href} data-section={item.section} aria-current={current ? 'page' : undefined}>
+      <a class="rail__stripe" href={href} draggable="false" data-section={item.section} aria-current={current ? 'page' : undefined}>
         <span class="rail__tab" aria-hidden="true"><span class="rail__label">{label}</span></span>
         <span class="rail__name">{label}</span>
       </a>

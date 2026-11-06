@@ -3,17 +3,17 @@
  * Homepage — DESIGN V2 (Tatiana).
  *
  * The storyboard's homepage is one frame: the film, full-bleed, with "We are NVF" over it
- * and the logo at its foot. Everything else lives in its own section, one stripe of the
+ * and the tagline at its foot. Everything else lives in its own section, one stripe of the
  * rail away, so the page no longer carries the Review B editorial rows, the feature, the
  * services list or the about excerpt — each of those is now the page it was excerpting.
  *
  * The opening sequence plays here, and only here (decision C5).
  *
  * ── The words ────────────────────────────────────────────────────────────────
- * "We are NVF" is the live site's own <title> suffix (src/lib/brand.ts). The company
- * statement under it is the live homepage's two published lines, unchanged, and it is
- * still the page's single <h1> — the wordmark is set as display type above it, so the
- * heading a reader or a crawler meets is the published sentence, not a slogan.
+ * "We are NVF" is the live site's own <title> suffix (src/lib/brand.ts), and it is the
+ * page's single <h1>. The two published lines that used to sit under it ("Captamos emoções /
+ * Contamos Histórias") were taken off this frame at the user's request on 2026-11-06. They
+ * stay in home.json and in the archive.
  *
  * ── The film ─────────────────────────────────────────────────────────────────
  * Tatiana's frame is the night portrait from `ana-reels`; which film plays is `heroVideo`
@@ -23,13 +23,11 @@
  */
 import { getEntry } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import BrandMark from '../site/BrandMark.astro';
 import { getMedia, imageProps, videoProps } from '../../lib/media.ts';
 import { organizationSchema, websiteSchema, absoluteUrl } from '../../lib/seo.ts';
 import { pageTitle, pageDescription } from '../../lib/page-meta.ts';
 import { BRAND_LINES } from '../../lib/brand.ts';
 import type { Locale } from '../../config/i18n.ts';
-import { HOME, say } from '../../lib/homepage.ts';
 import { PAGE_CONTENT } from '../../lib/page-content.ts';
 
 interface Props { locale: Locale }
@@ -37,10 +35,10 @@ const { locale } = Astro.props;
 
 const settings = await getEntry('settings', 'site');
 
-/* Measured in a real browser (docs/PERFORMANCE_AUDIT.md): the first screen is the
-   wordmark in Condensed 900 and the statement in Barlow 500. Barlow 400 sets only
-   visually-hidden text here, and Condensed 700 only the 'PT' of the language switch. */
-const HOME_FACES = ['barlow-condensed-900', 'barlow-500'];
+/* The first screen is the wordmark in Condensed 900. Barlow 500 was preloaded for the
+   statement, which is gone (rule 24). Barlow 400 sets only visually-hidden text here, and
+   Condensed 700 only the 'PT' of the language switch (docs/PERFORMANCE_AUDIT.md). */
+const HOME_FACES = ['barlow-condensed-900'];
 
 /* ── hero media ───────────────────────────────────────────────────────────── */
 
@@ -70,13 +68,14 @@ const schema = [
 <BaseLayout
   section="home"
   intro
+  footer={false}
   preloadFonts={HOME_FACES}
   title={pageTitle('home', locale)}
   description={pageDescription('home', locale) ?? undefined}
   locale={locale}
   ground="dark"
   ogImage={heroPoster ? absoluteUrl(heroPoster) : null}
-  ogImageAlt={`${say(HOME.heroLineA, locale)} ${say(HOME.heroLineB, locale)}`}
+  ogImageAlt={BRAND_LINES.wordmark}
   schema={schema}
 >
   <section class="hero hero--v2 ground-dark" data-hero data-ground="dark" data-cursor="dark">
@@ -114,18 +113,10 @@ const schema = [
     </div>
 
     <div class="hero__centre">
-      <p class="hero__wordmark" aria-hidden="true">{BRAND_LINES.wordmark}</p>
-      <h1 class="hero__statement">
-        <span>{say(HOME.heroLineA, locale)}</span> <span>{say(HOME.heroLineB, locale)}</span>
-      </h1>
+      <h1 class="hero__wordmark">{BRAND_LINES.wordmark}</h1>
     </div>
 
     <div class="hero__sign" aria-hidden="true">
-      <div class="hero__marks">
-        <BrandMark mark="monogram" />
-        <BrandMark mark="mono" />
-        <BrandMark mark="stackSmall" />
-      </div>
       <p class="hero__tagline">{BRAND_LINES.tagline}</p>
     </div>
   </section>
@@ -147,15 +138,9 @@ const schema = [
     line-height: var(--lh-poster);
     color: var(--brand-yellow);
   }
-  /* The published statement, under the wordmark, at reading weight. */
-  .hero--v2 .hero__statement {
-    margin: var(--space-4) 0 0;
-    font-size: var(--t-hero-line);
-    color: var(--ink-on-dark);
-  }
 
-  /* The logo and, under it, the brand tagline (owner request, 2026-10-29). The star the
-     storyboard drew on this frame is the pointer, so it lives in the cursor token now. */
+  /* The brand tagline (owner request, 2026-10-29). The logo that sat above it was removed on
+     2026-11-06. The star the storyboard drew on this frame is the pointer, so it lives in the cursor token. */
   .hero__sign {
     position: absolute;
     z-index: 1;
@@ -175,35 +160,4 @@ const schema = [
     letter-spacing: var(--tracking-meta);
   }
 
-  /* The marks are rendered by BrandMark, so they carry ITS scope, not this page's: the
-     child selectors below must be :global() or they match nothing (they did, at first —
-     all three lockups showed at once, at their own full size).
-
-     The logo at the foot of the frame cycles through its three lockups — N, NVF, NEXT
-     VISION FILMS — three times, then rests on NVF. A loop that never ends is a frame
-     loop by another name, so it ends. Each lockup holds for a third of the cycle;
-     `backwards` keeps the later ones hidden until their turn. */
-  .hero__marks {
-    position: relative;
-    inline-size: var(--space-9);
-    block-size: var(--space-7);
-  }
-  .hero__marks > :global(*) {
-    position: absolute;
-    inset: 0;
-    inline-size: 100%;
-    block-size: 100%;
-    aspect-ratio: auto;
-    opacity: 0;
-    animation: nvf-cycle calc(var(--dur-reveal) * 9) linear 3 backwards;
-  }
-  .hero__marks > :global(:nth-child(2)) { opacity: 1; animation-delay: calc(var(--dur-reveal) * 3); }
-  .hero__marks > :global(:nth-child(3)) { animation-delay: calc(var(--dur-reveal) * 6); }
-  @keyframes nvf-cycle {
-    0% { opacity: 0; }
-    3%, 30% { opacity: 1; }
-    33%, 100% { opacity: 0; }
-  }
-  :root[data-motion='minimal'] .hero__marks > :global(*),
-  :root[data-motion='reduced'] .hero__marks > :global(*) { animation: none; }
 </style>
