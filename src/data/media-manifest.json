@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-29T17:48:16.875Z",
+  "generatedAt": "2026-11-06T15:38:05.217Z",
   "generatedBy": "scripts/media-build.mjs",
   "note": "Production media. Keys are storage-agnostic and carry NO URL: src/lib/media.ts joins a rendition path to PUBLIC_MEDIA_BASE_URL, which is the local mirror in development and the R2 delivery host in production. Rendition names are content-addressed, so a name that matches is bytes that match — that is what makes the cache immutable and the sync a set difference. Regenerate with `npm run media:build`.",
   "encoder": {
@@ -6374,6 +6374,127 @@
         "crop": null
       },
       "notes": "Uploaded in the admin by nextvisionfilmsagency@gmail.com, 2026-10-27: Cartaz_Agente_Imobiliario_Topo.png."
+    },
+    "owner/049fa8ce301a/hero": {
+      "key": "owner/049fa8ce301a/hero",
+      "kind": "video",
+      "storage": "r2",
+      "contentType": "video/mp4",
+      "width": 1280,
+      "height": 720,
+      "aspectRatio": 1.7778,
+      "formats": [
+        "mp4",
+        "webm"
+      ],
+      "renditions": [
+        {
+          "format": "mp4",
+          "path": "owner/049fa8ce301a/hero/1280.2f7913bc.mp4",
+          "sha256": "2f7913bc5c9397246c6c73be957751bcb861300b7f0675818104611a5c7804ee",
+          "width": 1280,
+          "height": 720,
+          "bytes": 727867,
+          "contentType": "video/mp4"
+        },
+        {
+          "format": "webm",
+          "path": "owner/049fa8ce301a/hero/1280.a9e59956.webm",
+          "sha256": "a9e599568a098038903bd1228c2ab9c9391da4a15417a5171458876fbb5e93d4",
+          "width": 1280,
+          "height": 720,
+          "bytes": 1121421,
+          "contentType": "video/webm"
+        },
+        {
+          "format": "mp4",
+          "path": "owner/049fa8ce301a/hero/720.f6763890.mp4",
+          "sha256": "f6763890060ef037b6e49978f60956a2f45a7811598bcf3194647afabd3f3211",
+          "width": 720,
+          "height": 406,
+          "bytes": 320782,
+          "contentType": "video/mp4"
+        },
+        {
+          "format": "webm",
+          "path": "owner/049fa8ce301a/hero/720.cfa35337.webm",
+          "sha256": "cfa3533788b4f1d44a407260ce7b4e7c7c14ead490423c6d66b579a5078c1f4c",
+          "width": 720,
+          "height": 406,
+          "bytes": 553609,
+          "contentType": "video/webm"
+        }
+      ],
+      "bytes": 2723679,
+      "poster": "owner/049fa8ce301a/hero/poster",
+      "hasAudio": false,
+      "provenance": "owner",
+      "sourceQuality": "owner-upload",
+      "altStatus": "decorative",
+      "alt": null,
+      "masterRequired": false,
+      "source": {
+        "file": "media/incoming/049fa8ce301a/TRAILER-Agente-Imobiliario.mp4",
+        "size": 72491966,
+        "mtimeMs": 1793979452396,
+        "naturalWidth": 1920,
+        "naturalHeight": 1080
+      },
+      "recipe": {
+        "start": 0,
+        "duration": 8,
+        "crop": null,
+        "posterAt": 1
+      },
+      "notes": "TRAILER-Agente-Imobiliario.mp4 @ 0s +8s. Uploaded in the admin by nextvisionfilmsagency@gmail.com, 2026-11-06: TRAILER Agente Imobiliário.mp4."
+    },
+    "owner/049fa8ce301a/hero/poster": {
+      "key": "owner/049fa8ce301a/hero/poster",
+      "kind": "image",
+      "storage": "r2",
+      "contentType": "image/webp",
+      "width": 1280,
+      "height": 720,
+      "aspectRatio": 1.7778,
+      "formats": [
+        "webp",
+        "avif"
+      ],
+      "renditions": [
+        {
+          "format": "webp",
+          "path": "owner/049fa8ce301a/hero/poster/1280.69432d08.webp",
+          "sha256": "69432d084ad3b37bc0223b15c91fc6517874c2cecaa659861a3a403683f82b22",
+          "width": 1280,
+          "height": 720,
+          "bytes": 44966,
+          "contentType": "image/webp"
+        },
+        {
+          "format": "avif",
+          "path": "owner/049fa8ce301a/hero/poster/1280.b4caa0e9.avif",
+          "sha256": "b4caa0e91156ec76adb428681c8007a65958a1bc3815829b6db9f509115c7016",
+          "width": 1280,
+          "height": 720,
+          "bytes": 24501,
+          "contentType": "image/avif"
+        }
+      ],
+      "bytes": 69467,
+      "provenance": "owner",
+      "sourceQuality": "derivative",
+      "altStatus": "decorative",
+      "alt": null,
+      "source": {
+        "file": "media/incoming/049fa8ce301a/TRAILER-Agente-Imobiliario.mp4",
+        "size": 72491966,
+        "mtimeMs": 1793979452396
+      },
+      "recipe": {
+        "at": 1,
+        "crop": null
+      },
+      "notes": "Poster for owner/049fa8ce301a/hero, frame at 1s."
     }
   }
 }
