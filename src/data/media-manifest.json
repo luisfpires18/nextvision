@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-06T15:38:05.217Z",
+  "generatedAt": "2026-11-06T21:40:07.472Z",
   "generatedBy": "scripts/media-build.mjs",
   "note": "Production media. Keys are storage-agnostic and carry NO URL: src/lib/media.ts joins a rendition path to PUBLIC_MEDIA_BASE_URL, which is the local mirror in development and the R2 delivery host in production. Rendition names are content-addressed, so a name that matches is bytes that match — that is what makes the cache immutable and the sync a set difference. Regenerate with `npm run media:build`.",
   "encoder": {
@@ -6495,6 +6495,127 @@
         "crop": null
       },
       "notes": "Poster for owner/049fa8ce301a/hero, frame at 1s."
+    },
+    "owner/c76986dd585c/hero": {
+      "key": "owner/c76986dd585c/hero",
+      "kind": "video",
+      "storage": "r2",
+      "contentType": "video/mp4",
+      "width": 1280,
+      "height": 720,
+      "aspectRatio": 1.7778,
+      "formats": [
+        "mp4",
+        "webm"
+      ],
+      "renditions": [
+        {
+          "format": "mp4",
+          "path": "owner/c76986dd585c/hero/1280.a650af12.mp4",
+          "sha256": "a650af129749531fe2df2f81a363720d0eb2208c92a6cf4b23c58a0050c3b470",
+          "width": 1280,
+          "height": 720,
+          "bytes": 1305705,
+          "contentType": "video/mp4"
+        },
+        {
+          "format": "webm",
+          "path": "owner/c76986dd585c/hero/1280.32b1f85c.webm",
+          "sha256": "32b1f85cb2614ff5ecf03cf6a3b58b747cbfaee53f001a65fe23921f56fcb032",
+          "width": 1280,
+          "height": 720,
+          "bytes": 1367434,
+          "contentType": "video/webm"
+        },
+        {
+          "format": "mp4",
+          "path": "owner/c76986dd585c/hero/720.aaf37387.mp4",
+          "sha256": "aaf37387dafdb85c635ffe0afd782887492b6ba2cc78d82a6134eae82a84123f",
+          "width": 720,
+          "height": 406,
+          "bytes": 589422,
+          "contentType": "video/mp4"
+        },
+        {
+          "format": "webm",
+          "path": "owner/c76986dd585c/hero/720.e6e7cb7e.webm",
+          "sha256": "e6e7cb7ef04e07c13ad863c0a89bad1d602da054ec44523973dd3f71204123bb",
+          "width": 720,
+          "height": 406,
+          "bytes": 692043,
+          "contentType": "video/webm"
+        }
+      ],
+      "bytes": 3954604,
+      "poster": "owner/c76986dd585c/hero/poster",
+      "hasAudio": false,
+      "provenance": "owner",
+      "sourceQuality": "owner-upload",
+      "altStatus": "decorative",
+      "alt": null,
+      "masterRequired": false,
+      "source": {
+        "file": "media/incoming/c76986dd585c/We-are-NVF.mp4",
+        "size": 6010969,
+        "mtimeMs": 1794001191638,
+        "naturalWidth": 1920,
+        "naturalHeight": 1080
+      },
+      "recipe": {
+        "start": 0,
+        "duration": 8,
+        "crop": null,
+        "posterAt": 1
+      },
+      "notes": "We-are-NVF.mp4 @ 0s +8s. Uploaded in the admin by nextvisionfilmsagency@gmail.com, 2026-11-06: We are NVF.mp4."
+    },
+    "owner/c76986dd585c/hero/poster": {
+      "key": "owner/c76986dd585c/hero/poster",
+      "kind": "image",
+      "storage": "r2",
+      "contentType": "image/webp",
+      "width": 1280,
+      "height": 720,
+      "aspectRatio": 1.7778,
+      "formats": [
+        "webp",
+        "avif"
+      ],
+      "renditions": [
+        {
+          "format": "webp",
+          "path": "owner/c76986dd585c/hero/poster/1280.266b2f08.webp",
+          "sha256": "266b2f08eaea967376d44c56f01f2b297454bdc8e6903c4ef4a037432c8e7ee4",
+          "width": 1280,
+          "height": 720,
+          "bytes": 24876,
+          "contentType": "image/webp"
+        },
+        {
+          "format": "avif",
+          "path": "owner/c76986dd585c/hero/poster/1280.0d2faae4.avif",
+          "sha256": "0d2faae45dc40b07e62a3dab1953f2c5317c43a1deefe2901e614a8b42b445c6",
+          "width": 1280,
+          "height": 720,
+          "bytes": 10693,
+          "contentType": "image/avif"
+        }
+      ],
+      "bytes": 35569,
+      "provenance": "owner",
+      "sourceQuality": "derivative",
+      "altStatus": "decorative",
+      "alt": null,
+      "source": {
+        "file": "media/incoming/c76986dd585c/We-are-NVF.mp4",
+        "size": 6010969,
+        "mtimeMs": 1794001191638
+      },
+      "recipe": {
+        "at": 1,
+        "crop": null
+      },
+      "notes": "Poster for owner/c76986dd585c/hero, frame at 1s."
     }
   }
 }
