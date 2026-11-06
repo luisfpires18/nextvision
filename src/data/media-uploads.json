@@ -78,6 +78,25 @@
         }
       },
       "error": "Já existe um projeto em /portfolio/agente-imobiliario-sem-casa-para-viver/. Escolha outro título."
+    },
+    {
+      "id": "049fa8ce301a",
+      "key": "owner/049fa8ce301a/hero",
+      "kind": "video",
+      "source": "uploads/2026-11-06/049fa8ce301a/TRAILER-Agente-Imobiliario.mp4",
+      "name": "TRAILER Agente Imobiliário.mp4",
+      "target": {
+        "screen": "projeto",
+        "file": "projeto/agente-imobiliario-sem-casa-para-viver",
+        "path": "heroVideo",
+        "label": "Projeto «Agente Imobiliário sem Casa para Viver» — Vídeo de abertura"
+      },
+      "by": "nextvisionfilmsagency@gmail.com",
+      "at": "2026-11-06T15:36:20.010Z",
+      "status": "ready",
+      "start": 0,
+      "duration": 8,
+      "posterAt": 1
     }
   ]
 }
