@@ -5,13 +5,13 @@
  * Injected only into the prod Worker's build (astro.config.mjs, `nvf:admin`), behind
  * Cloudflare Access, and verified again here on every request (src/lib/admin/guard.ts).
  *
- * The layout is the edit bay of docs/ADMIN_DASHBOARD_PLAN.md §5: the five stripes of the
- * logo plus settings down the left, the bin of items beside them, and the open item with
- * the real page in a viewer next to it. It reads the site's own tokens and adds no colour.
+ * The layout is docs/ADMIN_REDESIGN_PLAN.md (2026-11-07): the sections down the left, each
+ * section one page of tabs and card grids, and an item opened in a modal over its grid.
  *
  *   /admin/                          every section and how many items it holds
  *   /admin/<area>/                   that section's items
- *   /admin/<area>/<group>/<item>/    one item, with the page that shows it
+ *   /admin/<area>/?g=<group>         that section, one tab open
+ *   /admin/<area>/<group>/<item>/    the same page, that item open in the edit modal
  */
 export const prerender = false;
 
@@ -19,9 +19,11 @@ import { ICON } from './icons.ts';
 import '../styles/tokens.colour.css';
 import '../styles/tokens.type.css';
 import '../styles/tokens.space.css';
+import '../styles/tokens.motion.css';
 import '../styles/fonts.css';
 import '../styles/admin.css';
 import Field from './Field.astro';
+import ItemCard from './ItemCard.astro';
 import Editor from './Editor.astro';
 import ProjectEditor from './ProjectEditor.astro';
 import OrderEditor from './OrderEditor.astro';
@@ -175,6 +177,58 @@ if (item && entryType) {
 }
 
 const href = (...parts: string[]) => `/admin/${parts.map(encodeURIComponent).join('/')}${parts.length ? '/' : ''}`;
+
+/* ── the section page (docs/ADMIN_REDESIGN_PLAN.md §3–§4) ────────────────────
+   Each section is one page: a tab per kind of item, each tab a grid of cards. "Novo
+   projeto" and "Ordem" are not tabs: they are the + in the header and "Mudar a ordem". */
+const ACTION_GROUPS = new Set(['novo', 'ordem']);
+/*
+ * The tabs. A collection (projects, team, services, categories) is a tab of its own. The
+ * single items (a page, the contacts) and the locked ones share one tab, "Páginas" (or
+ * "Geral" in Definições), so a section is never a row of tabs holding one card each. An
+ * empty group nobody can add to (Coleções, Testemunhos) is not offered at all.
+ */
+interface Tab { id: string; label: string; entries: { item: AdminItem; gid: string }[] }
+const MERGED = 'paginas';
+/** Search earns its place only on a tab with more than this many cards. */
+const SEARCH_FROM = 6;
+const tabs: Tab[] = [];
+if (current) {
+  const merged: Tab['entries'] = [];
+  for (const { group, items } of current.groups) {
+    if (ACTION_GROUPS.has(group.id) || (items.length === 0 && !ADD_TO[group.id])) continue;
+    const single = !ADD_TO[group.id] && (items.length === 1 || items.every((i) => i.locked));
+    if (single) merged.push(...items.map((item) => ({ item, gid: group.id })));
+    else tabs.push({ id: group.id, label: group.label, entries: items.map((item) => ({ item, gid: group.id })) });
+  }
+  if (merged.length) {
+    tabs.push({ id: MERGED, label: merged.every((e) => e.gid.startsWith('pagina-')) ? 'Páginas' : 'Geral', entries: merged });
+  }
+}
+/** The tab an item's group belongs to; "Novo projeto" and "Ordem" belong to Projetos. */
+const tabOf = (gid: string) => (ACTION_GROUPS.has(gid) ? 'projetos' : tabs.find((tb) => tb.entries.some((e) => e.gid === gid))?.id ?? gid);
+const asked = groupId ? tabOf(groupId) : Astro.url.searchParams.get('g');
+const activeTab = tabs.find((tb) => tb.id === asked) ?? tabs[0] ?? null;
+const addGroup = activeTab && ADD_TO[activeTab.id]
+  ? current?.groups.find((g) => g.group.id === ADD_TO[activeTab.id]) ?? null : null;
+const orderGroup = activeTab?.id === 'projetos' ? current?.groups.find((g) => g.group.id === 'ordem') ?? null : null;
+const tabHref = (id: string) => `${href(current!.area.id)}?g=${encodeURIComponent(id)}`;
+
+/* The projects toolbar: the categories and years that actually occur, newest year first. */
+const facetItems = activeTab?.entries.map((e) => e.item).filter((i) => i.facets) ?? [];
+const categoryNames = new Map((await getCollection('categories')).map((c) => [c.id, c.data.name.pt]));
+const facetCategories = [...new Set(facetItems.flatMap((i) => i.facets!.categories))]
+  .map((id) => ({ id, name: categoryNames.get(id) ?? id }))
+  .sort((a, b) => a.name.localeCompare(b.name, 'pt'));
+const facetYears = [...new Set(facetItems.map((i) => i.facets!.year))].sort().reverse();
+
+/* The open modal: what it holds, and where closing it goes. */
+const modal = item && current ? {
+  title: newProject ? 'Novo projeto' : orderEditor ? 'Ordem do portfólio' : item.label,
+  back: tabHref(activeTab?.id ?? groupId!),
+  form: Boolean((screen && editor) || entryEditor || orderEditor || projectEditor),
+  wide: Boolean(item.viewPath),
+} : null;
 ---
 
 <!doctype html>
@@ -183,138 +237,205 @@ const href = (...parts: string[]) => `/admin/${parts.map(encodeURIComponent).joi
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="robots" content="noindex, nofollow" />
-    <title>{item ? `${item.label} · ` : area ? `${area.label} · ` : ''}Admin · Next Vision Films</title>
+    <title>{modal ? `${modal.title} · ` : area ? `${area.label} · ` : ''}Admin · Next Vision Films</title>
   </head>
   <body class="admin">
-    <nav class="admin-nav" aria-label="Secções">
-      <a class="admin-home" href={href()} aria-current={!area ? 'page' : undefined}>NVF</a>
-      <ul>
-        {AREAS.map((a) => (
-          <li data-section={a.section ?? undefined}>
-            <a href={href(a.id)} aria-current={a === area ? 'page' : undefined}>{a.label}</a>
-          </li>
-        ))}
-      </ul>
-      <button type="button" class="admin-publish-link" data-publish-open>
-        Publicar <span data-draft-count></span>
-      </button>
-    </nav>
+    <aside class="ad-side">
+      <a class="ad-brand" href={href()} aria-current={!area ? 'page' : undefined}>NVF <span>Admin</span></a>
+      <nav aria-label="Secções">
+        <ul class="ad-sections">
+          {AREAS.map((a) => (
+            <li data-section={a.section ?? undefined}>
+              <a href={href(a.id)} aria-current={a === area ? 'page' : undefined}><i aria-hidden="true"></i>{a.label}</a>
+            </li>
+          ))}
+        </ul>
+      </nav>
+      <div class="ad-side__foot">
+        <p data-build>Site: a verificar…</p>
+        <p>{who.email} · <a href={LOGOUT_PATH}>Sair</a></p>
+      </div>
+    </aside>
+
+    <div class="ad-main" data-section={current?.area.section ?? undefined}>
+      <header class="ad-head">
+        <h1>{current ? current.area.label : 'Conteúdo do site'}</h1>
+        <div class="ad-head__actions">
+          <button type="button" class="ad-button ad-button--primary" data-publish-open>Publicar <span data-draft-count></span></button>
+          {addGroup && addGroup.items[0] ? (
+            <a class="ico ico--add ico--lg" href={href(current!.area.id, addGroup.group.id, addGroup.items[0].id)}
+              aria-label={addGroup.group.label} title={addGroup.group.label} set:html={ICON.add} />
+          ) : null}
+        </div>
+        {tabs.length > 1 ? (
+          <nav class="ad-tabs" aria-label={`${current!.area.label}: o que editar`}>
+            {tabs.map((tb) => (
+              <a href={tabHref(tb.id)} aria-current={tb === activeTab ? 'page' : undefined}>
+                {tb.label}{tb.entries.length > 1 ? <span>{tb.entries.length}</span> : null}
+              </a>
+            ))}
+          </nav>
+        ) : null}
+      </header>
+
+      {!current ? (
+        <main class="ad-panel">
+          <p class="ad-lede">Escolha uma secção para ver e alterar o que lá aparece. As alterações ficam guardadas neste computador e só chegam ao site quando carregar em Publicar.</p>
+          <ul class="ad-grid">
+            {loaded.map((l) => (
+              <li class="ad-card ad-card--section" data-section={l.area.section ?? undefined}>
+                <a class="ad-card__link" href={href(l.area.id)}>
+                  <h2 class="ad-card__title">{l.area.label}</h2>
+                  <p class="ad-card__meta">{l.groups.filter(({ group, items }) => !ACTION_GROUPS.has(group.id) && (items.length > 0 || ADD_TO[group.id])).map((g) => `${g.group.label}${g.items.length > 1 ? ` (${g.items.length})` : ''}`).join(', ')}</p>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </main>
+      ) : activeTab ? (
+        <main class="ad-panel" data-grid>
+          <h2 class="visually-hidden">{activeTab.label}</h2>
+          {activeTab.entries.length > SEARCH_FROM || facetItems.length || orderGroup ? (
+            <form class="ad-toolbar" role="search" data-toolbar>
+              {activeTab.entries.length > SEARCH_FROM ? (
+                <label class="ad-search">
+                  <span class="visually-hidden">Procurar</span>
+                  <i aria-hidden="true" set:html={ICON.search}></i>
+                  <input type="search" name="q" placeholder={`Procurar em ${activeTab.label.toLocaleLowerCase('pt-PT')}`} autocomplete="off" data-filter="q" />
+                </label>
+              ) : null}
+              {facetItems.length ? (
+                <>
+                  <label class="ad-select"><span>Categoria</span>
+                    <select name="categoria" data-filter="categoria">
+                      <option value="">Todas</option>
+                      {facetCategories.map((c) => <option value={c.id}>{c.name}</option>)}
+                    </select>
+                  </label>
+                  <label class="ad-select"><span>Ano</span>
+                    <select name="ano" data-filter="ano">
+                      <option value="">Todos</option>
+                      {facetYears.map((y) => <option value={y}>{y}</option>)}
+                    </select>
+                  </label>
+                  <label class="ad-select"><span>Estado</span>
+                    <select name="estado" data-filter="estado">
+                      <option value="">Todos</option>
+                      <option value="site">No site</option>
+                      <option value="escondido">Escondidos</option>
+                      <option value="alterado">Com alterações por publicar</option>
+                      <option value="apagar">A apagar ao publicar</option>
+                    </select>
+                  </label>
+                  <label class="ad-select"><span>Ordenar</span>
+                    <select name="ordem" data-filter="ordem">
+                      <option value="">Ordem do portfólio</option>
+                      <option value="recentes">Mais recentes</option>
+                      <option value="nome">Nome, A–Z</option>
+                    </select>
+                  </label>
+                </>
+              ) : null}
+              {orderGroup && orderGroup.items[0] ? (
+                <a class="ad-button" href={href(current.area.id, orderGroup.group.id, orderGroup.items[0].id)}>Mudar a ordem</a>
+              ) : null}
+            </form>
+          ) : null}
+
+          {activeTab.entries.length ? (
+            <ul class="ad-grid" data-cards>
+              {activeTab.entries.map(({ item: i, gid }, n) => (
+                <ItemCard item={i} index={n} editHref={href(current.area.id, gid, i.id)} readOnly={!editable(gid, i)} />
+              ))}
+            </ul>
+          ) : (
+            <p class="ad-empty">Ainda não há nenhum. Quando houver, aparece aqui.</p>
+          )}
+          <p class="ad-empty" data-no-results hidden>Nenhum resultado com estes filtros. <button type="button" class="ad-link" data-filter-reset>Limpar os filtros</button></p>
+          <nav class="ad-pages" aria-label="Páginas de resultados" data-pages hidden></nav>
+        </main>
+      ) : null}
+    </div>
+
+    {/* The edit modal: this URL renders the grid with the item open over it (plan §6). */}
+    {modal && item ? (
+      <dialog class:list={['ad-modal', { 'ad-modal--wide': modal.wide }]} data-edit-dialog data-back={modal.back} aria-labelledby="modal-h">
+        <header class="ad-modal__head">
+          <h2 id="modal-h">{modal.title}</h2>
+          <a class="ico ico--close" href={modal.back} data-modal-cancel aria-label="Fechar" title="Fechar" set:html={ICON.close} />
+        </header>
+        <div class="ad-modal__body">
+          <div class="ad-modal__form">
+            {item.locked ? <p class="admin-locked">{item.locked}</p> : null}
+            {screen && editor ? (
+              <Editor screen={screen} fields={editor.fields} docs={editor.docs} uploads={editor.uploads} />
+            ) : entryEditor ? (
+              <EntryEditor type={entryEditor.type} id={entryEditor.id} data={entryEditor.data} uploads={entryEditor.uploads} />
+            ) : newProject ? (
+              <NewProject categories={newProject} />
+            ) : orderEditor ? (
+              <OrderEditor projects={orderEditor} />
+            ) : projectEditor ? (
+              <ProjectEditor slug={projectEditor.slug} data={projectEditor.data} categories={projectEditor.categories} uploads={projectEditor.uploads} />
+            ) : (
+              <>
+                {editorNotice ? <p class="admin-locked">{editorNotice}</p> : null}
+                {!item.locked && !editable(groupId!, item) && groupId !== 'novo' ? <p class="admin-readonly">Esta parte, por agora, só se consulta.</p> : null}
+                <Field value={item.data} />
+              </>
+            )}
+            {item.body?.trim() ? (
+              <details class="admin-body">
+                <summary>Texto do ficheiro</summary>
+                <pre>{item.body.trim()}</pre>
+              </details>
+            ) : null}
+          </div>
+          {item.viewPath ? (
+            <aside class="admin-viewer" aria-label="Página no site">
+              <p>No site: <a href={item.viewPath} target="_blank" rel="noopener">abrir {item.viewPath} numa janela nova</a></p>
+              <iframe src={item.viewPath} title={`A página ${item.viewPath} no site`} loading="lazy"></iframe>
+            </aside>
+          ) : null}
+        </div>
+        <footer class="ad-modal__foot">
+          {modal.form ? (
+            <>
+              <p class="ad-modal__hint">Guardar mantém as alterações neste computador. Chegam ao site quando carregar em Publicar.</p>
+              <a class="ad-button" href={modal.back} data-modal-cancel>Cancelar</a>
+              <a class="ad-button ad-button--primary" href={modal.back} data-modal-save>Guardar</a>
+            </>
+          ) : (
+            <a class="ad-button" href={modal.back} data-modal-cancel>Fechar</a>
+          )}
+        </footer>
+      </dialog>
+    ) : null}
+
+    {/* Delete: asks first; confirming marks the item for deletion at the next Publicar. */}
+    <dialog class="ad-modal ad-modal--small" data-confirm-dialog aria-labelledby="confirm-h">
+      <h2 id="confirm-h" data-confirm-title>Apagar?</h2>
+      <p>Sai do site quando carregar em Publicar. Até lá pode desfazer.</p>
+      <p class="ad-modal__hint">As imagens e os vídeos ficam guardados. Quem abrir o endereço antigo vai parar ao portfólio.</p>
+      <div class="ad-modal__foot">
+        <button type="button" class="ad-button" data-confirm-cancel>Cancelar</button>
+        <button type="button" class="ad-button ad-button--danger" data-confirm-go>Apagar</button>
+      </div>
+    </dialog>
 
     {/* One Publicar for every draft on every page (A10). Filled by admin-client.ts. */}
-    <dialog class="pub-dialog" data-publish-dialog aria-labelledby="pub-h">
+    <dialog class="pub-dialog ad-modal ad-modal--small" data-publish-dialog aria-labelledby="pub-h">
       <h2 id="pub-h">Publicar no site</h2>
       <div data-publish-list></div>
       <p class="ed-note" data-publish-note>Estas alterações só existem neste computador até publicar. Publicar põe-nas em nextvisionfilms.com, normalmente em 2 a 3 minutos.</p>
       <div class="pub-actions">
-        <button type="button" class="ed-save" data-publish-go>Publicar</button>
-        <button type="button" class="pub-cancel" data-publish-close>Fechar</button>
+        <button type="button" class="ad-button ad-button--primary" data-publish-go>Publicar</button>
+        <button type="button" class="ad-button" data-publish-close>Fechar</button>
         <button type="button" class="pub-cancel" data-publish-discard>Descartar todos os rascunhos</button>
       </div>
       <p class="ed-message" role="status" aria-live="polite" data-publish-message></p>
     </dialog>
 
-    {!current ? (
-      <main class="admin-overview">
-        <h1>Conteúdo do site</h1>
-        <p class="admin-lede">Tudo o que pode ser alterado aqui, organizado pelas secções do site. As páginas, os projetos, os serviços, a equipa, as categorias e os contactos já se editam; o resto, por agora, só se consulta. As alterações ficam como rascunho neste computador e chegam ao site quando carregar em «Publicar».</p>
-        <ul class="admin-areas">
-          {loaded.map((l) => (
-            <li data-section={l.area.section ?? undefined}>
-              <a href={href(l.area.id)}>
-                <span class="admin-areas__name">{l.area.label}</span>
-                <span class="admin-areas__count">{l.groups.map((g) => `${g.group.label}${g.items.length > 1 ? ` (${g.items.length})` : ''}`).join(' · ')}</span>
-              </a>
-            </li>
-          ))}
-        </ul>
-      </main>
-    ) : (
-      <div class="admin-bay" data-section={current.area.section ?? undefined}>
-        <section class="admin-bin" aria-labelledby="bin-h">
-          {item ? <p id="bin-h" class="admin-bin__title">{current.area.label}</p> : <h1 id="bin-h" class="admin-bin__title">{current.area.label}</h1>}
-          {current.groups.filter(({ group }) => !Object.values(ADD_TO).includes(group.id)).map(({ group, items }) => (
-            <div class="admin-group">
-              <h2>
-                <span>{group.label} {items.length > 1 ? <span class="admin-count">{items.length}</span> : null}</span>
-                {ADD_TO[group.id] ? (() => {
-                  const add = current.groups.find((g) => g.group.id === ADD_TO[group.id]);
-                  const first = add?.items[0];
-                  return add && first ? (
-                    <a class="ico ico--add" href={href(current.area.id, add.group.id, first.id)} aria-label={add.group.label} title={add.group.label}
-                      aria-current={first === item ? 'page' : undefined} set:html={ICON.add} />
-                  ) : null;
-                })() : null}
-              </h2>
-              {items.length === 0 ? <p class="admin-empty">Ainda não há nenhum.</p> : (
-                <ul>
-                  {items.map((i) => (
-                    <li>
-                      <a href={href(current.area.id, group.id, i.id)} aria-current={i === item ? 'page' : undefined}>
-                        <span>{i.label}</span>
-                        {i.meta ? <span class="admin-meta">{i.meta}</span> : null}
-                        {editable(group.id, i) ? <span class="ico ico--edit" aria-hidden="true" title="Editar" set:html={ICON.edit} /> : null}
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          ))}
-        </section>
-
-        {item ? (
-          <main class="admin-item admin-item--open">
-            <header class="admin-item__head">
-              <a class="admin-back" href={href(current.area.id)}>Voltar a {current.area.label}</a>
-              <h1>{item.label}</h1>
-              {item.locked ? <p class="admin-locked">{item.locked}</p> : null}
-            </header>
-            <div class="admin-item__body">
-              <div class="admin-fields">
-                {screen && editor ? (
-                  <Editor screen={screen} fields={editor.fields} docs={editor.docs} uploads={editor.uploads} />
-                ) : entryEditor ? (
-                  <EntryEditor type={entryEditor.type} id={entryEditor.id} data={entryEditor.data} uploads={entryEditor.uploads} />
-                ) : newProject ? (
-                  <NewProject categories={newProject} />
-                ) : orderEditor ? (
-                  <OrderEditor projects={orderEditor} />
-                ) : projectEditor ? (
-                  <ProjectEditor slug={projectEditor.slug} data={projectEditor.data} categories={projectEditor.categories} uploads={projectEditor.uploads} />
-                ) : (
-                  <>
-                    {editorNotice ? <p class="admin-locked">{editorNotice}</p> : null}
-                    {!screen && !entryType && groupId !== 'projetos' && groupId !== 'ordem' && groupId !== 'novo' ? <p class="admin-readonly">Por agora só se consulta. A edição desta secção chega numa fase seguinte.</p> : null}
-                    <Field value={item.data} />
-                  </>
-                )}
-                {item.body?.trim() ? (
-                  <details class="admin-body">
-                    <summary>Texto do ficheiro</summary>
-                    <pre>{item.body.trim()}</pre>
-                  </details>
-                ) : null}
-              </div>
-              {item.viewPath ? (
-                <aside class="admin-viewer" aria-label="Página no site">
-                  <p>No site: <a href={item.viewPath} target="_blank" rel="noopener">abrir {item.viewPath} numa janela nova</a></p>
-                  <iframe src={item.viewPath} title={`A página ${item.viewPath} no site`} loading="lazy"></iframe>
-                </aside>
-              ) : null}
-            </div>
-          </main>
-        ) : (
-          <main class="admin-item admin-item--empty">
-            <p>Escolha um item à esquerda para o ver, ao lado da página onde aparece.</p>
-          </main>
-        )}
-      </div>
-    )}
-
-    <footer class="admin-status">
-      <span data-build>Site: a verificar…</span>
-      <span>{who.email} · <a href={LOGOUT_PATH}>Sair</a></span>
-    </footer>
     <script>
       import './admin-client.ts';
     </script>

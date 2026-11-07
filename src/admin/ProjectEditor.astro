@@ -31,9 +31,6 @@ const rows = (v: string) => Math.min(8, Math.ceil(v.length / 60) + v.split('\n')
 ---
 
 <form class="admin-editor" data-editor data-screen="projeto" data-project={slug} novalidate>
-  {/* The removal is at the end of a long form; this is how an owner finds it (2026-11-07).
-      It starts the same removal as the bin at the end, and takes the reader there. */}
-  <p class="ed-top-actions"><button type="button" class="ico ico--remove" data-remove-top aria-label="Apagar este projeto" title="Apagar este projeto" set:html={ICON.remove} /></p>
   {fieldsFor(data).filter((f) => f.kind !== 'blocks').map((f) => {
     const value = projectValue(data, f.path);
     const id = `p-${f.path.replace(/\W/g, '-')}`;

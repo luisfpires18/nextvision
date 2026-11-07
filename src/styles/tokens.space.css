@@ -97,11 +97,10 @@
   --rule-heavy: 0.25rem;
 }
 
-/* The owners' admin (prod Worker only, docs/ADMIN_DASHBOARD_PLAN.md §5). Layout boxes for
-   the edit bay; it reuses every colour, type and space token above and adds none. */
+/* The owners' admin (prod Worker only; docs/ADMIN_REDESIGN_PLAN.md). Layout boxes for
+   the admin; it reuses the colour, type and space tokens above (its one colour of its own,
+   --admin-paper, is in tokens.colour.css). */
 :root {
-  --admin-nav-w: 11rem;
-  --admin-bin-w: 19rem;
   --admin-thumb: 10rem;
   --admin-thumb-s: 6rem;
   --admin-name-w: 12rem;
@@ -109,5 +108,11 @@
   --admin-viewer-h: 72vh;
   --admin-hairline: 0.0625rem;
   --admin-focus: 0.1875rem;
-  --admin-status-h: 2.75rem;
+  /* The redesign (docs/ADMIN_REDESIGN_PLAN.md): the sidebar, the narrowest card, a tap
+     target, and the two dialog widths. */
+  --admin-side-w: 15rem;
+  --admin-card-min: 15rem;
+  --admin-tap: 2.75rem;
+  --admin-modal-w: 92rem;
+  --admin-modal-s: 34rem;
 }

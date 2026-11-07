@@ -11,7 +11,8 @@
 
 import { getCollection } from 'astro:content';
 import { PAGE_CONTENT } from '../page-content.ts';
-import { SCREEN_LABELS } from './fields.ts';
+import { SCREENS, SCREEN_LABELS } from './fields.ts';
+import { getAt } from './edit.ts';
 import { pagePath, projectPath, categoryPath, type PageId } from '../../i18n/routes.ts';
 
 export type Section = 'home' | 'about' | 'commercial' | 'cinema' | 'bts';
@@ -27,6 +28,17 @@ export interface AdminItem {
   viewPath: string | null;
   /** Why this item will not be editable, when that is the case. */
   locked?: string | undefined;
+  /** The card's picture: a media key (a film shows its poster). None draws the initial. */
+  thumb?: string | undefined;
+  /**
+   * The draft names that belong to this item, as prefixes (`projeto/leonor:`). The card
+   * shows "Alterações por publicar" while any draft starts with one of them.
+   */
+  draftKeys?: string[] | undefined;
+  /** What the toolbar filters on (projects): category ids, year, hidden from the site. */
+  facets?: { categories: string[]; year: string; hidden: boolean } | undefined;
+  /** Whether the card offers the bin. Phase 1: projects only. */
+  deletable?: boolean | undefined;
 }
 
 export interface AdminGroup {
@@ -45,15 +57,25 @@ export interface AdminArea {
 const byOrder = <T extends { data: { order?: number } }>(a: T, b: T) =>
   (a.data.order ?? 0) - (b.data.order ?? 0);
 
-/** One page-content file as a single-item group. */
+/** One page-content file as a single-item group. Its picture is the screen's first media field. */
 function page(file: keyof typeof PAGE_CONTENT, pageId: PageId): AdminGroup {
   const label = SCREEN_LABELS[file];
+  const defs = SCREENS[file];
+  const media = defs.find((d) => (d.kind === 'image' || d.kind === 'video') && !/[*+]/.test(d.path));
+  const thumb = media ? getAt(PAGE_CONTENT[media.file], media.path) : undefined;
   return {
     id: `pagina-${file}`,
     label,
-    load: async () => [{ id: file, label, data: PAGE_CONTENT[file], viewPath: pagePath(pageId) }],
+    load: async () => [{
+      id: file, label, data: PAGE_CONTENT[file], viewPath: pagePath(pageId),
+      thumb: typeof thumb === 'string' ? thumb : undefined,
+      draftKeys: [...new Set(defs.map((d) => `${d.file}:${d.path.replace(/.[*+].*$/, '')}`))],
+    }],
   };
 }
+
+const keyOf = (v: unknown): string | undefined =>
+  (v && typeof v === 'object' && typeof (v as { key?: unknown }).key === 'string' ? (v as { key: string }).key : undefined);
 
 export const AREAS: AdminArea[] = [
   {
@@ -68,6 +90,7 @@ export const AREAS: AdminArea[] = [
         id: 'equipa', label: 'Equipa',
         load: async () => (await getCollection('team')).sort(byOrder).map((e) => ({
           id: e.id, label: e.data.name, meta: e.data.role.pt, data: e.data, body: e.body, viewPath: pagePath('about'),
+          thumb: keyOf(e.data.portrait), draftKeys: [`equipa/${e.id}:`],
         })),
       },
     ],
@@ -80,6 +103,7 @@ export const AREAS: AdminArea[] = [
         id: 'servicos', label: 'Serviços',
         load: async () => (await getCollection('services')).sort(byOrder).map((e) => ({
           id: e.id, label: e.data.title.pt, data: e.data, body: e.body, viewPath: pagePath('services'),
+          draftKeys: [`servico/${e.id}:`],
         })),
       },
       {
@@ -101,16 +125,24 @@ export const AREAS: AdminArea[] = [
       },
       {
         id: 'projetos', label: 'Projetos',
-        load: async () => (await getCollection('projects'))
+        load: async () => (await projectsWithNames())
           .sort((a, b) => (a.data.portfolioOrder ?? 999) - (b.data.portfolioOrder ?? 999)
             || a.data.title.pt.localeCompare(b.data.title.pt, 'pt'))
           .map((e) => ({
             id: e.id,
             label: e.data.title.pt,
-            meta: [e.data.year ?? e.data.date.getFullYear(), e.data.draft ? 'rascunho' : null].filter(Boolean).join(' · '),
+            meta: [e.data.year ?? e.data.date.getFullYear(), e.categoryName].filter(Boolean).join(' · '),
             data: e.data,
             body: e.body,
             viewPath: e.data.draft ? null : projectPath(e.id),
+            thumb: keyOf(e.data.poster),
+            draftKeys: [`projeto/${e.id}:`],
+            facets: {
+              categories: e.data.categories.map((c) => c.id),
+              year: String(e.data.year ?? e.data.date.getFullYear()),
+              hidden: Boolean(e.data.draft),
+            },
+            deletable: true,
           })),
       },
       {
@@ -119,10 +151,19 @@ export const AREAS: AdminArea[] = [
       },
       {
         id: 'categorias', label: 'Categorias',
-        load: async () => (await getCollection('categories')).sort(byOrder).map((e) => ({
-          id: e.id, label: e.data.name.pt, meta: e.data.hidden ? 'escondida' : undefined, data: e.data,
-          viewPath: e.data.hidden ? null : categoryPath(e.id),
-        })),
+        load: async () => {
+          const projects = await getCollection('projects');
+          return (await getCollection('categories')).sort(byOrder).map((e) => {
+            const inIt = projects.filter((p) => p.data.categories.some((c) => c.id === e.id));
+            return {
+              id: e.id, label: e.data.name.pt, data: e.data,
+              meta: [`${inIt.length} ${inIt.length === 1 ? 'projeto' : 'projetos'}`, e.data.hidden ? 'escondida' : null].filter(Boolean).join(' · '),
+              viewPath: e.data.hidden ? null : categoryPath(e.id),
+              thumb: keyOf(inIt[0]?.data.poster),
+              draftKeys: [`categoria/${e.id}:`],
+            };
+          });
+        },
       },
       {
         id: 'colecoes', label: 'Coleções',
@@ -139,6 +180,7 @@ export const AREAS: AdminArea[] = [
         id: 'site', label: 'Contactos e redes',
         load: async () => (await getCollection('settings')).map((e) => ({
           id: e.id, label: 'Contactos e redes sociais', data: e.data, viewPath: pagePath('contact'),
+          draftKeys: [`definicoes/${e.id}:`],
         })),
       },
       page('contact', 'contact'),
@@ -160,5 +202,11 @@ export const AREAS: AdminArea[] = [
     ],
   },
 ];
+
+/** Projects with their first category's Portuguese name, for the card's second line. */
+async function projectsWithNames() {
+  const names = new Map((await getCollection('categories')).map((c) => [c.id, c.data.name.pt]));
+  return (await getCollection('projects')).map((e) => Object.assign(e, { categoryName: names.get(e.data.categories[0]?.id ?? '') ?? null }));
+}
 
 export const findArea = (id: string | undefined) => AREAS.find((a) => a.id === id) ?? null;
