@@ -1,3 +1,39 @@
 {
-  "removed": []
+  "removed": [
+    {
+      "slug": "carolinapedro",
+      "title": "Carolina&Pedro",
+      "at": "2026-11-07"
+    },
+    {
+      "slug": "madrugada-prince-mark",
+      "title": "Madrugada – Prince Mark",
+      "at": "2026-11-07"
+    },
+    {
+      "slug": "susanarafael",
+      "title": "Susana&Rafael",
+      "at": "2026-11-07"
+    },
+    {
+      "slug": "nvf-vs-antiqvvm",
+      "title": "Antiqvvm",
+      "at": "2026-11-07"
+    },
+    {
+      "slug": "paradox-of-affection",
+      "title": "I Feel Lost",
+      "at": "2026-11-07"
+    },
+    {
+      "slug": "ana-reels",
+      "title": "The Lie we tell ourselves",
+      "at": "2026-11-07"
+    },
+    {
+      "slug": "ananuno",
+      "title": "Ana&Nuno",
+      "at": "2026-11-07"
+    }
+  ]
 }
