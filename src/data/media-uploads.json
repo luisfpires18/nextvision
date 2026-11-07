@@ -180,6 +180,22 @@
       "by": "nextvisionfilmsagency@gmail.com",
       "at": "2026-11-07T15:43:24.972Z",
       "status": "ready"
+    },
+    {
+      "id": "4c2a888530be",
+      "key": "owner/4c2a888530be/image",
+      "kind": "image",
+      "source": "uploads/2026-11-07/4c2a888530be/Captura-de-ecra-2026-11-07-as-15.53.17.png",
+      "name": "Captura de ecrã 2026-11-07, às 15.53.17.png",
+      "target": {
+        "screen": "services",
+        "file": "services",
+        "path": "collage.2",
+        "label": "Imagem do carrossel 3"
+      },
+      "by": "nextvisionfilmsagency@gmail.com",
+      "at": "2026-11-07T15:53:48.367Z",
+      "status": "pending"
     }
   ]
 }
