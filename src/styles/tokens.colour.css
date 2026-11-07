@@ -65,6 +65,9 @@
      a lower-contrast document. Declared as tokens because no stylesheet may contain a
      raw hex (CLAUDE.md §4), and used only by the legal pages' print rules. */
   --print-paper: #ffffff;
+  /* The admin's cards and dialogs (admin.css, light since 2026-11-07): paper on the cream
+     ground. Ink on it is 14.9:1. Never used on the public site. */
+  --admin-paper: #ffffff;
   --print-ink: #000000;
 }
 

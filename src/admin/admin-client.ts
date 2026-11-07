@@ -890,3 +890,214 @@ for (const input of document.querySelectorAll<HTMLInputElement>('[data-list]')) 
   });
   render();
 }
+
+/* ── the section page: cards, filters, pagination (ADMIN_REDESIGN_PLAN.md §4–§5) ── */
+
+/*
+ * Every card of the tab is in the page; filtering and turning a page only hide and show
+ * them, so nothing is asked of the server. The view lives in the URL (?q=&categoria=&p=2)
+ * and in this tab's session, so reloading, going back, or closing an edit modal all land
+ * on the same view.
+ */
+const PAGE_SIZE = 12;
+const VIEW_KEY = 'nvf-admin-view';
+const grid = document.querySelector<HTMLElement>('[data-grid]');
+const saveView = (search: string) => {
+  try { sessionStorage.setItem(VIEW_KEY, JSON.stringify({ path: location.pathname, search })); } catch { /* fine */ }
+};
+
+/** Whether a card has drafts waiting, and whether one of them deletes it. */
+const cardState = (card: HTMLElement): 'delete' | 'changed' | null => {
+  const keys = JSON.parse(card.dataset['draftKeys'] ?? '[]') as string[];
+  const names = Object.keys(loadDrafts());
+  const slug = card.dataset['slug'];
+  if (slug && names.includes(`projeto/${slug}:apagar`)) return 'delete';
+  return names.some((n) => keys.some((k) => n.startsWith(k))) ? 'changed' : null;
+};
+
+/* A thumbnail that fails to load (a missing rendition, no network) gives way to the card's
+   initial rather than showing the browser's broken-image mark. */
+for (const img of document.querySelectorAll<HTMLImageElement>('.ad-card__media img')) {
+  const drop = () => img.remove();
+  if (img.complete && img.naturalWidth === 0) drop(); else img.addEventListener('error', drop, { once: true });
+}
+
+function paintCards() {
+  for (const card of document.querySelectorAll<HTMLElement>('[data-card]')) {
+    const state = cardState(card);
+    const chip = card.querySelector<HTMLElement>('[data-card-status]');
+    if (chip) {
+      chip.hidden = !state;
+      chip.dataset['tone'] = state ?? '';
+      chip.textContent = state === 'delete' ? 'Vai ser apagado ao publicar' : state === 'changed' ? 'Alterações por publicar' : '';
+    }
+    card.toggleAttribute('data-deleting', state === 'delete');
+    card.dataset['state'] = state ?? '';
+    const del = card.querySelector<HTMLElement>('[data-card-delete]');
+    const undo = card.querySelector<HTMLElement>('[data-card-undo]');
+    if (del) del.hidden = state === 'delete';
+    if (undo) undo.hidden = state !== 'delete';
+  }
+}
+
+if (grid) {
+  const list = grid.querySelector<HTMLElement>('[data-cards]');
+  const cards = list ? [...list.querySelectorAll<HTMLElement>('[data-card]')] : [];
+  const filters = [...grid.querySelectorAll<HTMLInputElement | HTMLSelectElement>('[data-filter]')];
+  const pages = grid.querySelector<HTMLElement>('[data-pages]')!;
+  const none = grid.querySelector<HTMLElement>('[data-no-results]')!;
+  const params = new URLSearchParams(location.search);
+  for (const c of filters) c.value = params.get(c.name) ?? '';
+  let page = Math.max(1, Number(params.get('p')) || 1);
+
+  const value = (name: string) => filters.find((c) => c.name === name)?.value ?? '';
+  const fold = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLocaleLowerCase('pt-PT');
+
+  const apply = (pushUrl: boolean) => {
+    paintCards();
+    const q = fold(value('q').trim());
+    const cat = value('categoria');
+    const year = value('ano');
+    const estado = value('estado');
+    const order = value('ordem');
+    const shown = cards.filter((card) => {
+      if (q && !fold(card.dataset['title'] ?? '').includes(q)) return false;
+      if (cat && !(card.dataset['categories'] ?? '').split(' ').includes(cat)) return false;
+      if (year && card.dataset['year'] !== year) return false;
+      const hidden = card.hasAttribute('data-hidden');
+      if (estado === 'site' && hidden) return false;
+      if (estado === 'escondido' && !hidden) return false;
+      if (estado === 'alterado' && card.dataset['state'] !== 'changed') return false;
+      if (estado === 'apagar' && card.dataset['state'] !== 'delete') return false;
+      return true;
+    });
+    const byIndex = (a: HTMLElement, b: HTMLElement) => Number(a.dataset['index']) - Number(b.dataset['index']);
+    const sorted = [...shown].sort((a, b) => order === 'nome'
+      ? (a.dataset['name'] ?? '').localeCompare(b.dataset['name'] ?? '', 'pt')
+      : order === 'recentes'
+        ? Number(b.dataset['year']) - Number(a.dataset['year']) || byIndex(a, b)
+        : byIndex(a, b));
+    const total = Math.max(1, Math.ceil(sorted.length / PAGE_SIZE));
+    page = Math.min(page, total);
+    const visible = new Set(sorted.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE));
+    for (const card of cards) card.hidden = !visible.has(card);
+    if (list) for (const card of sorted) list.append(card); // DOM order is the reading order
+    none.hidden = !cards.length || sorted.length > 0;
+
+    pages.replaceChildren();
+    pages.hidden = sorted.length <= PAGE_SIZE;
+    if (!pages.hidden) {
+      const button = (label: string, to: number, opts: { current?: boolean; disabled?: boolean; name?: string } = {}) => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.textContent = label;
+        b.disabled = Boolean(opts.disabled);
+        if (opts.name) b.setAttribute('aria-label', opts.name);
+        if (opts.current) b.setAttribute('aria-current', 'page');
+        b.addEventListener('click', () => { page = to; apply(true); grid.scrollIntoView({ block: 'start' }); });
+        return b;
+      };
+      pages.append(button('‹', page - 1, { disabled: page === 1, name: 'Página anterior' }));
+      for (let n = 1; n <= total; n++) pages.append(button(String(n), n, { current: n === page, name: `Página ${n}` }));
+      pages.append(button('›', page + 1, { disabled: page === total, name: 'Página seguinte' }));
+      const count = document.createElement('p');
+      count.textContent = `A mostrar ${(page - 1) * PAGE_SIZE + 1}–${Math.min(page * PAGE_SIZE, sorted.length)} de ${sorted.length}`;
+      pages.append(count);
+    }
+
+    const next = new URLSearchParams(location.search);
+    for (const c of filters) { if (c.value) next.set(c.name, c.value); else next.delete(c.name); }
+    if (page > 1) next.set('p', String(page)); else next.delete('p');
+    const search = next.toString() ? `?${next}` : '';
+    if (pushUrl && search !== location.search) history.replaceState(null, '', `${location.pathname}${search}`);
+    if (!document.querySelector('[data-edit-dialog]')) saveView(search);
+  };
+
+  for (const c of filters) {
+    c.addEventListener(c instanceof HTMLSelectElement ? 'change' : 'input', () => { page = 1; apply(true); });
+  }
+  grid.querySelector('[data-toolbar]')?.addEventListener('submit', (e) => e.preventDefault());
+  grid.querySelector('[data-filter-reset]')?.addEventListener('click', () => {
+    for (const c of filters) c.value = '';
+    page = 1;
+    apply(true);
+  });
+
+  /* Delete: ask first, then mark it for the next Publicar. It is the same draft the
+     project form's own "Apagar projeto" writes, so Publicar handles both the same way. */
+  const confirmDialog = document.querySelector<HTMLDialogElement>('[data-confirm-dialog]');
+  let pending: HTMLElement | null = null;
+  grid.addEventListener('click', (e) => {
+    const target = e.target as HTMLElement;
+    const card = target.closest<HTMLElement>('[data-card]');
+    if (!card) return;
+    const slug = card.dataset['slug'];
+    const name = card.dataset['name'] ?? '';
+    if (target.closest('[data-card-delete]') && slug && confirmDialog) {
+      pending = card;
+      confirmDialog.querySelector('[data-confirm-title]')!.textContent = `Apagar «${name}»?`;
+      confirmDialog.showModal();
+      confirmDialog.querySelector<HTMLButtonElement>('[data-confirm-cancel]')?.focus();
+    } else if (target.closest('[data-card-undo]') && slug) {
+      const all = loadDrafts();
+      delete all[`projeto/${slug}:apagar`];
+      storeDrafts(all);
+      showCount();
+      apply(false);
+      card.querySelector<HTMLElement>('[data-card-delete]')?.focus();
+    }
+  });
+  confirmDialog?.querySelector('[data-confirm-cancel]')?.addEventListener('click', () => confirmDialog.close());
+  confirmDialog?.querySelector('[data-confirm-go]')?.addEventListener('click', () => {
+    const card = pending;
+    const slug = card?.dataset['slug'];
+    const name = card?.dataset['name'] ?? '';
+    if (card && slug) {
+      const all = loadDrafts();
+      all[`projeto/${slug}:apagar`] = { from: '', to: name, label: `Projeto «${name}» — Apagar projeto` };
+      storeDrafts(all);
+      showCount();
+      apply(false);
+    }
+    confirmDialog.close();
+    card?.querySelector<HTMLElement>('[data-card-undo]')?.focus();
+  });
+
+  apply(false);
+}
+
+/* ── the edit modal ──────────────────────────────────────────────────────────
+   Its URL renders the grid with the item open (AdminRoute.astro). Typing still keeps
+   drafts as before; what the modal adds is a choice at the end. Guardar keeps them;
+   Cancelar, the close button and Escape put the drafts back as they were when the modal
+   opened, asking first when there is something to lose. Both return to the grid, on the
+   same filters and page. */
+const editDialog = document.querySelector<HTMLDialogElement>('[data-edit-dialog]');
+if (editDialog) {
+  const before = JSON.stringify(loadDrafts());
+  const backTo = () => {
+    let back = editDialog.dataset['back'] ?? '/admin/';
+    try {
+      const saved = JSON.parse(sessionStorage.getItem(VIEW_KEY) ?? 'null') as { path: string; search: string } | null;
+      const url = new URL(back, location.origin);
+      if (saved && saved.path === url.pathname && saved.search) {
+        const merged = new URLSearchParams(saved.search);
+        for (const [k, v] of url.searchParams) merged.set(k, v);
+        back = `${url.pathname}?${merged}`;
+      }
+    } catch { /* the plain way back */ }
+    location.assign(back);
+  };
+  const changed = () => JSON.stringify(loadDrafts()) !== before;
+  const cancel = () => {
+    if (changed() && !window.confirm('Sair sem guardar? As alterações feitas nesta janela perdem-se.')) return;
+    storeDrafts(JSON.parse(before) as Record<string, Draft>);
+    backTo();
+  };
+  editDialog.addEventListener('cancel', (e) => { e.preventDefault(); cancel(); });
+  for (const a of editDialog.querySelectorAll<HTMLElement>('[data-modal-cancel]')) {
+    a.addEventListener('click', (e) => { e.preventDefault(); cancel(); });
+  }
+  editDialog.querySelector('[data-modal-save]')?.addEventListener('click', (e) => { e.preventDefault(); backTo(); });
+  editDialog.showModal();
+}

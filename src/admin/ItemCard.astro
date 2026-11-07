@@ -1,0 +1,65 @@
+---
+/**
+ * One item of the admin as a card (docs/ADMIN_REDESIGN_PLAN.md §5).
+ *
+ * The picture, the name, one line about it, and the status the browser fills in from the
+ * drafts (admin-client.ts, "the grid"). Only the two corner buttons act, so a click on the
+ * picture never does something unexpected: the pencil opens the item in the edit modal
+ * (its own URL), the bin asks before marking the item for deletion at the next Publicar.
+ *
+ * Everything the toolbar filters on travels as data attributes; the browser never asks the
+ * server again to filter or turn a page.
+ */
+import { ICON } from './icons.ts';
+import { thumb } from './media-options.ts';
+import type { AdminItem } from '../lib/admin/content.ts';
+
+interface Props {
+  item: AdminItem;
+  /** Where the pencil goes. */
+  editHref: string;
+  /** Locked or read-only: the eye opens it to read, never the pencil. */
+  readOnly: boolean;
+  /** The order the server listed it in (the portfolio order, for projects). */
+  index: number;
+}
+const { item, editHref, readOnly, index } = Astro.props;
+const src = item.thumb ? thumb(item.thumb) : '';
+const initial = item.label.trim().charAt(0).toUpperCase();
+const f = item.facets;
+---
+
+<li
+  class="ad-card"
+  data-card
+  data-title={item.label.toLocaleLowerCase('pt-PT')}
+  data-index={index}
+  data-draft-keys={JSON.stringify(item.draftKeys ?? [])}
+  data-categories={f ? f.categories.join(' ') : undefined}
+  data-year={f?.year}
+  data-hidden={f?.hidden ? '' : undefined}
+  data-slug={item.deletable ? item.id : undefined}
+  data-name={item.label}
+>
+  <div class="ad-card__media" aria-hidden="true">
+    <span class="ad-card__initial">{initial}</span>
+    {src ? <img src={src} alt="" loading="lazy" decoding="async" width="320" height="180" /> : null}
+  </div>
+  <div class="ad-card__body">
+    <h3 class="ad-card__title">{item.label}</h3>
+    {item.meta ? <p class="ad-card__meta">{item.meta}</p> : null}
+    {item.locked ? <p class="ad-chip" data-tone="locked">Bloqueado</p> : f?.hidden ? <p class="ad-chip" data-tone="quiet">Escondido do site</p> : null}
+    <p class="ad-chip" data-card-status hidden></p>
+  </div>
+  <div class="ad-card__actions">
+    {readOnly
+      ? <a class="ico ico--view" href={editHref} aria-label={`Ver «${item.label}»`} title="Ver" set:html={ICON.view} />
+      : <a class="ico ico--edit" href={editHref} aria-label={`Editar «${item.label}»`} title="Editar" set:html={ICON.edit} />}
+    {item.deletable ? (
+      <>
+        <button type="button" class="ico ico--remove" data-card-delete aria-label={`Apagar «${item.label}»`} title="Apagar" set:html={ICON.remove} />
+        <button type="button" class="ad-undo" data-card-undo hidden>Desfazer</button>
+      </>
+    ) : null}
+  </div>
+</li>

@@ -2258,3 +2258,33 @@ now the plus on the Projetos heading. A project has a bin at its top, which star
 as the one at the end and scrolls there. A project's blocks are added from a green plus that opens
 the five block types. Team, services and categories still can only be edited, not added or removed,
 so they show only the pencil.
+
+## 38. Admin redesign, phase 1 (2026-11-07)
+
+The owners found the admin hard to use, so the shell was replaced (docs/ADMIN_REDESIGN_PLAN.md).
+The skills used were `impeccable` (Operate mode, craft floor) and `frontend-design`, with
+`design-taste-frontend` as a check only. Impeccable's downloadable launcher was not run; its guides
+were read directly.
+
+- **Light theme.** Cream ground, paper cards and dialogs (`--admin-paper`, the admin's one colour
+  of its own), ink text. Secondary text is 5.2:1 or better on every surface; field borders 3.8:1.
+- **Each section is one page of tabs and card grids.** Collections (projects, team, services,
+  categories) are tabs; single items and locked ones share "Páginas" (or "Geral"). An empty
+  group nobody can add to (Coleções, Testemunhos) is not shown.
+- **Cards** carry the picture, name, one line and a status chip ("Alterações por publicar", "Vai
+  ser apagado ao publicar", "Escondido do site", "Bloqueado"). Pencil and bin sit in the top-right
+  corner; a locked or read-only item has an eye instead of the pencil.
+- **Toolbar** (projects): search, category, year, status and sort, plus "Mudar a ordem". Search
+  appears only on tabs with more than six cards. Twelve cards a page. Filters and page live in the
+  URL and survive closing a modal.
+- **Edit modal** at the item's own URL, with the live page beside the form on wide screens.
+  Guardar keeps the drafts; Cancelar, the close button and Escape restore the drafts as they were
+  when it opened, asking first.
+- **Delete** asks in a modal, then writes the same `projeto/<slug>:apagar` draft the project form
+  writes; the card offers Desfazer until Publicar. Phase 1 deletes projects only.
+- **Add** is the green + in the page's top-right corner (projects only in phase 1).
+
+Checked in `astro dev` against `mock:github`: edit then Guardar, edit then Cancelar, delete then
+Desfazer, delete then Publicar (one commit holding both changes), filters, search, sort, the
+no-results state and pagination, and 375 px with no sideways scroll. The verify chain passed on an
+LF copy, except `validate:media` (no local media copy).
