@@ -1,0 +1,45 @@
+---
+/**
+ * A page's list field: add, remove, reorder (fields.ts `ListKind`).
+ *
+ * Like the project blocks (BlocksEditor.astro), the whole list is ONE hidden field holding
+ * it as JSON, so it is one draft like any other and goes out with Publicar. The browser
+ * draws the rows from it (admin-client.ts); the server checks each item (edit.ts
+ * `parseList`). Categories are a set, not a sequence, so they are checkboxes: the
+ * carousel takes their projects in portfolio order whatever order they are ticked in.
+ */
+import { getCollection } from 'astro:content';
+import { MEDIA, thumb } from './media-options.ts';
+import type { ListKind } from '../lib/admin/fields.ts';
+import { ICON } from './icons.ts';
+
+interface Props {
+  name: string;
+  value: unknown[];
+  label: string;
+  kind: ListKind;
+}
+const { name, value, label, kind } = Astro.props;
+const json = JSON.stringify(value);
+const images = MEDIA.image.map(([group, keys]) => ({ group, items: keys.map((k) => ({ key: k, label: k.split('/').slice(1).join(' / '), thumb: thumb(k) })) }));
+const categories = kind === 'categories'
+  ? (await getCollection('categories')).filter((c) => !c.data.hidden).sort((a, b) => a.data.order - b.data.order)
+  : [];
+---
+
+<input type="hidden" name={name} value={json} data-original={json} data-label={label} data-list={kind} />
+{kind === 'categories' ? (
+  <div class="ed-checks" data-list-checks>
+    {categories.map((c) => (
+      <label><input type="checkbox" value={c.id} checked={(value as string[]).includes(c.id)} /> {c.data.name.pt}</label>
+    ))}
+  </div>
+) : (
+  <>
+    <ol class="ed-blocklist" data-list-rows></ol>
+    <div class="ed-blockadd">
+      <button type="button" class="ico ico--add" data-list-add aria-label={kind === 'films' ? 'Acrescentar vídeo' : 'Acrescentar imagem'} title={kind === 'films' ? 'Acrescentar vídeo' : 'Acrescentar imagem'} set:html={ICON.add} />
+    </div>
+    <script type="application/json" data-list-images set:html={JSON.stringify(images)} />
+  </>
+)}

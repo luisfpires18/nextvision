@@ -11,12 +11,15 @@
  *      `owner:YYYY-MM-DD` (decision A2). The archive itself is never touched; the change
  *      is what a later diff against it will show.
  *   4. Nothing changed means nothing to commit.
+ *   5. A list field (`images`, `films`, `categories`) arrives as the whole list in JSON and
+ *      replaces the list; each item is checked here and the page schema checks the rest.
+ *      An upload-only slot is never a draft.
  *
  * Pure: no I/O and no imports beyond the field registry, so `npm run test:admin` can
  * prove each rule on its own.
  */
 
-import type { FieldDef, PageFileName } from './fields.ts';
+import { isListKind, type FieldDef, type PageFileName } from './fields.ts';
 
 export interface Field extends FieldDef {
   /** Concrete path, `*` expanded. */
@@ -45,13 +48,57 @@ function setAt(doc: unknown, path: string, value: unknown): void {
 export function expandFields(defs: FieldDef[], docs: Partial<Record<PageFileName, unknown>>): Field[] {
   const out: Field[] = [];
   for (const def of defs) {
-    if (!def.path.endsWith('.*')) { out.push({ ...def, key: def.path }); continue; }
-    const base = def.path.slice(0, -2);
+    if (def.path.endsWith('.+')) {
+      // One past the end: offered only while the list exists.
+      if (Array.isArray(getAt(docs[def.file], def.path.slice(0, -2)))) out.push({ ...def, key: def.path });
+      continue;
+    }
+    const star = def.path.indexOf('.*');
+    if (star < 0) { out.push({ ...def, key: def.path }); continue; }
+    const base = def.path.slice(0, star);
+    const rest = def.path.slice(star + 2);
     const list = getAt(docs[def.file], base);
     if (!Array.isArray(list)) continue;
-    list.forEach((_, i) => out.push({ ...def, path: `${base}.${i}`, key: `${base}.${i}`, label: `${def.label} ${i + 1}` }));
+    list.forEach((_, i) => {
+      const key = `${base}.${i}${rest}`;
+      out.push({ ...def, path: key, key, label: `${def.label} ${i + 1}` });
+    });
   }
   return out;
+}
+
+/** The most items a list field may hold: enough for any page, few enough to stay a page. */
+export const MAX_LIST = 24;
+
+/**
+ * A list field's submitted JSON, checked item by item and normalised (a film's address
+ * becomes its id, names are trimmed). Refuses in the owners' words.
+ */
+export function parseList(kind: 'images' | 'films' | 'categories', label: string, raw: string): unknown[] {
+  let list: unknown;
+  try { list = JSON.parse(raw); } catch { list = null; }
+  if (!Array.isArray(list)) throw new EditError(`«${label}»: pedido inválido.`);
+  if (list.length > MAX_LIST) throw new EditError(`«${label}»: no máximo ${MAX_LIST}.`);
+  if (kind === 'films') {
+    return list.map((item, i) => {
+      const f = (item ?? {}) as Record<string, unknown>;
+      const n = `«${label}», vídeo ${i + 1}`;
+      const id = youtubeId(String(f['id'] ?? ''));
+      if (!id) throw new EditError(`${n}: não reconheço este endereço. Cole o link do vídeo, por exemplo https://www.youtube.com/watch?v=…`);
+      const title = String(f['title'] ?? '').trim();
+      if (!title) throw new EditError(`${n}: falta o nome do vídeo.`);
+      const poster = String(f['poster'] ?? '');
+      if (!poster) throw new EditError(`${n}: escolha uma capa.`);
+      return { id, title, poster };
+    });
+  }
+  const strings = list.map((v) => (typeof v === 'string' ? v : ''));
+  if (strings.some((v) => !v)) throw new EditError(kind === 'images' ? `«${label}»: escolha uma imagem em cada linha.` : `«${label}»: pedido inválido.`);
+  if (kind === 'categories') {
+    if (strings.some((v) => !/^[a-z0-9-]+$/.test(v))) throw new EditError(`«${label}»: pedido inválido.`);
+    return [...new Set(strings)];
+  }
+  return strings;
 }
 
 /** A YouTube id from an id or any of the usual YouTube addresses; null if neither. */
@@ -80,6 +127,7 @@ export function applyEdits(
 ): Applied {
   const byName = new Map<string, { field: Field; lang?: 'pt' | 'en' }>();
   for (const f of fields) {
+    if (f.uploadOnly) continue;
     if (f.kind === 'text') {
       byName.set(fieldName(f, 'pt'), { field: f, lang: 'pt' });
       byName.set(fieldName(f, 'en'), { field: f, lang: 'en' });
@@ -97,7 +145,7 @@ export function applyEdits(
   const clean = (v: string) => v.replace(/\r\n?/g, '\n');
 
   for (const f of fields) {
-    if (f.locked) continue;
+    if (f.locked || f.uploadOnly) continue;
     const doc = next[f.file];
     if (doc === undefined) continue;
 
@@ -116,6 +164,13 @@ export function applyEdits(
 
       const from = text === before.text ? before.from : `owner:${today}`;
       setAt(doc, f.key, { text, from, en: english });
+      changed.push({ file: f.file, label: f.label });
+    } else if (isListKind(f.kind)) {
+      const raw = edits[fieldName(f)];
+      if (raw === undefined) continue;
+      const value = parseList(f.kind, f.label, raw);
+      if (JSON.stringify(getAt(doc, f.key)) === JSON.stringify(value)) continue;
+      setAt(doc, f.key, value);
       changed.push({ file: f.file, label: f.label });
     } else {
       const raw = edits[fieldName(f)];
@@ -139,7 +194,8 @@ export function applyEdits(
 
 /**
  * The live value a draft name points at: `file:path#pt` / `#en` for text, `file:path` for
- * media. Publish compares it with the value the draft started from (per-field freshness).
+ * media, compact JSON for a list (the form's `data-original` is written the same way).
+ * Publish compares it with the value the draft started from (per-field freshness).
  */
 export function liveValue(docs: Partial<Record<PageFileName, unknown>>, name: string): unknown {
   const [file, rest = ''] = name.split(':') as [PageFileName, string];
@@ -147,7 +203,7 @@ export function liveValue(docs: Partial<Record<PageFileName, unknown>>, name: st
   const v = getAt(docs[file], path);
   if (lang === 'pt') return (v as Published | undefined)?.text;
   if (lang === 'en') return (v as Published | undefined)?.en ?? '';
-  return v;
+  return Array.isArray(v) ? JSON.stringify(v) : v;
 }
 
 /** The exact on-disk format of a page-content file: two-space JSON and a final newline. */

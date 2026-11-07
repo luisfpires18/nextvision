@@ -1,10 +1,4 @@
-/**
- * The admin's browser side (A10): drafts, one Publicar for all of them, and following the
- * production deploy until the change is live. Nothing here decides what may be published —
- * the server does (src/admin/api/publish.ts); this only keeps drafts and reports what the
- * server and GitHub answer.
- */
-
+import { ICON, type IconName } from './icons.ts';
 import { slugFrom } from '../lib/admin/slug.ts';
 
 interface BuildState { configured: boolean; state?: 'building' | 'ready' | 'failed' | 'none' | 'unknown'; commit?: string; url?: string; at?: string }
@@ -18,6 +12,17 @@ async function buildState(): Promise<BuildState | null> {
     return res.ok ? ((await res.json()) as BuildState) : null;
   } catch { return null; }
 }
+
+/** An icon-only action button: the words go to aria-label and the tooltip (icons.ts). */
+const iconButton = (name: IconName, label: string): HTMLButtonElement => {
+  const b = document.createElement('button');
+  b.type = 'button';
+  b.className = `ico ico--${name}`;
+  b.innerHTML = ICON[name];
+  b.setAttribute('aria-label', label);
+  b.title = label;
+  return b;
+};
 
 const ago = (iso?: string) => {
   if (!iso) return '';
@@ -181,6 +186,10 @@ if (form && removeInput) {
     formSay(`«${title}» vai ser apagado ao publicar.`, 'ok');
   });
   form.querySelector('[data-remove-undo]')!.addEventListener('click', () => { set(''); formSay(''); });
+  form.querySelector('[data-remove-top]')?.addEventListener('click', () => {
+    if (!removeInput.value) go.click();
+    form.querySelector('[data-remove]')?.scrollIntoView({ block: 'center' });
+  });
   show();
 }
 
@@ -662,8 +671,7 @@ if (blocksInput && blockList) {
     s.addEventListener('change', () => { img.src = thumbOf.get(s.value) ?? ''; on(s.value); commit(); });
     const row = el('div', { className: 'ed-blockimg' }, img, s);
     if (removable) {
-      const x = el('button', { type: 'button', textContent: '×', title: 'Tirar esta imagem' });
-      x.setAttribute('aria-label', 'Tirar esta imagem');
+      const x = iconButton('remove', 'Tirar esta imagem');
       x.addEventListener('click', () => { removable(); commit(); render(); });
       row.append(x);
     }
@@ -696,7 +704,7 @@ if (blocksInput && blockList) {
       case 'image-grid': {
         b.media.forEach((k, i) => box.append(picker(k, (v) => { b.media[i] = v; }, b.media.length > 2 ? () => { b.media.splice(i, 1); } : undefined)));
         if (b.media.length < 12) {
-          const more = el('button', { type: 'button', textContent: 'Acrescentar imagem' });
+          const more = iconButton('add', 'Acrescentar imagem à galeria');
           more.addEventListener('click', () => { b.media.push(firstImage); commit(); render(); });
           box.append(more);
         }
@@ -733,8 +741,7 @@ if (blocksInput && blockList) {
         });
         return btn;
       };
-      const del = el('button', { type: 'button', textContent: '×' });
-      del.setAttribute('aria-label', `Apagar o bloco ${i + 1}`);
+      const del = iconButton('remove', `Apagar o bloco ${i + 1}`);
       del.addEventListener('click', () => {
         if (!window.confirm(`Apagar o bloco ${i + 1} (${name})?`)) return;
         blocks.splice(i, 1);
@@ -748,7 +755,8 @@ if (blocksInput && blockList) {
     });
   };
 
-  document.querySelector('.ed-blockadd')?.addEventListener('click', (e) => {
+  const addMenu = document.querySelector<HTMLDetailsElement>('.ed-addmenu');
+  addMenu?.addEventListener('click', (e) => {
     const type = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-add]')?.dataset['add'];
     if (!type) return;
     const fresh: Record<string, BlockView> = {
@@ -760,10 +768,125 @@ if (blocksInput && blockList) {
     };
     const add = fresh[type];
     if (!add) return;
+    if (addMenu) addMenu.open = false;
     blocks.push(structuredClone(add));
     commit();
     render();
     blockList.lastElementChild?.scrollIntoView({ block: 'nearest' });
+  });
+  render();
+}
+
+/* ── a page's lists: the carousel's images, the videos, the categories ───── */
+
+/*
+ * Each list is ONE hidden field holding it as JSON (ListEditor.astro), read here AFTER the
+ * drafts were put back above, so a list reopens as the owner left it. Every change writes
+ * the field and fires `input`, which makes it a draft like any typed value.
+ */
+type FilmRow = { id: string; title: string; poster: string };
+for (const input of document.querySelectorAll<HTMLInputElement>('[data-list]')) {
+  const kind = input.dataset['list'];
+  const box = input.parentElement!;
+  const commit = (value: unknown[]) => {
+    input.value = JSON.stringify(value);
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+  };
+  let items: unknown[] = [];
+  try { items = JSON.parse(input.value) as unknown[]; } catch { items = []; }
+
+  if (kind === 'categories') {
+    const checks = [...box.querySelectorAll<HTMLInputElement>('[data-list-checks] input[type="checkbox"]')];
+    for (const c of checks) c.checked = (items as string[]).includes(c.value);
+    box.querySelector('[data-list-checks]')?.addEventListener('change', (e) => {
+      e.stopPropagation(); // the checkbox itself is not a draft; the hidden field is
+      commit(checks.filter((c) => c.checked).map((c) => c.value));
+    });
+    continue;
+  }
+
+  const rows = box.querySelector<HTMLOListElement>('[data-list-rows]')!;
+  const images = JSON.parse(box.querySelector('[data-list-images]')?.textContent ?? '[]') as
+    { group: string; items: { key: string; label: string; thumb: string }[] }[];
+  const thumbOf = new Map(images.flatMap((g) => g.items.map((i) => [i.key, i.thumb] as const)));
+  const firstImage = images[0]?.items[0]?.key ?? '';
+  const noun = kind === 'films' ? 'vídeo' : 'imagem';
+  const save = () => commit(items);
+
+  const el = <T extends HTMLElement = HTMLElement>(tag: string, props: Record<string, unknown> = {}, ...kids: (Node | string)[]): T => {
+    const e = Object.assign(document.createElement(tag), props) as T;
+    e.append(...kids);
+    return e;
+  };
+  /** An image picker with its thumbnail; the current key is always an option. */
+  const picker = (key: string, on: (k: string) => void, name: string) => {
+    const img = el<HTMLImageElement>('img', { src: thumbOf.get(key) ?? '', alt: '', width: 96, height: 54 });
+    const s = el<HTMLSelectElement>('select');
+    s.setAttribute('aria-label', name);
+    if (!thumbOf.has(key)) s.append(el('option', { value: key, textContent: key ? `${key} (atual)` : '(escolha)', selected: true }));
+    for (const g of images) {
+      const og = el('optgroup', { label: g.group });
+      for (const i of g.items) og.append(el('option', { value: i.key, textContent: i.label, selected: i.key === key }));
+      s.append(og);
+    }
+    s.addEventListener('change', (e) => { e.stopPropagation(); img.src = thumbOf.get(s.value) ?? ''; on(s.value); save(); });
+    return el('div', { className: 'ed-blockimg' }, img, s);
+  };
+  const text = (label: string, value: string, on: (v: string) => void, placeholder?: string) => {
+    const t = el<HTMLInputElement>('input', { type: 'text', value, spellcheck: false, autocomplete: 'off' });
+    if (placeholder) t.placeholder = placeholder;
+    t.addEventListener('input', (e) => { e.stopPropagation(); on(t.value); save(); });
+    return el('label', { className: 'ed-media__pick' }, el('span', { className: 'f-lang', textContent: label }), t);
+  };
+
+  const render = () => {
+    rows.replaceChildren();
+    if (!items.length) rows.append(el('li', { className: 'ed-note', textContent: kind === 'films' ? 'Não há vídeos. A página fica só com o carrossel.' : 'Não há imagens. O carrossel mostra só os projetos das categorias.' }));
+    items.forEach((item, i) => {
+      const n = i + 1;
+      const move = (d: -1 | 1, sign: string, what: string) => {
+        const btn = el<HTMLButtonElement>('button', { type: 'button', textContent: sign, disabled: !items[i + d] });
+        btn.setAttribute('aria-label', `${what} ${noun} ${n}`);
+        btn.addEventListener('click', () => {
+          [items[i], items[i + d]] = [items[i + d], items[i]];
+          save();
+          render();
+          rows.querySelector<HTMLButtonElement>(`[aria-label="${what} ${noun} ${n + d}"]`)?.focus();
+        });
+        return btn;
+      };
+      const del = iconButton('remove', `Apagar ${noun} ${n}`);
+      del.addEventListener('click', () => {
+        if (!window.confirm(`Apagar ${kind === 'films' ? 'o vídeo' : 'a imagem'} ${n}?`)) return;
+        items.splice(i, 1);
+        save();
+        render();
+      });
+      const body = el('div', { className: 'ed-blockbody' });
+      if (kind === 'films') {
+        const f = item as FilmRow;
+        body.append(
+          text('Endereço no YouTube', f.id, (v) => { f.id = v; }, 'https://www.youtube.com/watch?v=…'),
+          text('Nome do vídeo (para leitores de ecrã)', f.title, (v) => { f.title = v; }),
+          el('p', { className: 'f-lang', textContent: 'Capa do vídeo' }),
+          picker(f.poster, (k) => { f.poster = k; }, `Capa do vídeo ${n}`),
+        );
+      } else {
+        body.append(picker(item as string, (k) => { items[i] = k; }, `Imagem ${n}`));
+      }
+      rows.append(el('li', { className: 'ed-block' },
+        el('div', { className: 'ed-blockhead' }, el('strong', { textContent: `${kind === 'films' ? 'Vídeo' : 'Imagem'} ${n}` }),
+          el('span', { className: 'ed-order__moves' }, move(-1, '↑', 'Subir'), move(1, '↓', 'Descer'), del)),
+        body));
+    });
+  };
+
+  box.querySelector('[data-list-add]')?.addEventListener('click', () => {
+    items.push(kind === 'films' ? { id: '', title: '', poster: firstImage } satisfies FilmRow : firstImage);
+    save();
+    render();
+    rows.lastElementChild?.scrollIntoView({ block: 'nearest' });
+    rows.lastElementChild?.querySelector<HTMLElement>('input, select')?.focus();
   });
   render();
 }

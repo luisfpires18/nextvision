@@ -51,11 +51,17 @@ async function sourceBucket() {
   return { ...base, bucket: SOURCE_BUCKET, missing: [], credentials: { accessKeyId, secretAccessKey } };
 }
 
+/** A final `+` appends to the list (admin fields.ts: the slot one past the end). */
 function setAt(doc, dotted, value) {
   const parts = dotted.split('.');
   const last = parts.pop();
   let node = doc;
   for (const p of parts) node = node?.[p];
+  if (last === '+') {
+    if (!Array.isArray(node)) throw new Error(`no list ${dotted}`);
+    node.push(value);
+    return;
+  }
   if (node === null || typeof node !== 'object' || !(last in node)) throw new Error(`no field ${dotted}`);
   node[last] = value;
 }

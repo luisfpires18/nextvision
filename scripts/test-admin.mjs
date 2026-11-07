@@ -105,29 +105,56 @@ await check('drafts from several pages and files apply in one go', () => {
   assert.equal(next.services.leadImage, other);
 });
 
-await check('the film field takes an address or an id, and refuses anything else', () => {
+await check('the services lists: add, remove, reorder, and each item checked', () => {
   const docs = { services: read('services') };
   const fields = expandFields(SCREENS.services.filter((d) => d.file === 'services'), docs);
-  const film = fields.find((f) => f.key === 'film.id');
-  const name = fieldName(film);
+  const films = fields.find((f) => f.key === 'films');
+  const collage = fields.find((f) => f.key === 'collage');
+  const cats = fields.find((f) => f.key === 'categories');
   const id = 'dQw4w9WgXcQ';
-  for (const given of [id, `https://www.youtube.com/watch?v=${id}`, `https://youtu.be/${id}?t=3`]) {
-    const { docs: next, changed } = applyEdits(fields, docs, { [name]: given }, TODAY);
-    assert.equal(next.services.film.id, id);
-    assert.equal(changed.length, 1);
-  }
-  assert.throws(() => applyEdits(fields, docs, { [name]: 'https://vimeo.com/123' }, TODAY), /não reconheço/);
-  assert.throws(() => applyEdits(fields, docs, { [name]: ' ' }, TODAY), /não pode ficar vazio/);
-  assert.equal(applyEdits(fields, docs, { [name]: docs.services.film.id }, TODAY).changed.length, 0);
-  const title = fieldName(fields.find((f) => f.key === 'film.title'));
-  assert.throws(() => applyEdits(fields, docs, { [title]: '' }, TODAY), /não pode ficar vazio/);
-  assert.equal(applyEdits(fields, docs, { [title]: '  Outro  ' }, TODAY).docs.services.film.title, 'Outro');
+  const poster = docs.services.collage[0];
+  // Two films, the second given as an address: stored as ids, names trimmed.
+  const two = JSON.stringify([...docs.services.films, { id: `https://youtu.be/${id}?t=3`, title: '  Outro  ', poster }]);
+  const { docs: next, changed } = applyEdits(fields, docs, { [fieldName(films)]: two }, TODAY);
+  assert.equal(next.services.films.length, docs.services.films.length + 1);
+  assert.deepEqual(next.services.films.at(-1), { id, title: 'Outro', poster });
+  assert.equal(changed.length, 1);
+  // None at all is allowed; a bad address, a missing name or cover is not.
+  assert.equal(applyEdits(fields, docs, { [fieldName(films)]: '[]' }, TODAY).docs.services.films.length, 0);
+  assert.throws(() => applyEdits(fields, docs, { [fieldName(films)]: JSON.stringify([{ id: 'https://vimeo.com/1', title: 'x', poster }]) }, TODAY), /não reconheço/);
+  assert.throws(() => applyEdits(fields, docs, { [fieldName(films)]: JSON.stringify([{ id, title: ' ', poster }]) }, TODAY), /falta o nome/);
+  assert.throws(() => applyEdits(fields, docs, { [fieldName(films)]: JSON.stringify([{ id, title: 'x', poster: '' }]) }, TODAY), /capa/);
+  assert.throws(() => applyEdits(fields, docs, { [fieldName(films)]: 'nada' }, TODAY), /inválido/);
+  // The same list again is no change; liveValue is the form's own compact JSON.
+  assert.equal(applyEdits(fields, docs, { [fieldName(films)]: JSON.stringify(docs.services.films) }, TODAY).changed.length, 0);
+  assert.equal(liveValue(docs, fieldName(collage)), JSON.stringify(docs.services.collage));
+  // Images: reorder and remove; an empty row is refused.
+  const reversed = [...docs.services.collage].reverse().slice(0, 2);
+  assert.deepEqual(applyEdits(fields, docs, { [fieldName(collage)]: JSON.stringify(reversed) }, TODAY).docs.services.collage, reversed);
+  assert.throws(() => applyEdits(fields, docs, { [fieldName(collage)]: JSON.stringify(['']) }, TODAY), /escolha uma imagem/);
+  // Categories: a set of slugs.
+  assert.deepEqual(applyEdits(fields, docs, { [fieldName(cats)]: '["ficcao","ficcao"]' }, TODAY).docs.services.categories, ['ficcao']);
+  assert.throws(() => applyEdits(fields, docs, { [fieldName(cats)]: '["../x"]' }, TODAY), /inválido/);
+  // An upload slot is never a draft.
+  const slot = fields.find((f) => f.key === 'collage.+');
+  assert.ok(slot?.uploadOnly);
+  assert.throws(() => applyEdits(fields, docs, { [fieldName(slot)]: poster }, TODAY), /desconhecido/);
+});
+
+await check('an upload can add a carousel image or replace a film cover, and nothing else on the list', () => {
+  const docs = { services: read('services') };
+  const fields = expandFields(SCREENS.services, { ...docs, home: read('home') });
+  const req = (target) => ({ screen: 'services', target, source: 'uploads/2026-11-07/abcdefgh12/a.jpg', name: 'a.jpg' });
+  assert.equal(planUpload(fields, req('services:collage.+'), 'abcdefgh12', 'x', 'y').target.path, 'collage.+');
+  assert.equal(planUpload(fields, req('services:films.0.poster'), 'abcdefgh12', 'x', 'y').target.path, 'films.0.poster');
+  assert.throws(() => planUpload(fields, req('services:collage'), 'abcdefgh12', 'x', 'y'), /não aceita/);
 });
 
 await check('every offered field exists in its file', () => {
   for (const [screen, defs] of Object.entries(SCREENS)) {
     const docs = docsFor(screen);
     for (const f of expandFields(defs, docs)) {
+      if (f.key.endsWith('.+')) continue; // one past the end of a list, by definition empty
       const v = f.key.split('.').reduce((n, p) => n?.[p], docs[f.file]);
       assert.ok(v !== undefined, `${screen}: ${f.file}:${f.key}`);
     }

@@ -23,15 +23,32 @@ export type PageFileName = 'home' | 'about' | 'services' | 'contact' | 'thanks' 
 
 export interface FieldDef {
   file: PageFileName;
-  /** Dotted path into the file. `*` expands to every item of a list that exists. */
+  /**
+   * Dotted path into the file. `*` expands to every item of a list that exists; a final
+   * `+` is the slot one past the end of a list, which only an upload can fill (it appends).
+   */
   path: string;
   label: string;
-  /** `film` is a YouTube id, entered as an id or an address. `line` is one plain string. */
-  kind: 'text' | 'image' | 'video' | 'film' | 'line';
+  /**
+   * `film` is a YouTube id, entered as an id or an address. `line` is one plain string.
+   * The three list kinds are a whole list in one field, added to, removed from and
+   * reordered in the browser: `images` (image keys), `films` ({ id, title, poster }) and
+   * `categories` (category slugs).
+   */
+  kind: 'text' | 'image' | 'video' | 'film' | 'line' | ListKind;
   note?: string;
   /** Shown but not editable, and why. */
   locked?: string;
+  /**
+   * A slot a file can be uploaded FOR, with no control of its own on the form: the list
+   * field above it already edits the value. Never a draft.
+   */
+  uploadOnly?: true;
 }
+
+export type ListKind = 'images' | 'films' | 'categories';
+export const LIST_KINDS: readonly string[] = ['images', 'films', 'categories'];
+export const isListKind = (kind: string): kind is ListKind => LIST_KINDS.includes(kind);
 
 const LOCK_LEAD = 'Este texto tem de coincidir letra a letra com as três palavras destacadas a amarelo. Para o mudar, fale com o programador: as duas partes mudam juntas.';
 const LOCK_FORM = 'Os campos do formulário estão ligados ao envio das mensagens. Mudam-se com o programador.';
@@ -52,10 +69,11 @@ export const SCREENS: Record<PageFileName, FieldDef[]> = {
   ],
   services: [
     { file: 'home', path: 'copy.servicesTitle', label: 'Título da página', kind: 'text' },
-    { file: 'services', path: 'collage.*', label: 'Imagem do carrossel', kind: 'image', note: 'As três primeiras imagens do carrossel: esquerda, centro e direita.' },
-    { file: 'services', path: 'film.id', label: 'Vídeo no YouTube', kind: 'film', note: 'O vídeo por baixo do carrossel. Cole o endereço do vídeo no YouTube.' },
-    { file: 'services', path: 'film.title', label: 'Nome do vídeo', kind: 'line', note: 'Não aparece na página: é o nome que os leitores de ecrã anunciam. Mude-o quando mudar de vídeo.' },
-    { file: 'services', path: 'film.poster', label: 'Imagem do vídeo', kind: 'image', note: 'Aparece antes de carregar em ver o filme.' },
+    { file: 'services', path: 'collage', label: 'Imagens do carrossel', kind: 'images', note: 'As imagens com que o carrossel abre, por ordem. A segunda aparece à frente. Depois delas vêm os projetos das categorias abaixo.' },
+    { file: 'services', path: 'collage.+', label: 'Nova imagem do carrossel', kind: 'image', uploadOnly: true },
+    { file: 'services', path: 'categories', label: 'Projetos no carrossel', kind: 'categories', note: 'Os projetos destas categorias entram no carrossel depois das imagens, pela ordem do portfólio.' },
+    { file: 'services', path: 'films', label: 'Vídeos do YouTube', kind: 'films', note: 'Os vídeos por baixo do carrossel, de cima para baixo. Pode não haver nenhum.' },
+    { file: 'services', path: 'films.*.poster', label: 'Capa do vídeo', kind: 'image', uploadOnly: true },
     { file: 'services', path: 'leadImage', label: 'Imagem de partilha', kind: 'image', note: 'Não aparece na página: é a imagem mostrada quando a página é partilhada.' },
     { file: 'home', path: 'copy.servicesLeadFull', label: 'Frase para pesquisa no Google', kind: 'text', locked: LOCK_LEAD, note: 'Não aparece na página: é a descrição que o Google mostra para esta página.' },
   ],
