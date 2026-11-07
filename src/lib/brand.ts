@@ -37,11 +37,10 @@ export type BrandKey = keyof typeof BRAND;
  *
  *   wordmark   "We are NVF" — the live site's own <title> suffix on every page
  *              ("Homepage - We are NVF - Produtora Audiovisual", docs/source-archive).
- *   tagline    "LOVING EVERY FRAME" — the brand guide's closing page (p. 21) and the
- *              approved design v2 prototype. Owner material, set in English in both
- *              locales because it is a slogan, not a sentence of page copy.
+ *
+ * The tagline ("LOVING EVERY FRAME", the brand guide's closing page) used to live here
+ * too. Since 2026-11-07 it is the owners' to edit, in src/content/page-content/brand.json.
  */
 export const BRAND_LINES = {
   wordmark: 'We are NVF',
-  tagline: 'Loving every frame',
 } as const;

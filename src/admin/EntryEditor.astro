@@ -4,7 +4,8 @@
  * file on `master` now. Same conventions as the other editors: each control carries the
  * value it started from and its draft name, and Publicar sends every draft at once.
  */
-import { entryDraftFile, entryFields, entryValue, type EntryField, type EntryType } from '../lib/admin/entries.ts';
+import { LINK_PLATFORMS, SOCIAL_PLATFORMS, entryDraftFile, entryFields, entryValue, isEntryList, type EntryField, type EntryType } from '../lib/admin/entries.ts';
+import { ICON } from './icons.ts';
 import { requestsFor, type UploadEntry } from '../lib/admin/uploads.ts';
 import { MEDIA, thumb } from './media-options.ts';
 import UploadPanel from './UploadPanel.astro';
@@ -35,6 +36,14 @@ const rows = (v: string) => Math.min(8, Math.ceil(v.length / 60) + 1);
           <>
             <p class="f-text">{value || 'por decidir'}</p>
             <p class="admin-locked">{f.locked}</p>
+          </>
+        ) : isEntryList(f.kind) ? (
+          <>
+            {/* The whole list is this one field; the browser draws the rows (admin-client.ts). */}
+            <input type="hidden" name={name(f)} value={value} data-original={value} data-label={named(f)} data-rows={f.kind}
+              data-platforms={JSON.stringify(f.kind === 'links' ? LINK_PLATFORMS : f.kind === 'socials' ? SOCIAL_PLATFORMS : [])} />
+            <ol class="ed-blocklist" data-rows-list></ol>
+            <button type="button" class="ico ico--add" data-rows-add aria-label={`Acrescentar a «${f.label}»`} title="Acrescentar" set:html={ICON.add} />
           </>
         ) : f.kind === 'pair' ? (
           <div class="ed-pair">

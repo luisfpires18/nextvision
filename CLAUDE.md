@@ -228,6 +228,7 @@ Do not fill gaps with plausible-sounding text.
 | `docs/PWA-ICONS-TODO.md` | Phase 15. The archived vector logo, why the icons are rasterised from the square monogram anyway, and what ships. |
 | `docs/HANDOVER.md` | Step 14. How to run, edit and deploy: git flow, the two Workers, what CI needs, a fresh clone, content, PT/EN, media, R2, and what is deployed but unconfigured. |
 | `docs/STAGING_DEPLOY.md` | Step 12, a historical record: the first deploy, its environment matrix, the QA, and the `_redirects` defect only a real deploy could find. Its Worker and URL are gone; `docs/HANDOVER.md` is current. |
+| `docs/ADMIN_COVERAGE.md` | Every page against the admin: what a visitor sees and where the owners change it (2026-11-07). Update it when a page starts showing something new. |
 | `docs/ADMIN_DASHBOARD_PLAN.md` | The owners' admin, BUILT, at `/admin/` on the prod Worker: content inventory, Cloudflare Access login, CI media ingest, admin UI design, phases A0–A5 and decisions A1–A10. Written as the plan, so its status note says what later decisions changed. |
 | `docs/content/` | Verbatim content extracts and machine-readable inventories. **Read-only source material — never edited.** |
 

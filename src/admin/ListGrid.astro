@@ -1,0 +1,118 @@
+---
+/**
+ * Comercial, as the Serviços page shows it (owner feedback 2026-11-07: "no comercial não
+ * corresponde /admin e site normal"). One card per carousel image or per video, in the
+ * page's own order, with the same pencil, bin and + as everywhere else.
+ *
+ * The list is still ONE draft (\`services:collage\`, \`services:films\`, edit.ts
+ * \`parseList\`): the cards are drawn by the browser from that draft, or from the file as
+ * it is on master when there is none (\`data-base\`), so an added, moved or deleted card
+ * shows at once and Publicar sends the whole list. After the images, the carousel shows
+ * the projects of the categories it names; those cards lead to the project in Cinema,
+ * and "Escolher categorias" changes which.
+ */
+import { getCollection } from 'astro:content';
+import { MEDIA, thumb } from './media-options.ts';
+import UploadPanel from './UploadPanel.astro';
+import { ICON } from './icons.ts';
+import { requestsFor, type UploadEntry } from '../lib/admin/uploads.ts';
+import { portfolioProjects } from '../lib/curated.ts';
+
+interface Props {
+  kind: 'images' | 'films';
+  /** services.json as it is on master now. */
+  doc: { collage: string[]; films: { id: string; title: string; poster: string }[]; categories: string[] };
+  uploads: UploadEntry[];
+}
+const { kind, doc, uploads } = Astro.props;
+
+const path = kind === 'images' ? 'collage' : 'films';
+const base = JSON.stringify(doc[path]);
+const label = kind === 'images' ? 'Página Serviços — Imagens do carrossel' : 'Página Serviços — Vídeos do YouTube';
+const images = MEDIA.image.map(([group, keys]) => ({ group, items: keys.map((k) => ({ key: k, label: k.split('/').slice(1).join(' / '), thumb: thumb(k) })) }));
+const posters = Object.fromEntries((await getCollection('projects')).filter((p) => p.data.poster?.key).map((p) => [p.data.poster!.key, p.data.title.pt]));
+
+/* After the images: the projects of the named categories, as /servicos/ builds them. */
+const categories = (await getCollection('categories', (c) => !c.data.hidden)).sort((a, b) => a.data.order - b.data.order);
+const catName = new Map(categories.map((c) => [c.id, c.data.name.pt]));
+const catsOf = new Map((await getCollection('projects')).map((p) => [p.id, p.data.categories.map((c) => c.id)]));
+/* Every published project that could follow: the browser shows those whose category is
+   chosen (in the draft, if there is one) and whose poster is not already an image above. */
+const following = kind === 'images' ? await portfolioProjects('pt') : [];
+const catsJson = JSON.stringify(doc.categories);
+---
+
+<div class="ad-listgrid" data-list-grid data-kind={kind} data-name={`services:${path}`} data-label={label} data-base={base}>
+  <p class="ad-lede">
+    {kind === 'images'
+      ? 'As imagens com que o carrossel da página Serviços abre, pela ordem em que aparecem. A segunda fica à frente quando a página abre.'
+      : 'Os vídeos por baixo do carrossel, de cima para baixo. Pode não haver nenhum.'}
+  </p>
+  <p class="ad-waiting" data-list-pending hidden>
+    Alterações por publicar. <button type="button" class="ad-link" data-list-reset>Desfazer todas</button>
+  </p>
+  <p class="ad-waiting" data-list-stale hidden>Alguém publicou esta lista entretanto, por isso as alterações que estavam por publicar aqui foram descartadas.</p>
+  <ul class="ad-grid" data-list-cards></ul>
+  <p class="ad-empty" data-list-empty hidden>{kind === 'images' ? 'Não há imagens: o carrossel mostra só os projetos das categorias abaixo.' : 'Não há vídeos. Carregue em + para acrescentar um.'}</p>
+
+  {kind === 'images' ? (
+    <section class="ad-following" aria-labelledby="following-h">
+      <div class="ad-following__head">
+        <h3 id="following-h">Depois das imagens: projetos de <span data-cats-names>{doc.categories.map((c) => catName.get(c) ?? c).join(', ') || 'nenhuma categoria'}</span></h3>
+        <button type="button" class="ad-button" data-cats-open>Escolher categorias</button>
+      </div>
+      <p class="ad-modal__hint">Estes vêm de Cinema e seguem a ordem do portfólio. Para mudar um, edite-o em Cinema; para os tirar daqui, tire a categoria.</p>
+      <ul class="ad-grid" data-following>
+        {following.map((p) => (
+          <li class="ad-card" data-cats={(catsOf.get(p.slug) ?? []).join(' ')} data-poster={p.posterKey}>
+            <div class="ad-card__media" aria-hidden="true">
+              <span class="ad-card__initial">{p.title.charAt(0)}</span>
+              {thumb(p.posterKey) ? <img src={thumb(p.posterKey)} alt="" loading="lazy" decoding="async" width="320" height="180" /> : null}
+            </div>
+            <div class="ad-card__body">
+              <h4 class="ad-card__title">{p.title}</h4>
+              <p class="ad-card__meta">Projeto de Cinema · {(catsOf.get(p.slug) ?? []).map((c) => catName.get(c) ?? c).join(', ')}</p>
+            </div>
+            <div class="ad-card__actions">
+              <a class="ico ico--edit" href={`/admin/cinema/projetos/${p.slug}/`} aria-label={`Editar «${p.title}» em Cinema`} title="Editar em Cinema" set:html={ICON.edit} />
+            </div>
+          </li>
+        ))}
+      </ul>
+    </section>
+  ) : null}
+
+  {/* Edit and add: one dialog, filled by the browser for the card or the + pressed. */}
+  <dialog class="ad-modal ad-modal--small" data-list-dialog aria-labelledby="list-dialog-h">
+    <h2 id="list-dialog-h" data-list-dialog-title>Imagem</h2>
+    <div class="admin-editor" data-list-dialog-body></div>
+    {kind === 'images' ? (
+      <div class="admin-editor" data-editor data-screen="services" data-list-upload>
+        <p class="ed-note">Ou carregue uma fotografia nova. Entra no fim do carrossel quando terminar de ser processada (alguns minutos), sem precisar de Publicar.</p>
+        <UploadPanel target="services:collage.+" kind="image" requests={requestsFor(uploads, 'services', 'collage.+')} />
+      </div>
+    ) : null}
+    <p class="ed-message" role="status" aria-live="polite" data-list-message></p>
+    <div class="ad-modal__foot">
+      <button type="button" class="ad-button" data-list-cancel>Cancelar</button>
+      <button type="button" class="ad-button ad-button--primary" data-list-save>Guardar</button>
+    </div>
+  </dialog>
+
+  {kind === 'images' ? (
+    <dialog class="ad-modal ad-modal--small" data-cats-dialog data-base={catsJson} data-names={JSON.stringify(Object.fromEntries(catName))} aria-labelledby="cats-h">
+      <h2 id="cats-h">Categorias no carrossel</h2>
+      <p class="ad-modal__hint">Os projetos destas categorias entram no carrossel depois das imagens, pela ordem do portfólio.</p>
+      <div class="ed-checks" data-cats-checks>
+        {categories.map((c) => <label><input type="checkbox" value={c.id} checked={doc.categories.includes(c.id)} /> {c.data.name.pt}</label>)}
+      </div>
+      <div class="ad-modal__foot">
+        <button type="button" class="ad-button" data-cats-cancel>Cancelar</button>
+        <button type="button" class="ad-button ad-button--primary" data-cats-save>Guardar</button>
+      </div>
+    </dialog>
+  ) : null}
+
+  <script type="application/json" data-list-images set:html={JSON.stringify(images)} />
+  <script type="application/json" data-list-posters set:html={JSON.stringify(posters)} />
+</div>

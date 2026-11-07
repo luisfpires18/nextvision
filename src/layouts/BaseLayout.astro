@@ -8,6 +8,7 @@
  * `chrome={false}` gives a bare document for pages that must not carry site navigation.
  */
 import { ClientRouter } from 'astro:transitions';
+import { PAGE_CONTENT } from '../lib/page-content.ts';
 import { MOTION_BOOTSTRAP } from '../lib/motion/tier.ts';
 import { buildSeo, jsonLdGraph } from '../lib/seo.ts';
 import { DEFAULT_LOCALE, type Locale } from '../config/i18n.ts';
@@ -180,7 +181,7 @@ const manifest = JSON.parse(manifestSource) as { theme_color: string };
         <div class="loader" data-loader-overlay data-variant={intro ? 'intro' : 'hold'} aria-hidden="true">
           {intro && <div class="loader__curtain"><i class="loader__edge"></i></div>}
           {intro && <div class="loader__mono"><BrandMark mark="monogramColour" /></div>}
-          {intro && <div class="loader__hello"><span>HELLO</span></div>}
+          {intro && <div class="loader__hello"><span>{PAGE_CONTENT.brand.hello}</span></div>}
           <div class="loader__bar"><i></i><i></i><i></i><i></i><i></i></div>
         </div>
         {/* The lights-down state the rail calls for (decision C2). Two SIBLINGS, not a

@@ -28,7 +28,7 @@
  *   route emitted           all six Portuguese pages exist and are real
  *   one <h1>, self-canonical, pt-PT, non-empty title, no placeholder text
  *   reachable               every header destination is linked from every page
- *   /contactos/             #contactar exists, both phones are dialable, and no disputed
+ *   /contactos/             #contactar exists, every listed phone is dialable, and no disputed
  *                           e-mail address is published anywhere (decision D2)
  *
  * And, since Phase 13, per contact form (both locales):
@@ -339,7 +339,11 @@ try {
   if (!/id="contactar"/.test(html)) errors.push('page: /contactos/ has no #contactar anchor — the live homepage CTA targets it');
 
   const tel = [...html.matchAll(/href="tel:(\+\d+)"/g)].map((m) => m[1]);
-  if (tel.length !== 2) errors.push(`page: /contactos/ has ${tel.length} dialable numbers, expected 2`);
+  // Every number in the settings is dialable here. The owners add and remove numbers in
+  // the admin (2026-11-07), so the count is read from src/content/settings/site.yml.
+  const listed = [...fs.readFileSync(path.join(ROOT, 'src/content/settings/site.yml'), 'utf8').matchAll(/^\s+number:\s*"?(\+?\d+)"?\s*$/gm)].map((m) => m[1]);
+  const missing = listed.filter((n) => !tel.includes(n));
+  if (missing.length) errors.push(`page: /contactos/ does not dial ${missing.join(', ')}, listed in the settings`);
 
   /* PHASE 13. The form is LIVE. What is checked is inverted from Phase 10, and one thing
      is checked that was not checkable before: that the page cannot reach the thank-you

@@ -29,9 +29,9 @@
  */
 import { getCollection, getEntry } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import { PAGE_CONTENT } from '../../lib/page-content.ts';
 import BrandMark from '../site/BrandMark.astro';
 import Reel from '../site/Reel.astro';
-import { BRAND_LINES } from '../../lib/brand.ts';
 import { t } from '../../i18n/index.ts';
 import { ABOUT } from '../../lib/static-pages.ts';
 import { imageProps, getMedia } from '../../lib/media.ts';
@@ -150,7 +150,7 @@ const schema = [
       <p>{say(ABOUT.storyB, locale)}</p>
     </div>
 
-    <p class="tagline" aria-hidden="true">{BRAND_LINES.tagline}</p>
+    <p class="tagline" aria-hidden="true">{PAGE_CONTENT.brand.tagline}</p>
   </section>
 
   {/* The founders. Names, roles and links are the live page's own; the e-mail addresses
@@ -207,7 +207,7 @@ const schema = [
 
   <a class="spool" href={`${navHref('contact', locale)}#contactar`}>
     <i class="spool__film" aria-hidden="true"></i>
-    <Reel class="spool__reel" text={["LET'S", 'TALK']} />
+    <Reel class="spool__reel" text={[PAGE_CONTENT.brand.talk.a, PAGE_CONTENT.brand.talk.b]} />
     <span class="visually-hidden">{t('ui.letsTalk', locale)}</span>
   </a>
 </BaseLayout>

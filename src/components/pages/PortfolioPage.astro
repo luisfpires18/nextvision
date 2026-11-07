@@ -11,9 +11,9 @@
  * real link in the served HTML; nothing about the catalogue is client-side only.
  */
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import { PAGE_CONTENT } from '../../lib/page-content.ts';
 import PortfolioIndex from '../portfolio/PortfolioIndex.astro';
 import CinemaShelf from '../portfolio/CinemaShelf.astro';
-import { BRAND_LINES } from '../../lib/brand.ts';
 import { t } from '../../i18n/index.ts';
 import { portfolioProjects } from '../../lib/curated.ts';
 import { PORTFOLIO } from '../../lib/portfolio.ts';
@@ -78,7 +78,7 @@ const CINEMA_FACES = ['barlow-condensed-900', 'barlow-condensed-700', 'barlow-40
       up as a poster, and the list. Both views are complete indexes of all the work; the
       list IS the Review C index, with its filters and its routes, re-set as rows. */}
   <div class="cinema ground-cream" data-cinema data-view="both">
-    <p class="tagline cinema__tagline" aria-hidden="true">{BRAND_LINES.tagline}</p>
+    <p class="tagline cinema__tagline" aria-hidden="true">{PAGE_CONTENT.brand.tagline}</p>
     <div class="cinema__views" role="group" aria-label={t('cinema.view', locale)}>
       <button type="button" data-view-set="shelf" aria-pressed="true">
         <svg viewBox="0 0 30 26" aria-hidden="true"><path d="M1 1h4v24H1zM7 1h4v24H7zM13 1h4v24h-4zM19 1h4v24h-4zM25 1h4v24h-4z" /></svg>

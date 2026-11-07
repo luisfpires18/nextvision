@@ -25,6 +25,7 @@ import contact from '../content/page-content/contact.json' with { type: 'json' }
 import thanks from '../content/page-content/thanks.json' with { type: 'json' };
 import portfolio from '../content/page-content/portfolio.json' with { type: 'json' };
 import bts from '../content/page-content/bts.json' with { type: 'json' };
+import brand from '../content/page-content/brand.json' with { type: 'json' };
 
 /**
  * Where a string came from: the live page it was archived from (`/sobre/`), or an owner's
@@ -102,6 +103,25 @@ export const PAGE_SCHEMAS = {
   thanks: z.object({ copy: strings('title', 'lineA', 'lineB'), wordpressExcerpt: z.string() }),
   portfolio: z.object({ copy: strings('title', 'lead', 'all', 'more') }),
   bts: z.object({ frames: z.array(imageKey).min(1) }),
+  /**
+   * The words the site repeats on several pages, editable in the admin since 2026-11-07
+   * ("Textos do site"): the brand's closing line, the opening's greeting, the reel's two
+   * lines, and the five section names the menu, the footer and the page spines show.
+   * They are one language on the site today, so a name has both languages and the same
+   * text is allowed in each.
+   */
+  brand: z.object({
+    tagline: z.string().min(1).max(60),
+    hello: z.string().min(1).max(20),
+    talk: z.object({ a: z.string().min(1).max(12), b: z.string().min(1).max(12) }),
+    menu: z.object({
+      home: z.object({ pt: z.string().min(1).max(40), en: z.string().min(1).max(40) }),
+      about: z.object({ pt: z.string().min(1).max(40), en: z.string().min(1).max(40) }),
+      commercial: z.object({ pt: z.string().min(1).max(40), en: z.string().min(1).max(40) }),
+      cinema: z.object({ pt: z.string().min(1).max(40), en: z.string().min(1).max(40) }),
+      bts: z.object({ pt: z.string().min(1).max(40), en: z.string().min(1).max(40) }),
+    }),
+  }),
 };
 
 function load<S extends z.ZodType>(page: string, schema: S, data: unknown): z.infer<S> {
@@ -123,4 +143,5 @@ export const PAGE_CONTENT = {
   thanks: load('thanks', PAGE_SCHEMAS.thanks, thanks),
   portfolio: load('portfolio', PAGE_SCHEMAS.portfolio, portfolio),
   bts: load('bts', PAGE_SCHEMAS.bts, bts),
+  brand: load('brand', PAGE_SCHEMAS.brand, brand),
 };

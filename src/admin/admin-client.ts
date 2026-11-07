@@ -1235,3 +1235,314 @@ if (editDialog) {
   editDialog.querySelector('[data-modal-save]')?.addEventListener('click', (e) => { e.preventDefault(); backTo(); });
   editDialog.showModal();
 }
+
+/* ── Comercial: the carousel and the videos as cards (ListGrid.astro) ─────────────
+   The whole list is one draft. The cards are drawn from it, or from the live list when
+   there is none, so every add, change, move or delete shows at once. A draft started from
+   a list that someone has published over since is dropped and said so, never applied
+   over theirs. */
+{
+  const root = document.querySelector<HTMLElement>('[data-list-grid]');
+  if (root) {
+    type Film = { id: string; title: string; poster: string };
+    const kind = root.dataset['kind'] as 'images' | 'films';
+    const name = root.dataset['name']!;
+    const label = root.dataset['label']!;
+    const base = root.dataset['base']!;
+    const cards = root.querySelector<HTMLElement>('[data-list-cards]')!;
+    const empty = root.querySelector<HTMLElement>('[data-list-empty]')!;
+    const pendingNote = root.querySelector<HTMLElement>('[data-list-pending]')!;
+    const staleNote = root.querySelector<HTMLElement>('[data-list-stale]')!;
+    const dialog = root.querySelector<HTMLDialogElement>('[data-list-dialog]')!;
+    const body = dialog.querySelector<HTMLElement>('[data-list-dialog-body]')!;
+    const say = (text: string) => { const m = dialog.querySelector<HTMLElement>('[data-list-message]')!; m.textContent = text; m.dataset['tone'] = text ? 'error' : ''; };
+    const images = JSON.parse(root.querySelector('[data-list-images]')?.textContent ?? '[]') as { group: string; items: { key: string; label: string; thumb: string }[] }[];
+    const posters = JSON.parse(root.querySelector('[data-list-posters]')?.textContent ?? '{}') as Record<string, string>;
+    const thumbOf = new Map(images.flatMap((g) => g.items.map((i) => [i.key, i.thumb] as const)));
+
+    {
+      const d = loadDrafts()[name];
+      if (d && d.from !== base) {
+        const all = loadDrafts();
+        delete all[name];
+        storeDrafts(all);
+        staleNote.hidden = false;
+      }
+    }
+    const current = (): unknown[] => JSON.parse(loadDrafts()[name]?.to ?? base) as unknown[];
+    const write = (list: unknown[]) => {
+      const all = loadDrafts();
+      const to = JSON.stringify(list);
+      if (to === base) delete all[name];
+      else all[name] = { from: base, to, label };
+      storeDrafts(all);
+      showCount();
+      render();
+    };
+
+    const el = <T extends HTMLElement = HTMLElement>(tag: string, props: Record<string, unknown> = {}, ...kids: (Node | string)[]): T => {
+      const e = Object.assign(document.createElement(tag), props) as T;
+      e.append(...kids);
+      return e;
+    };
+
+    function render() {
+      const list = current();
+      const baseList = JSON.parse(base) as unknown[];
+      const changed = Boolean(loadDrafts()[name]);
+      pendingNote.hidden = !changed;
+      cards.replaceChildren();
+      paintFollowing();
+      empty.hidden = list.length > 0;
+      list.forEach((item, i) => {
+        const key = kind === 'images' ? String(item) : (item as Film).poster;
+        const title = kind === 'images' ? `Imagem ${i + 1}` : (item as Film).title || 'Sem nome';
+        const meta = kind === 'images'
+          ? [i === 1 ? 'À frente quando a página abre' : null, posters[key] ? `Do projeto «${posters[key]}»` : null].filter(Boolean).join(' · ')
+          : `YouTube · ${(item as Film).id}`;
+        const isNew = JSON.stringify(baseList[i]) !== JSON.stringify(item);
+        const media = el('div', { className: 'ad-card__media' }, el('span', { className: 'ad-card__initial', textContent: kind === 'images' ? String(i + 1) : '▶' }));
+        media.setAttribute('aria-hidden', 'true');
+        const src = thumbOf.get(key);
+        if (src) {
+          const img = el<HTMLImageElement>('img', { src, alt: '', loading: 'lazy', decoding: 'async', width: 320, height: 180 });
+          img.addEventListener('error', () => img.remove(), { once: true });
+          media.append(img);
+        }
+        const edit = iconButton('edit', `Editar ${kind === 'images' ? `a imagem ${i + 1}` : `«${title}»`}`);
+        edit.addEventListener('click', () => open(i));
+        const del = iconButton('remove', `Apagar ${kind === 'images' ? `a imagem ${i + 1}` : `«${title}»`}`);
+        del.addEventListener('click', () => {
+          if (!window.confirm(kind === 'images'
+            ? `Tirar a imagem ${i + 1} do carrossel?\n\nSai do site quando carregar em Publicar. A imagem fica guardada.`
+            : `Tirar «${title}» da página?\n\nSai do site quando carregar em Publicar.`)) return;
+          const next = current();
+          next.splice(i, 1);
+          write(next);
+        });
+        const bodyEl = el('div', { className: 'ad-card__body' }, el('h3', { className: 'ad-card__title', textContent: title }));
+        if (meta) bodyEl.append(el('p', { className: 'ad-card__meta', textContent: meta }));
+        if (changed && isNew) bodyEl.append(el('p', { className: 'ad-chip', textContent: 'Alterado, por publicar' }));
+        const li = el('li', { className: 'ad-card' }, media, bodyEl, el('div', { className: 'ad-card__actions' }, edit, del));
+        cards.append(li);
+      });
+    }
+
+    /** The picker: every image on the site, with its thumbnail; the current one always an option. */
+    const picker = (key: string) => {
+      const img = el<HTMLImageElement>('img', { src: thumbOf.get(key) ?? '', alt: '', width: 160, height: 90 });
+      const s = el<HTMLSelectElement>('select', { name: 'image' });
+      if (key && !thumbOf.has(key)) s.append(el('option', { value: key, textContent: `${key} (atual)`, selected: true }));
+      for (const g of images) {
+        const og = el('optgroup', { label: g.group });
+        for (const i of g.items) og.append(el('option', { value: i.key, textContent: i.label, selected: i.key === key }));
+        s.append(og);
+      }
+      s.addEventListener('change', () => { img.src = thumbOf.get(s.value) ?? ''; });
+      return el('div', { className: 'ed-media__row' }, img, el('label', { className: 'ed-media__pick' }, el('span', { className: 'f-lang', textContent: 'Imagem do site' }), s));
+    };
+    const field = (text: string, input: HTMLElement) => el('fieldset', { className: 'ed-field' }, el('legend', { textContent: text }), input);
+
+    let editing: number | null = null; // null: adding
+    function open(index: number | null) {
+      editing = index;
+      say('');
+      const list = current();
+      const item = index === null ? null : list[index];
+      dialog.querySelector('[data-list-dialog-title]')!.textContent = index === null
+        ? (kind === 'images' ? 'Acrescentar imagem ao carrossel' : 'Acrescentar vídeo')
+        : (kind === 'images' ? `Imagem ${index + 1}` : (item as Film).title);
+      body.replaceChildren();
+      const upload = root!.querySelector<HTMLElement>('[data-list-upload]');
+      if (upload) upload.hidden = index !== null;
+      if (kind === 'images') {
+        body.append(field(index === null ? 'Escolher uma imagem do site' : 'Imagem', picker(item ? String(item) : (images[0]?.items[0]?.key ?? ''))));
+      } else {
+        const f = (item ?? { id: '', title: '', poster: images[0]?.items[0]?.key ?? '' }) as Film;
+        body.append(
+          field('Endereço no YouTube', el('input', { type: 'text', name: 'id', value: f.id, placeholder: 'https://www.youtube.com/watch?v=…', spellcheck: false, autocomplete: 'off' })),
+          field('Nome do vídeo', el('input', { type: 'text', name: 'title', value: f.title, autocomplete: 'off' })),
+          el('p', { className: 'ed-note', textContent: 'O nome não aparece na página: é o que os leitores de ecrã anunciam.' }),
+          field('Capa (aparece antes de carregar em ver)', picker(f.poster)),
+        );
+      }
+      if (index !== null && list.length > 1) {
+        const pos = el<HTMLSelectElement>('select', { name: 'position' });
+        list.forEach((_, n) => pos.append(el('option', { value: String(n), textContent: `${n + 1}.ª${kind === 'images' && n === 1 ? ' (à frente quando a página abre)' : ''}`, selected: n === index })));
+        body.append(field('Posição', pos));
+      }
+      dialog.showModal();
+      body.querySelector<HTMLElement>('input, select')?.focus();
+    }
+
+    dialog.querySelector('[data-list-cancel]')!.addEventListener('click', () => dialog.close());
+    dialog.querySelector('[data-list-save]')!.addEventListener('click', () => {
+      const value = (n: string) => body.querySelector<HTMLInputElement | HTMLSelectElement>(`[name="${n}"]`)?.value.trim() ?? '';
+      let item: unknown;
+      if (kind === 'images') item = value('image');
+      else {
+        const id = youtubeIdOf(value('id'));
+        if (!id) { say('Não reconheço este endereço. Cole o link do vídeo, por exemplo https://www.youtube.com/watch?v=…'); return; }
+        if (!value('title')) { say('Escreva o nome do vídeo.'); return; }
+        item = { id, title: value('title'), poster: value('image') };
+      }
+      const list = current();
+      if (editing === null) list.push(item);
+      else {
+        list.splice(editing, 1);
+        const to = body.querySelector<HTMLSelectElement>('[name="position"]') ? Number(value('position')) : editing;
+        list.splice(to, 0, item);
+      }
+      write(list);
+      dialog.close();
+    });
+    document.querySelector('[data-list-add]')?.addEventListener('click', () => open(null));
+    root.querySelector('[data-list-reset]')?.addEventListener('click', () => {
+      if (!window.confirm(`Desfazer todas as alterações por publicar ${kind === 'images' ? 'no carrossel' : 'nos vídeos'}?`)) return;
+      write(JSON.parse(base) as unknown[]);
+    });
+
+    /* Which categories' projects follow the images: one more list draft. The project
+       cards below are all in the page; this shows the ones the carousel will really have. */
+    const cats = root.querySelector<HTMLDialogElement>('[data-cats-dialog]');
+    const catsName = 'services:categories';
+    const catsBase = cats?.dataset['base'] ?? '[]';
+    const now = () => JSON.parse(loadDrafts()[catsName]?.from === catsBase ? loadDrafts()[catsName]!.to : catsBase) as string[];
+    function paintFollowing() {
+      const box = root!.querySelector<HTMLElement>('[data-following]');
+      if (!box) return;
+      const chosen = now();
+      const above = new Set(current().map(String));
+      for (const li of box.querySelectorAll<HTMLElement>('li')) {
+        li.hidden = !(li.dataset['cats'] ?? '').split(' ').some((c) => chosen.includes(c)) || above.has(li.dataset['poster'] ?? '');
+      }
+      const names = JSON.parse(cats?.dataset['names'] ?? '{}') as Record<string, string>;
+      const label = root!.querySelector<HTMLElement>('[data-cats-names]');
+      if (label) label.textContent = chosen.map((c) => names[c] ?? c).join(', ') || 'nenhuma categoria';
+    }
+    if (cats) {
+      const boxes = [...cats.querySelectorAll<HTMLInputElement>('input[type="checkbox"]')];
+      root.querySelector('[data-cats-open]')?.addEventListener('click', () => {
+        const chosen = now();
+        for (const b of boxes) b.checked = chosen.includes(b.value);
+        cats.showModal();
+      });
+      cats.querySelector('[data-cats-cancel]')!.addEventListener('click', () => cats.close());
+      cats.querySelector('[data-cats-save]')!.addEventListener('click', () => {
+        const to = JSON.stringify(boxes.filter((b) => b.checked).map((b) => b.value));
+        const all = loadDrafts();
+        if (to === catsBase) delete all[catsName];
+        else all[catsName] = { from: catsBase, to, label: 'Página Serviços — Projetos no carrossel' };
+        storeDrafts(all);
+        showCount();
+        cats.close();
+        paintFollowing();
+      });
+    }
+
+    render();
+  }
+}
+
+/** A YouTube id from an id or any of the usual addresses (the server's edit.ts rule, again). */
+function youtubeIdOf(input: string): string | null {
+  const v = input.trim();
+  if (/^[A-Za-z0-9_-]{11}$/.test(v)) return v;
+  const m = /(?:youtube\.com\/(?:watch\?(?:.*&)?v=|embed\/|shorts\/|live\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/.exec(v);
+  return m ? m[1]! : null;
+}
+
+/* ── a person's links, the site's phones and social networks (EntryEditor.astro) ──
+   One hidden field holds the whole list as JSON; these rows edit it, and every change
+   fires `input`, so it is a draft like any other. The server checks each row again
+   (entries.ts `parseEntryList`). */
+for (const input of document.querySelectorAll<HTMLInputElement>('input[data-rows]')) {
+  const kind = input.dataset['rows'] as 'links' | 'phones' | 'socials';
+  const platforms = JSON.parse(input.dataset['platforms'] ?? '[]') as string[];
+  const list = input.parentElement!.querySelector<HTMLOListElement>('[data-rows-list]')!;
+  type Row = Record<string, string>;
+  let rows: Row[] = [];
+  try { rows = JSON.parse(input.value) as Row[]; } catch { rows = []; }
+  const NAMES: Record<string, string> = { instagram: 'Instagram', linkedin: 'LinkedIn', youtube: 'YouTube', vimeo: 'Vimeo', whatsapp: 'WhatsApp', other: 'Outra' };
+  const commit = () => {
+    input.value = JSON.stringify(rows);
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+  };
+  const field = (text: string, control: HTMLElement) => {
+    const l = document.createElement('label');
+    l.className = 'ed-media__pick';
+    const s = document.createElement('span');
+    s.className = 'f-lang';
+    s.textContent = text;
+    l.append(s, control);
+    return l;
+  };
+  const textInput = (row: Row, key: string, placeholder = '') => {
+    const i = document.createElement('input');
+    i.type = 'text';
+    i.value = row[key] ?? '';
+    i.placeholder = placeholder;
+    i.autocomplete = 'off';
+    i.spellcheck = false;
+    if (key === 'number') i.inputMode = 'tel';
+    if (key === 'url') i.inputMode = 'url';
+    i.addEventListener('input', (e) => { e.stopPropagation(); row[key] = i.value; commit(); });
+    return i;
+  };
+  const render = () => {
+    list.replaceChildren();
+    if (!rows.length) {
+      const li = document.createElement('li');
+      li.className = 'ed-note';
+      li.textContent = 'Nenhum. Carregue em + para acrescentar.';
+      list.append(li);
+    }
+    rows.forEach((row, i) => {
+      const li = document.createElement('li');
+      li.className = 'ed-block';
+      const head = document.createElement('div');
+      head.className = 'ed-blockhead';
+      const title = document.createElement('strong');
+      title.textContent = `${i + 1}. ${row['label'] || (kind === 'phones' ? 'Telefone' : 'Ligação')}`;
+      const moves = document.createElement('span');
+      moves.className = 'ed-order__moves';
+      const move = (d: -1 | 1, sign: string, what: string) => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.textContent = sign;
+        b.disabled = !rows[i + d];
+        b.setAttribute('aria-label', `${what} a linha ${i + 1}`);
+        b.addEventListener('click', () => { [rows[i], rows[i + d]] = [rows[i + d]!, rows[i]!]; commit(); render(); });
+        return b;
+      };
+      const del = iconButton('remove', `Apagar a linha ${i + 1}`);
+      del.addEventListener('click', () => {
+        if (!window.confirm(`Apagar «${row['label'] || `linha ${i + 1}`}»?`)) return;
+        rows.splice(i, 1);
+        commit();
+        render();
+      });
+      moves.append(move(-1, '↑', 'Subir'), move(1, '↓', 'Descer'), del);
+      head.append(title, moves);
+      const body = document.createElement('div');
+      body.className = 'ed-pair';
+      body.append(field('Nome', textInput(row, 'label', kind === 'phones' ? 'Principal' : 'Instagram')));
+      if (kind === 'phones') body.append(field('Número', textInput(row, 'number', '+351 912 345 678')));
+      else {
+        const s = document.createElement('select');
+        for (const p of platforms) s.append(new Option(NAMES[p] ?? p, p, false, (row['platform'] ?? 'other') === p));
+        s.addEventListener('change', (e) => { e.stopPropagation(); row['platform'] = s.value; commit(); });
+        body.append(field('Rede', s), field('Endereço', textInput(row, 'url', 'https://')));
+      }
+      li.append(head, body);
+      list.append(li);
+    });
+  };
+  input.parentElement!.querySelector('[data-rows-add]')?.addEventListener('click', () => {
+    rows.push(kind === 'phones' ? { label: '', number: '' } : { label: '', url: '', platform: platforms[0] ?? 'other' });
+    commit();
+    render();
+    list.lastElementChild?.querySelector<HTMLInputElement>('input')?.focus();
+  });
+  render();
+}

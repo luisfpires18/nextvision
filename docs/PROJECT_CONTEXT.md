@@ -2331,3 +2331,59 @@ Música, the service removed, a removed category recorded), the build and every 
 Música got its archive in both languages, /sobre/ showed three people, and `_redirects` sent
 the removed category to the portfolio. The overview counts and the phone filters were checked at
 1440 and 375 px.
+
+## 40. Admin Comercial mirrors the Serviços page (2026-11-07)
+
+Owner feedback: "no comercial não corresponde /admin e site normal". Comercial led with four
+service cards that the site no longer shows (taken off /servicos/ on 2026-10-29). The carousel
+and videos, which the page does show, sat inside "Páginas › Página Serviços".
+
+Comercial now follows the page, top to bottom:
+
+- **Carrossel.** One card per opening image, in order. The second card says it is the one in
+  front, and an image that is a project's poster names the project. Pencil (change the image or
+  its position), bin, and + (pick an image of the site, or upload a new one: `collage.+`). Below
+  the images are the projects that follow from the chosen categories. Their pencil opens the project in
+  Cinema, and "Escolher categorias" changes which categories.
+- **Vídeos.** One card per video, with pencil (address, name, cover, position), bin and +.
+- **Páginas.** Página Serviços, now holding only the page title, the share image and the Google text.
+
+Each list is still one draft (`services:collage`, `services:films`, `services:categories`), so
+Publicar and its checks are unchanged. The cards are drawn in the browser from that draft, or
+from services.json as it is on master when there is none (src/admin/ListGrid.astro), so an add,
+move or delete shows at once. A draft started from a list someone has since published over is
+dropped and the page says so. The page form's list fields are marked `elsewhere` (fields.ts):
+still accepted by Publicar, no longer drawn in the form.
+
+The services and testimonials are no longer offered in the admin, because the site does not
+show them. Their files and phase 2's add/delete for services stay in the code, unused.
+
+Checked in `astro dev` against `mock:github`: added, moved and deleted carousel images, changed
+the categories (the project cards below followed at once), added a video (a bad link was refused
+with a clear message), and published. The services.json read back from the mock matched the
+cards. The verify chain passed on an LF copy.
+
+## 41. Every page against the admin (2026-11-07)
+
+After the Comercial feedback, every page was compared with the admin. The full table is
+docs/ADMIN_COVERAGE.md. What changed to close the gaps:
+
+- **"Textos do site"** (Definições), a new page file src/content/page-content/brand.json. It holds
+  the brand line "Loving every frame" (Início, Sobre, Cinema), the opening's "HELLO", the two lines
+  of the LET'S TALK reel, and the five section names in both languages. The section names are read
+  in `t()` (src/i18n/index.ts), so the menu, footer, spines and the BTS title all follow without
+  their own changes. `BRAND_LINES.tagline` is gone; a new field kind, `pair` (`{ pt, en }`
+  with no archive behind it), edits the names.
+- **A person's links, the site's phones and its social networks** are each one list field
+  (entries.ts `links` / `phones` / `socials`, `parseEntryList`). The owners can add, remove,
+  reorder and pick the network. Before, they could only change an existing address.
+- **Início** no longer offers "Frase de abertura" (two lines the page has not shown since
+  2026-11-06). The tests that used it now use the Google sentence.
+- **validate:routes** checks that every phone in the settings is dialable on /contactos/, instead
+  of expecting exactly two.
+
+Checked in `astro dev` against `mock:github`: the tagline and the BTS name (PT) changed, a Vimeo
+link added to a person, a phone removed and the networks reordered, all published as one commit.
+On an LF copy built from the published files, "Bastidores" appeared in the Portuguese footer and as
+the BTS title (English unchanged), the new tagline on /portfolio/, the link on /sobre/, and one
+number on /contactos/. The verify chain passed (72 admin checks).
