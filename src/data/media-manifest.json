@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-07T15:40:59.588Z",
+  "generatedAt": "2026-11-07T15:44:37.979Z",
   "generatedBy": "scripts/media-build.mjs",
   "note": "Production media. Keys are storage-agnostic and carry NO URL: src/lib/media.ts joins a rendition path to PUBLIC_MEDIA_BASE_URL, which is the local mirror in development and the R2 delivery host in production. Rendition names are content-addressed, so a name that matches is bytes that match — that is what makes the cache immutable and the sync a set difference. Regenerate with `npm run media:build`.",
   "encoder": {
@@ -6864,6 +6864,91 @@
         "file": "media/incoming/41549fb494bf/DSCF5936.jpg",
         "size": 15460100,
         "mtimeMs": 1794066055213,
+        "naturalWidth": 4160,
+        "naturalHeight": 6240
+      },
+      "recipe": {
+        "crop": null
+      },
+      "notes": "Uploaded in the admin by nextvisionfilmsagency@gmail.com, 2026-11-07: DSCF5936.jpg."
+    },
+    "owner/3c317c905ab2/image": {
+      "key": "owner/3c317c905ab2/image",
+      "kind": "image",
+      "storage": "r2",
+      "contentType": "image/webp",
+      "width": 1400,
+      "height": 2100,
+      "aspectRatio": 0.6667,
+      "formats": [
+        "webp",
+        "avif"
+      ],
+      "renditions": [
+        {
+          "format": "webp",
+          "path": "owner/3c317c905ab2/image/560.3fb4e050.webp",
+          "sha256": "3fb4e0502b69174f0dfa223d9038bd066f355108a17e70ff34622002745aef29",
+          "width": 560,
+          "height": 840,
+          "bytes": 13832,
+          "contentType": "image/webp"
+        },
+        {
+          "format": "avif",
+          "path": "owner/3c317c905ab2/image/560.05b3681c.avif",
+          "sha256": "05b3681c454abc4dd71bf22602471b1d88076a82e8df74f2a8e8333018f56e70",
+          "width": 560,
+          "height": 840,
+          "bytes": 5867,
+          "contentType": "image/avif"
+        },
+        {
+          "format": "webp",
+          "path": "owner/3c317c905ab2/image/960.db793c93.webp",
+          "sha256": "db793c9377118924919a06f1a803ecbdee04a51693a8b2ce337192e7b3db4b4d",
+          "width": 960,
+          "height": 1440,
+          "bytes": 55100,
+          "contentType": "image/webp"
+        },
+        {
+          "format": "avif",
+          "path": "owner/3c317c905ab2/image/960.d9d2f2a2.avif",
+          "sha256": "d9d2f2a2d0665f86f0ef9d6f8cfcb7715397f45d8efcdd77fde806cb0d38200a",
+          "width": 960,
+          "height": 1440,
+          "bytes": 12592,
+          "contentType": "image/avif"
+        },
+        {
+          "format": "webp",
+          "path": "owner/3c317c905ab2/image/1400.0e30f315.webp",
+          "sha256": "0e30f3150648e2b300c924382a08d74d83c87ad13eb7a9d341aa61d68575e6dd",
+          "width": 1400,
+          "height": 2100,
+          "bytes": 216904,
+          "contentType": "image/webp"
+        },
+        {
+          "format": "avif",
+          "path": "owner/3c317c905ab2/image/1400.783e135d.avif",
+          "sha256": "783e135dffa1d8a7ed7e557595f3d6c8b1fc20b097e6e3ba100f104678801f41",
+          "width": 1400,
+          "height": 2100,
+          "bytes": 24066,
+          "contentType": "image/avif"
+        }
+      ],
+      "bytes": 328361,
+      "provenance": "owner",
+      "sourceQuality": "owner-upload",
+      "altStatus": "todo",
+      "alt": null,
+      "source": {
+        "file": "media/incoming/3c317c905ab2/DSCF5936.jpg",
+        "size": 15460100,
+        "mtimeMs": 1794066272677,
         "naturalWidth": 4160,
         "naturalHeight": 6240
       },

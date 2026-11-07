@@ -6,7 +6,7 @@ role:
   pt: "Co-founder & Producer"
   en: "Co-founder & Producer"
 portrait:
-  key: "owner/41549fb494bf/image"
+  key: "owner/3c317c905ab2/image"
   altStatus: todo
 links:
   - label: "Instagram"
