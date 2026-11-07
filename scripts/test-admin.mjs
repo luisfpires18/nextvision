@@ -20,7 +20,7 @@ import { applyEdits, expandFields, fieldName, liveValue, serialise, EditError } 
 import { readFile, commitFiles, latestRun, gitBlobSha, resetGitHubToken, GitHubError } from '../src/lib/admin/github.ts';
 import { planUpload, appendUpload, safeName, kindOf, uploadKey, isUploadKey, UPLOADS_PATH } from '../src/lib/admin/uploads.ts';
 import { applyProjectEdits, applyOrder, newProjectText, removalWrites, projectFilePath, REMOVED_PATH, portfolioSequence, projectData, projectValue, fieldsFor, roundTrips, slugFrom, youtubeId } from '../src/lib/admin/projects.ts';
-import { ENTRY_TYPES, applyEntryEdits, entryData, entryFields, entryRoundTrips } from '../src/lib/admin/entries.ts';
+import { ENTRY_TYPES, applyEntryEdits, entryData, entryFields, entryRoundTrips, entryRemovalWrites, newEntryFile } from '../src/lib/admin/entries.ts';
 import { createMockGitHub, gitBlobSha as nodeBlobSha } from './lib/mock-github.mjs';
 
 let failed = 0;
@@ -411,6 +411,76 @@ function setup(extra = {}) {
   const opts = { fetcher: (url, init) => gh.handle(url, init), now: clock };
   return { gh, cfg, opts, tick: (ms) => { clock += ms; opts.now = clock; } };
 }
+
+/* ── adding and removing entries (redesign phase 2) ─────────────────────── */
+
+{
+  const ectx = { mediaKind: (k) => (k.startsWith('projects/') ? 'image' : null), today: TODAY };
+  const all = (t) => fs.readdirSync(t.dir).filter((f) => f.endsWith(t.ext)).map((f) => ({ id: f.slice(0, -t.ext.length), text: fs.readFileSync(`${t.dir}/${f}`, 'utf8') }));
+  const removal = (over = {}) => ({ projects: [], carouselCategories: [], removedCategoriesText: '{"removed":[]}', today: TODAY, ...over });
+
+  await check('a new team member is a valid file, after the others, and dated as the owners\'', () => {
+    const t = ENTRY_TYPES.equipa;
+    const made = newEntryFile(t, JSON.stringify({ name: 'Zé Teste Admin', rolePt: 'Produtora', roleEn: 'Producer', portrait: 'projects/leonor/poster' }), all(t), ectx);
+    assert.equal(made.id, 'ze-teste-admin');
+    assert.equal(made.path, 'src/content/team/ze-teste-admin.md');
+    const d = entryData(t, made.text);
+    assert.deepEqual(d.role, { pt: 'Produtora', en: 'Producer' });
+    assert.equal(d.portrait.key, 'projects/leonor/poster');
+    assert.equal(d.ownerEdited, TODAY);
+    assert.ok(d.order > Math.max(...all(t).map((f) => entryData(t, f.text).order ?? 0)));
+  });
+
+  await check('a new entry is refused without its English, a portrait from the list, or a free address', () => {
+    const t = ENTRY_TYPES.equipa;
+    assert.throws(() => newEntryFile(t, JSON.stringify({ name: 'Ana', rolePt: 'Produtora', roleEn: '', portrait: 'projects/x/poster' }), all(t), ectx), /inglês/);
+    assert.throws(() => newEntryFile(t, JSON.stringify({ name: 'Ana', rolePt: 'P', roleEn: 'P', portrait: 'owner/zz/hero' }), all(t), ectx), /imagem da lista/);
+    const taken = entryData(t, all(t)[0].text).name;
+    assert.throws(() => newEntryFile(t, JSON.stringify({ name: taken, rolePt: 'P', roleEn: 'P', portrait: 'projects/x/poster' }), all(t), ectx), /Já existe/);
+    assert.throws(() => newEntryFile(ENTRY_TYPES.definicoes, '{}', [], ectx), /não se acrescenta/);
+    assert.throws(() => newEntryFile(t, 'nada', all(t), ectx), /inválido/);
+  });
+
+  await check('a new service and a new category are valid files with both languages', () => {
+    const s = newEntryFile(ENTRY_TYPES.servico, JSON.stringify({ namePt: 'Serviço Teste Admin', nameEn: 'Admin Test Service', descriptionPt: 'Fazemos fotografia.', descriptionEn: 'We do photography.' }), all(ENTRY_TYPES.servico), ectx);
+    assert.equal(s.path, 'src/content/services/servico-teste-admin.md');
+    assert.deepEqual(entryData(ENTRY_TYPES.servico, s.text).title, { pt: 'Serviço Teste Admin', en: 'Admin Test Service' });
+    const c = newEntryFile(ENTRY_TYPES.categoria, JSON.stringify({ namePt: 'Categoria Teste Admin', nameEn: 'Admin Test Category' }), all(ENTRY_TYPES.categoria), ectx);
+    assert.equal(c.path, 'src/content/categories/categoria-teste-admin.yml');
+    const cd = entryData(ENTRY_TYPES.categoria, c.text);
+    assert.equal(cd.internalId, 'cat-categoria-teste-admin');
+    assert.equal(cd.hidden, false);
+    assert.deepEqual(cd.previousSlugs, []);
+  });
+
+  await check('removing an entry needs its name, and deletes only its file', () => {
+    const t = ENTRY_TYPES.servico;
+    const files = all(t);
+    const name = entryData(t, files[0].text).title.pt;
+    assert.throws(() => entryRemovalWrites(t, files[0].id, 'outro nome', removal({ existing: files })), /confirme o nome/);
+    assert.deepEqual(entryRemovalWrites(t, files[0].id, name, removal({ existing: files })), [{ path: `${t.dir}/${files[0].id}.md`, remove: true }]);
+    assert.throws(() => entryRemovalWrites(ENTRY_TYPES.definicoes, 'site', 'x', removal({ existing: [] })), /não se apaga/);
+  });
+
+  await check('the last person of the team cannot be removed', () => {
+    const t = ENTRY_TYPES.equipa;
+    const one = all(t).slice(0, 1);
+    assert.throws(() => entryRemovalWrites(t, one[0].id, entryData(t, one[0].text).name, removal({ existing: one })), /última pessoa/);
+  });
+
+  await check('a category in use by a project or by the carousel cannot be removed, and a removal is recorded', () => {
+    const t = ENTRY_TYPES.categoria;
+    const files = all(t);
+    const f = files.find((x) => x.id === 'ficcao');
+    const name = entryData(t, f.text).name.pt;
+    assert.throws(() => entryRemovalWrites(t, 'ficcao', name, removal({ existing: files, projects: [{ title: 'Epitáfio', categories: ['ficcao'] }] })), /Epitáfio/);
+    assert.throws(() => entryRemovalWrites(t, 'ficcao', name, removal({ existing: files, carouselCategories: ['ficcao'] })), /carrossel/);
+    const writes = entryRemovalWrites(t, 'ficcao', name, removal({ existing: files }));
+    assert.deepEqual(writes[0], { path: 'src/content/categories/ficcao.yml', remove: true });
+    assert.deepEqual(JSON.parse(writes[1].text).removed, [{ slug: 'ficcao', name, at: TODAY }]);
+  });
+}
+
 
 await check('the App JWT is signed with the App key and accepted', async () => {
   const { gh, cfg, opts } = setup();

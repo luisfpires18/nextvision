@@ -12,12 +12,15 @@
  *   - a category's slug (it is the archive URL) and its colour (a design decision);
  *   - order fields, which no owner has asked to change for four services or two people.
  *
+ * Adding and removing entries (team, services, categories) is at the end of the file.
+ *
  * Pure apart from the YAML parser, so `npm run test:admin` can prove every rule.
  */
 
-import { parseDocument, type Document } from 'yaml';
+import { Document, parseDocument } from 'yaml';
 import { EditError } from './edit.ts';
 import { splitMdx, writeFront } from './projects.ts';
+import { slugFrom } from './slug.ts';
 
 const parseFront = (text: string): Document => {
   const doc = parseDocument(text);
@@ -235,3 +238,151 @@ export function entryRoundTrips(t: EntryType, text: string): boolean {
 /** The type whose draft prefix this is, if any. */
 export const entryTypeOf = (prefix: string): EntryType | null => ENTRY_TYPES[prefix] ?? null;
 
+
+/* ── adding and removing entries (docs/ADMIN_REDESIGN_PLAN.md §8, phase 2) ──────────
+ *
+ * Team members, services and categories can be added and removed; the contacts file
+ * cannot (it is one file the site always needs). Both are drafts like any other and go
+ * out with Publicar:
+ *
+ *   `<prefix>/novo-<tempid>:criar`  the new entry's fields as JSON; written as a new file
+ *   `<prefix>/<id>:apagar`          the name the owner confirmed; the file is deleted
+ *
+ * Refusals come first and name what blocks them: a category still used by a project or
+ * by the Serviços carousel, the last person of the team, an address already taken. */
+
+export const CREATE_FIELD = 'criar';
+export const ENTRY_REMOVE_FIELD = 'apagar';
+/** The temporary id a new entry's draft carries until it is published. */
+export const NEW_ENTRY_ID = /^novo-[a-z0-9]{4,16}$/;
+/** The types an owner can add to and remove from. */
+export const LISTED_TYPES: readonly string[] = ['equipa', 'servico', 'categoria'];
+export const REMOVED_CATEGORIES_PATH = 'src/data/removed-categories.json';
+export interface RemovedCategoriesDoc { removed: { slug: string; name: string; at: string }[] }
+
+/** What the add form sends. Which fields matter depends on the type. */
+export interface NewEntryInput {
+  name?: string;
+  namePt?: string;
+  nameEn?: string;
+  rolePt?: string;
+  roleEn?: string;
+  descriptionPt?: string;
+  descriptionEn?: string;
+  portrait?: string;
+}
+
+export interface EntryFile { id: string; text: string }
+
+const nextOrder = (t: EntryType, existing: EntryFile[]) =>
+  existing.reduce((max, f) => Math.max(max, Number(entryData(t, f.text)['order'] ?? 0)), -1) + 1;
+
+const line = (label: string, v: string | undefined, required = true): string => {
+  const s = (v ?? '').replace(/\r\n?/g, '\n').trim();
+  if (required && !s) throw new EditError(`«${label}» não pode ficar vazio.`);
+  if (s.includes('\n')) throw new EditError(`«${label}»: tem de caber numa linha.`);
+  return s;
+};
+const prose = (label: string, v: string | undefined): string => {
+  const s = (v ?? '').replace(/\r\n?/g, '\n').trim();
+  if (!s) throw new EditError(`«${label}» não pode ficar vazio.`);
+  return s;
+};
+
+/**
+ * A new entry's file, from what the add form sent. The id is the address: made from the
+ * name, and refused when another entry already has it.
+ */
+export function newEntryFile(t: EntryType, raw: string, existing: EntryFile[], ctx: EntryContext & { today: string }): { id: string; path: string; text: string; name: string } {
+  if (!LISTED_TYPES.includes(t.prefix)) throw new EditError(`${t.noun}: não se acrescenta aqui.`);
+  let input: NewEntryInput;
+  try { input = JSON.parse(raw) as NewEntryInput; } catch { throw new EditError('Pedido inválido.'); }
+  if (!input || typeof input !== 'object') throw new EditError('Pedido inválido.');
+
+  let data: Record<string, unknown>;
+  let name: string;
+  if (t.prefix === 'equipa') {
+    name = line('Nome', input.name);
+    const portrait = line('Retrato', input.portrait);
+    if (ctx.mediaKind(portrait) !== 'image') throw new EditError('«Retrato»: escolha uma imagem da lista.');
+    data = {
+      name,
+      role: { pt: line('Função (português)', input.rolePt), en: line('Função (inglês)', input.roleEn) },
+      portrait: { key: portrait, altStatus: 'todo' },
+      links: [],
+      ownerEdited: ctx.today,
+      order: nextOrder(t, existing),
+    };
+  } else if (t.prefix === 'servico') {
+    name = line('Nome (português)', input.namePt);
+    data = {
+      title: { pt: name, en: line('Nome (inglês)', input.nameEn) },
+      description: { pt: prose('Descrição (português)', input.descriptionPt), en: prose('Descrição (inglês)', input.descriptionEn) },
+      ownerEdited: ctx.today,
+      order: nextOrder(t, existing),
+    };
+  } else {
+    name = line('Nome (português)', input.namePt);
+    data = {
+      name: { pt: name, en: line('Nome (inglês)', input.nameEn) },
+      internalId: '',
+      order: nextOrder(t, existing),
+      previousSlugs: [],
+      hidden: false,
+    };
+  }
+
+  const id = slugFrom(name);
+  if (!id || !ENTRY_ID.test(id)) throw new EditError(`«${name}»: o nome precisa de letras ou algarismos para formar o endereço.`);
+  if (existing.some((f) => f.id === id)) throw new EditError(`Já existe ${t.noun.toLocaleLowerCase('pt-PT')} com o endereço «${id}». Escolha outro nome.`);
+  if (t.prefix === 'categoria') data['internalId'] = `cat-${id}`;
+
+  const doc = new Document(data);
+  const yaml = doc.toString({ lineWidth: 0 });
+  const header = `# Added in the admin on ${ctx.today} (docs/ADMIN_REDESIGN_PLAN.md, phase 2).\n`;
+  const text = t.front ? `---\n${header}${yaml}---\n` : `${header}${yaml}`;
+  return { id, path: entryFilePath(t, id), text, name };
+}
+
+export interface RemovalContext {
+  existing: EntryFile[];
+  /** Every project's title and category ids, for the category guard. */
+  projects: { title: string; categories: string[] }[];
+  /** The categories the Serviços carousel names (services.json `categories`). */
+  carouselCategories: string[];
+  /** The removed-categories record, as it is now. */
+  removedCategoriesText: string;
+  today: string;
+}
+
+export type EntryWrite = { path: string; text: string } | { path: string; remove: true };
+
+/**
+ * The writes that remove entry `id`, once its name is confirmed. Refuses, naming the
+ * reason, when the site still needs it.
+ */
+export function entryRemovalWrites(t: EntryType, id: string, confirmed: string, ctx: RemovalContext): EntryWrite[] {
+  if (!LISTED_TYPES.includes(t.prefix)) throw new EditError(`${t.noun}: não se apaga aqui.`);
+  const file = ctx.existing.find((f) => f.id === id);
+  if (!file) throw new EditError(`${t.noun}: esta entrada já não existe.`);
+  const name = t.name(entryData(t, file.text));
+  if (confirmed !== name) throw new EditError(`Para apagar «${name}», confirme o nome. Nada foi publicado.`);
+
+  if (t.prefix === 'equipa' && ctx.existing.length <= 1) {
+    throw new EditError(`«${name}» é a última pessoa da equipa, e a página Sobre precisa de pelo menos uma. Acrescente outra pessoa antes de apagar esta.`);
+  }
+  const writes: EntryWrite[] = [{ path: entryFilePath(t, id), remove: true }];
+  if (t.prefix === 'categoria') {
+    const using = ctx.projects.filter((p) => p.categories.includes(id)).map((p) => `«${p.title}»`);
+    if (using.length) {
+      throw new EditError(`A categoria «${name}» ainda tem projetos: ${using.join(', ')}. Mude-os para outra categoria antes de a apagar.`);
+    }
+    if (ctx.carouselCategories.includes(id)) {
+      throw new EditError(`A categoria «${name}» está no carrossel da página Serviços. Tire-a de lá («Projetos no carrossel») antes de a apagar.`);
+    }
+    const record = JSON.parse(ctx.removedCategoriesText) as RemovedCategoriesDoc;
+    record.removed = [...record.removed.filter((r) => r.slug !== id), { slug: id, name, at: ctx.today }];
+    writes.push({ path: REMOVED_CATEGORIES_PATH, text: `${JSON.stringify(record, null, 2)}\n` });
+  }
+  return writes;
+}

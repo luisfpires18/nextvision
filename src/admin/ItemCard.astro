@@ -22,8 +22,10 @@ interface Props {
   readOnly: boolean;
   /** The order the server listed it in (the portfolio order, for projects). */
   index: number;
+  /** The draft that deletes it (`equipa/ana:apagar`); none, no bin. */
+  deleteDraft?: string | undefined;
 }
-const { item, editHref, readOnly, index } = Astro.props;
+const { item, editHref, readOnly, index, deleteDraft } = Astro.props;
 const src = item.thumb ? thumb(item.thumb) : '';
 const initial = item.label.trim().charAt(0).toUpperCase();
 const f = item.facets;
@@ -38,7 +40,9 @@ const f = item.facets;
   data-categories={f ? f.categories.join(' ') : undefined}
   data-year={f?.year}
   data-hidden={f?.hidden ? '' : undefined}
-  data-slug={item.deletable ? item.id : undefined}
+  data-delete-draft={deleteDraft}
+  data-delete-hint={deleteDraft ? item.deleteHint : undefined}
+  data-delete-blocked={deleteDraft ? item.deleteBlocked : undefined}
   data-name={item.label}
 >
   <div class="ad-card__media" aria-hidden="true">
@@ -55,7 +59,7 @@ const f = item.facets;
     {readOnly
       ? <a class="ico ico--view" href={editHref} aria-label={`Ver «${item.label}»`} title="Ver" set:html={ICON.view} />
       : <a class="ico ico--edit" href={editHref} aria-label={`Editar «${item.label}»`} title="Editar" set:html={ICON.edit} />}
-    {item.deletable ? (
+    {deleteDraft ? (
       <>
         <button type="button" class="ico ico--remove" data-card-delete aria-label={`Apagar «${item.label}»`} title="Apagar" set:html={ICON.remove} />
         <button type="button" class="ad-undo" data-card-undo hidden>Desfazer</button>

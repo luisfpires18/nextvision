@@ -37,9 +37,33 @@ export interface AdminItem {
   draftKeys?: string[] | undefined;
   /** What the toolbar filters on (projects): category ids, year, hidden from the site. */
   facets?: { categories: string[]; year: string; hidden: boolean } | undefined;
-  /** Whether the card offers the bin. Phase 1: projects only. */
+  /** Whether the card offers the bin: projects, team members, services, categories. */
   deletable?: boolean | undefined;
+  /** What the delete modal adds under its question: what happens to this kind of item. */
+  deleteHint?: string | undefined;
+  /**
+   * Why this item cannot be deleted now, when that is known from the site as built: the
+   * bin then explains instead of offering Apagar. Publicar checks again either way
+   * (entries.ts `entryRemovalWrites`), against the files as they are on master.
+   */
+  deleteBlocked?: string | undefined;
 }
+
+/** The draft that deletes an item, by the kind of item: `projeto/leonor:apagar`. */
+export const deleteDraftOf = (prefix: string, id: string) => `${prefix}/${id}:apagar`;
+
+const HINT = {
+  projeto: 'As imagens e os vídeos ficam guardados. Quem abrir o endereço antigo vai parar ao portfólio.',
+  equipa: 'Sai da página Sobre. O retrato fica guardado.',
+  servico: 'Os serviços não aparecem no site neste momento. O texto original fica no arquivo do site antigo.',
+  categoria: 'Só se apaga uma categoria sem projetos e fora do carrossel da página Serviços. O endereço antigo passa a levar ao portfólio.',
+};
+
+/** "Novo …": the + in the page header opens one of these (AdminRoute.astro). */
+const adding = (items: { id: string; label: string }[]): AdminGroup => ({
+  id: 'novo', label: 'Novo',
+  load: async () => items.map((i) => ({ ...i, data: null, viewPath: null })),
+});
 
 export interface AdminGroup {
   id: string;
@@ -86,11 +110,13 @@ export const AREAS: AdminArea[] = [
     id: 'sobre', label: 'Sobre', section: 'about',
     groups: [
       page('about', 'about'),
+      adding([{ id: 'equipa', label: 'Nova pessoa na equipa' }]),
       {
         id: 'equipa', label: 'Equipa',
-        load: async () => (await getCollection('team')).sort(byOrder).map((e) => ({
+        load: async () => (await getCollection('team')).sort(byOrder).map((e, _i, all) => ({
           id: e.id, label: e.data.name, meta: e.data.role.pt, data: e.data, body: e.body, viewPath: pagePath('about'),
-          thumb: keyOf(e.data.portrait), draftKeys: [`equipa/${e.id}:`],
+          thumb: keyOf(e.data.portrait), draftKeys: [`equipa/${e.id}:`], deletable: true, deleteHint: HINT.equipa,
+          deleteBlocked: all.length <= 1 ? 'É a última pessoa da equipa, e a página Sobre precisa de pelo menos uma. Acrescente outra pessoa primeiro.' : undefined,
         })),
       },
     ],
@@ -99,11 +125,12 @@ export const AREAS: AdminArea[] = [
     id: 'comercial', label: 'Comercial', section: 'commercial',
     groups: [
       page('services', 'services'),
+      adding([{ id: 'servico', label: 'Novo serviço' }]),
       {
         id: 'servicos', label: 'Serviços',
         load: async () => (await getCollection('services')).sort(byOrder).map((e) => ({
           id: e.id, label: e.data.title.pt, data: e.data, body: e.body, viewPath: pagePath('services'),
-          draftKeys: [`servico/${e.id}:`],
+          draftKeys: [`servico/${e.id}:`], deletable: true, deleteHint: HINT.servico,
         })),
       },
       {
@@ -120,8 +147,11 @@ export const AREAS: AdminArea[] = [
       page('portfolio', 'portfolio'),
       // Above the projects, not under all of them: an owner looked for it and did not find it (2026-11-07).
       {
-        id: 'novo', label: 'Novo projeto',
-        load: async () => [{ id: 'projeto', label: 'Criar um projeto novo', data: null, viewPath: null }],
+        id: 'novo', label: 'Novo',
+        load: async () => [
+          { id: 'projeto', label: 'Novo projeto', data: null, viewPath: null },
+          { id: 'categoria', label: 'Nova categoria', data: null, viewPath: null },
+        ],
       },
       {
         id: 'projetos', label: 'Projetos',
@@ -143,6 +173,7 @@ export const AREAS: AdminArea[] = [
               hidden: Boolean(e.data.draft),
             },
             deletable: true,
+            deleteHint: HINT.projeto,
           })),
       },
       {
@@ -161,6 +192,13 @@ export const AREAS: AdminArea[] = [
               viewPath: e.data.hidden ? null : categoryPath(e.id),
               thumb: keyOf(inIt[0]?.data.poster),
               draftKeys: [`categoria/${e.id}:`],
+              deletable: true,
+              deleteHint: HINT.categoria,
+              deleteBlocked: inIt.length
+                ? `Ainda tem ${inIt.length} ${inIt.length === 1 ? 'projeto' : 'projetos'}. Mude-${inIt.length === 1 ? 'o' : 'os'} para outra categoria no formulário de cada projeto antes de apagar esta.`
+                : PAGE_CONTENT.services.categories.includes(e.id)
+                  ? 'Está no carrossel da página Serviços. Tire-a de lá («Projetos no carrossel», em Comercial › Páginas) antes de a apagar.'
+                  : undefined,
             };
           });
         },

@@ -17,7 +17,9 @@
  *   5. the build's own schema for every file written (422);
  *   6. one commit or none (github.ts `commitFiles`, fast-forward only). Removing a
  *      project (`projeto/<slug>:apagar`) is part of the same commit: its file deleted and
- *      recorded (projects.ts `removalWrites`), its media left where it is.
+ *      recorded (projects.ts `removalWrites`), its media left where it is. Adding or
+ *      removing a team member, service or category (`<prefix>/novo-…:criar`,
+ *      `<prefix>/<id>:apagar`) is part of it too (entries.ts, phase 2 of the redesign).
  * Nothing the owner typed is logged.
  */
 import type { APIRoute } from 'astro';
@@ -33,7 +35,11 @@ import {
   removalWrites, PROJECTS_DIR, type ProjectWrite,
 } from '../../lib/admin/projects.ts';
 import { projectContext } from '../../lib/admin/project-context.ts';
-import { ENTRY_ID, applyEntryEdits, entryData, entryFilePath, entryTypeOf, entryValue } from '../../lib/admin/entries.ts';
+import {
+  CREATE_FIELD, ENTRY_ID, ENTRY_REMOVE_FIELD, NEW_ENTRY_ID, REMOVED_CATEGORIES_PATH, applyEntryEdits, entryData, entryFilePath, entryRemovalWrites,
+  entryTypeOf, entryValue, newEntryFile, type EntryType, type EntryWrite,
+} from '../../lib/admin/entries.ts';
+import { getMedia } from '../../lib/media.ts';
 
 export const prerender = false;
 
@@ -62,12 +68,22 @@ export const POST: APIRoute = async ({ request }) => {
   const orderDraft = drafts[ORDER_DRAFT];
   /** Projects to remove: slug → the title the owner confirmed. */
   const removals = new Map<string, string>();
+  /** Team members, services and categories to add, and to remove. */
+  const entryCreates: { t: EntryType; raw: string }[] = [];
+  const entryRemovals: { t: EntryType; id: string; confirmed: string }[] = [];
   for (const [name, d] of Object.entries(drafts)) {
     const [file = '', field = ''] = name.split(':');
     if (name === ORDER_DRAFT) continue;
     const [prefix = '', id = ''] = file.split('/');
     if (entryTypeOf(prefix)) {
+      const t = entryTypeOf(prefix)!;
+      if (field === CREATE_FIELD) {
+        if (!NEW_ENTRY_ID.test(id)) return answer(400, { error: 'Pedido inválido.' });
+        entryCreates.push({ t, raw: d.to });
+        continue;
+      }
       if (!ENTRY_ID.test(id)) return answer(400, { error: 'Pedido inválido.' });
+      if (field === ENTRY_REMOVE_FIELD) { entryRemovals.push({ t, id, confirmed: d.to }); continue; }
       entryDrafts.set(file, { ...entryDrafts.get(file), [field]: d });
       continue;
     }
@@ -78,8 +94,9 @@ export const POST: APIRoute = async ({ request }) => {
       projectDrafts.set(slug, { ...projectDrafts.get(slug), [field]: d });
     } else pageDrafts[name] = d;
   }
-  // Edits to a project that is being removed go with it.
+  // Edits to a project or an entry that is being removed go with it.
   for (const slug of removals.keys()) projectDrafts.delete(slug);
+  for (const r of entryRemovals) entryDrafts.delete(`${r.t.prefix}/${r.id}`);
   const pageEdits = Object.fromEntries(Object.entries(pageDrafts).map(([n, d]) => [n, d.to]));
 
   // The page files the drafts touch: the `file` part of every `file:path#lang` name.
@@ -188,6 +205,60 @@ export const POST: APIRoute = async ({ request }) => {
       projectChanged.push(...applied.changed.map((c) => `${name} — ${c}`));
     }
 
+    /* Adding and removing entries. Each type's files are read once, with their SHAs, so a
+       deletion is checked against the file as it is now, like any other write. */
+    const entryAdds: EntryWrite[] = [];
+    if ((entryCreates.length || entryRemovals.length) && !stale.length) {
+      const filesOf = new Map<string, { id: string; text: string; sha: string }[]>();
+      const read = async (t: EntryType) => {
+        const known = filesOf.get(t.prefix);
+        if (known) return known;
+        const paths = (await listFiles(cfg, t.dir)).filter((p) => p.endsWith(t.ext));
+        const files = await Promise.all(paths.map(async (p) => ({ id: p.slice(t.dir.length + 1, -t.ext.length), ...(await readFile(cfg, p)) })));
+        filesOf.set(t.prefix, files);
+        return files;
+      };
+      const mediaKind = (key: string) => getMedia(key)?.kind ?? null;
+      for (const c of entryCreates) {
+        const existing = [...await read(c.t), ...entryAdds.filter((w) => 'text' in w && w.path.startsWith(`${c.t.dir}/`))
+          .map((w) => ({ id: w.path.slice(c.t.dir.length + 1, -c.t.ext.length), text: (w as { text: string }).text, sha: '' }))];
+        const made = newEntryFile(c.t, c.raw, existing, { mediaKind, today });
+        entryAdds.push({ path: made.path, text: made.text });
+        projectChanged.push(`${c.t.noun} «${made.name}» — Acrescentado`);
+      }
+      if (entryRemovals.length) {
+        const slugs = await allSlugs();
+        const projectsNow = slugs.map((slug) => {
+          const data = projectData(projects.get(slug)!.original);
+          return { slug, title: projectValue(data, 'title.pt'), categories: (data['categories'] as string[] | undefined) ?? [] };
+        }).filter((p) => !removals.has(p.slug)); // a project removed in this commit no longer counts
+        const services = JSON.parse((await readFile(cfg, pageFilePath('services'))).text) as { categories?: string[] };
+        // A Serviços draft published in this same commit decides the carousel's categories.
+        const carouselDraft = pageEdits['services:categories'];
+        const carousel = carouselDraft ? (JSON.parse(carouselDraft) as string[]) : (services.categories ?? []);
+        let record = await readFile(cfg, REMOVED_CATEGORIES_PATH).catch(() => ({ text: '{\n  "removed": []\n}\n', sha: '' }));
+        for (const r of entryRemovals) {
+          const existing = await read(r.t);
+          const writes = entryRemovalWrites(r.t, r.id, r.confirmed, {
+            existing, projects: projectsNow, carouselCategories: carousel, removedCategoriesText: record.text, today,
+          });
+          for (const w of writes) {
+            if (w.path === REMOVED_CATEGORIES_PATH && 'text' in w) {
+              if (record.sha) current[REMOVED_CATEGORIES_PATH] = record.sha;
+              record = { text: w.text, sha: record.sha };
+              continue;
+            }
+            current[w.path] = existing.find((f) => entryFilePath(r.t, f.id) === w.path)?.sha ?? '';
+            entryAdds.push(w);
+          }
+          // Two removals in one commit see each other: the second may not empty the team.
+          filesOf.set(r.t.prefix, existing.filter((f) => f.id !== r.id));
+          projectChanged.push(`${r.t.noun} «${r.confirmed}» — Apagado do site`);
+        }
+        if (entryRemovals.some((r) => r.t.prefix === 'categoria')) entryAdds.push({ path: REMOVED_CATEGORIES_PATH, text: record.text });
+      }
+    }
+
     const projectWrites: { path: string; text: string }[] = [];
     for (const [slug, f] of projects) {
       if (f.text === f.original || removals.has(slug)) continue;
@@ -203,7 +274,7 @@ export const POST: APIRoute = async ({ request }) => {
     }
 
     const { docs: next, changed } = applyEdits([...fields.values()], docs, pageEdits, today);
-    if (!changed.length && !projectWrites.length && !entryWrites.length && !removed.length) return answer(200, { nothing: true });
+    if (!changed.length && !projectWrites.length && !entryWrites.length && !removed.length && !entryAdds.length) return answer(200, { nothing: true });
 
     const touched = [...new Set(changed.map((c) => c.file))];
     for (const file of touched) {
@@ -214,7 +285,7 @@ export const POST: APIRoute = async ({ request }) => {
     const labels = [...changed.map((c) => c.label), ...projectChanged];
     const pages = [...new Set(labels.map((l) => l.split(' — ')[0]))];
     const message = `content: ${pages.join(', ')}\n\n${labels.map((l) => `- ${l}`).join('\n')}\n\nPublicado no admin por ${g.who.email}.`;
-    const writes = [...touched.map((file) => ({ path: pageFilePath(file), text: serialise(next[file]) })), ...projectWrites, ...entryWrites, ...removed];
+    const writes = [...touched.map((file) => ({ path: pageFilePath(file), text: serialise(next[file]) })), ...projectWrites, ...entryWrites, ...removed, ...entryAdds];
     const { commit } = await commitFiles(
       cfg,
       writes,

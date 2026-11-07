@@ -2288,3 +2288,46 @@ Checked in `astro dev` against `mock:github`: edit then Guardar, edit then Cance
 Desfazer, delete then Publicar (one commit holding both changes), filters, search, sort, the
 no-results state and pagination, and 375 px with no sideways scroll. The verify chain passed on an
 LF copy, except `validate:media` (no local media copy).
+
+## 39. Admin redesign, phases 2 and 3 (2026-11-07)
+
+**Phase 2: add and delete for team members, services and categories.** It works like a project:
+both are drafts and go out with Publicar.
+
+- **Add** is the green + on the Equipa, Serviços and Categorias tabs. It opens a short form
+  (src/admin/EntryCreate.astro): for a person, name, role in both languages and a portrait from
+  the site's images; for a service, name and description in both languages; for a category, the
+  name in both languages, with its address previewed. "Criar" writes one draft,
+  `<prefix>/novo-<tempid>:criar`, and the grid shows the entry as "Novo, por publicar" with
+  Desfazer. At Publicar, entries.ts `newEntryFile` checks every field again, makes the address
+  from the name, refuses one already taken, and writes the file with `ownerEdited` (A2) and the
+  next order. A person's links and an uploaded portrait are added afterwards in their edit form.
+- **Delete** is the bin on each card, the same confirmation as projects, and
+  `<prefix>/<id>:apagar`. entries.ts `entryRemovalWrites` refuses the team's last person, and a
+  category that a project still uses or that is in the Serviços carousel, naming what blocks it.
+  The card already knows the common cases from the site as built: its bin then explains why,
+  and Apagar is not offered. A deleted category is recorded in src/data/removed-categories.json,
+  and build-redirects sends its two addresses to the portfolio.
+- **Validators.** validate:data no longer expects exactly 4 services and 2 people: the team needs
+  at least one person, and the archived roles are still checked word for word while their file
+  exists and has no `ownerEdited`. validate:routes expects one archive per visible category,
+  counted from the content. test:admin has six new checks (71 in all).
+
+**Phase 3: overview, phones, polish.**
+
+- The overview's section cards show how many changes wait in each section, and a line above
+  them shows the total.
+- On a phone, the four project filters fold into one "Filtros" button, which shows how many are
+  in use. On a wider screen the button is hidden and the filters sit in the toolbar row.
+- The Publicar list says "entra no site" and "sai do site" for added and deleted entries,
+  instead of their raw data. The scrollbars use the admin's own colours.
+
+Checked in `astro dev` against `mock:github`: adding a person (an empty form names the
+missing field), adding a category (its address previewed), and deleting a service went out
+together as one commit. The files read back from the mock were correct. A category still in
+use was refused at Publicar, naming its six projects, with the drafts kept; its bin now
+explains the block before anything is marked. On an LF copy with those files in place (Ana Sá,
+Música, the service removed, a removed category recorded), the build and every validator passed.
+Música got its archive in both languages, /sobre/ showed three people, and `_redirects` sent
+the removed category to the portfolio. The overview counts and the phone filters were checked at
+1440 and 375 px.

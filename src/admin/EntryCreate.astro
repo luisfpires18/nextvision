@@ -1,0 +1,75 @@
+---
+/**
+ * Adding a team member, a service or a category (docs/ADMIN_REDESIGN_PLAN.md, phase 2).
+ *
+ * The form does not write anything itself. "Criar" (in the modal's footer) turns it into
+ * one draft, `<prefix>/novo-<tempid>:criar`, holding the fields as JSON, and the card
+ * appears in the grid as "Novo, por publicar" until Publicar writes the file. The server
+ * checks every field again (entries.ts `newEntryFile`) and refuses an address already
+ * taken. A person's links are added afterwards, in the person's own edit form.
+ */
+import { MEDIA, thumb } from './media-options.ts';
+import { ENTRY_TYPES } from '../lib/admin/entries.ts';
+
+interface Props { prefix: 'equipa' | 'servico' | 'categoria' }
+const { prefix } = Astro.props;
+const noun = ENTRY_TYPES[prefix]!.noun;
+const firstImage = MEDIA.image[0]?.[1][0] ?? '';
+---
+
+<form class="admin-editor" id="create-entry" data-create-entry data-prefix={prefix} data-noun={noun} novalidate>
+  {prefix === 'equipa' ? (
+    <>
+      <fieldset class="ed-field">
+        <legend>Nome</legend>
+        <p class="ed-note">Como aparece na página Sobre. Igual em português e em inglês.</p>
+        <input type="text" name="name" required maxlength="80" autocomplete="off" />
+      </fieldset>
+      <fieldset class="ed-field">
+        <legend>Função</legend>
+        <div class="ed-pair">
+          <label><span class="f-lang">Português</span><input type="text" name="rolePt" required maxlength="120" /></label>
+          <label><span class="f-lang">Inglês</span><input type="text" name="roleEn" required maxlength="120" /></label>
+        </div>
+      </fieldset>
+      <fieldset class="ed-field ed-media">
+        <legend>Retrato</legend>
+        <p class="ed-note">Escolha uma imagem que já está no site. Para usar uma fotografia nova, crie a pessoa e depois carregue o retrato no formulário dela.</p>
+        <div class="ed-media__row">
+          <img src={thumb(firstImage)} alt="" data-preview-for="create-portrait" width="160" height="90" />
+          <label class="ed-media__pick">
+            <span class="f-lang">Imagem</span>
+            <select id="create-portrait" name="portrait" required>
+              {MEDIA.image.map(([group, keys]) => (
+                <optgroup label={group}>
+                  {keys.map((k) => <option value={k} data-thumb={thumb(k)}>{k.split('/').slice(1).join(' / ')}</option>)}
+                </optgroup>
+              ))}
+            </select>
+          </label>
+        </div>
+      </fieldset>
+    </>
+  ) : (
+    <>
+      <fieldset class="ed-field">
+        <legend>Nome</legend>
+        {prefix === 'categoria' ? <p class="ed-note">O endereço da categoria é feito a partir do nome em português e não muda depois: <strong data-slug-preview>/categoria-portfolio/…/</strong></p> : null}
+        <div class="ed-pair">
+          <label><span class="f-lang">Português</span><input type="text" name="namePt" required maxlength="80" autocomplete="off" data-slug-from={prefix === 'categoria' ? '' : undefined} /></label>
+          <label><span class="f-lang">Inglês</span><input type="text" name="nameEn" required maxlength="80" autocomplete="off" /></label>
+        </div>
+      </fieldset>
+      {prefix === 'servico' ? (
+        <fieldset class="ed-field">
+          <legend>Descrição</legend>
+          <div class="ed-pair">
+            <label><span class="f-lang">Português</span><textarea name="descriptionPt" rows="5" required lang="pt-PT"></textarea></label>
+            <label><span class="f-lang">Inglês</span><textarea name="descriptionEn" rows="5" required lang="en"></textarea></label>
+          </div>
+        </fieldset>
+      ) : null}
+    </>
+  )}
+  <p class="ed-message" role="status" aria-live="polite" data-message></p>
+</form>
