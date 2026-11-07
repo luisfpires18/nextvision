@@ -6,7 +6,7 @@ role:
   pt: "Co-founder & Producer"
   en: "Co-founder & Producer"
 portrait:
-  key: "team/helder-afonso/portrait"
+  key: "owner/41549fb494bf/image"
   altStatus: todo
 links:
   - label: "Instagram"
@@ -15,6 +15,6 @@ links:
 # The role above was supplied by the owners on 2026-10-29 (bug report from a screenshot),
 # in English, for both locales. It replaces the archived /sobre/ role, which stays in
 # docs/source-archive/pages.json; ownerEdited is how validate:data records that (A2).
-ownerEdited: 2026-10-29
+ownerEdited: 2026-11-07
 order: 2
 ---
