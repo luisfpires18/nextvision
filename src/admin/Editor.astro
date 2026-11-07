@@ -38,7 +38,7 @@ const source = (from: string) => from.startsWith('owner:')
 ---
 
 <form class="admin-editor" data-editor data-screen={screen} novalidate>
-  {fields.filter((f) => !f.uploadOnly).map((f) => {
+  {fields.filter((f) => !f.uploadOnly && !f.elsewhere).map((f) => {
     const value = getAt(docs[f.file], f.key);
     if (isListKind(f.kind)) {
       /* This list's upload slots: a new item at the end, or a film's cover as it is published now. */
@@ -93,6 +93,25 @@ const source = (from: string) => from.startsWith('owner:')
               <p class="ed-source">{source(p.from)}</p>
             </>
           )}
+        </fieldset>
+      );
+    }
+    if (f.kind === 'pair') {
+      const p = value as { pt: string; en: string };
+      return (
+        <fieldset class="ed-field" data-field>
+          <legend>{f.label}</legend>
+          {f.note ? <p class="ed-note">{f.note}</p> : null}
+          <div class="ed-pair">
+            <label>
+              <span class="f-lang">Português</span>
+              <input type="text" name={fieldName(f, 'pt')} value={p.pt} data-original={p.pt} data-label={named(f, 'PT')} maxlength="40" required />
+            </label>
+            <label>
+              <span class="f-lang">Inglês</span>
+              <input type="text" name={fieldName(f, 'en')} value={p.en} data-original={p.en} data-label={named(f, 'EN')} maxlength="40" required />
+            </label>
+          </div>
         </fieldset>
       );
     }

@@ -128,7 +128,7 @@ export function applyEdits(
   const byName = new Map<string, { field: Field; lang?: 'pt' | 'en' }>();
   for (const f of fields) {
     if (f.uploadOnly) continue;
-    if (f.kind === 'text') {
+    if (f.kind === 'text' || f.kind === 'pair') {
       byName.set(fieldName(f, 'pt'), { field: f, lang: 'pt' });
       byName.set(fieldName(f, 'en'), { field: f, lang: 'en' });
     } else byName.set(fieldName(f), { field: f });
@@ -164,6 +164,20 @@ export function applyEdits(
 
       const from = text === before.text ? before.from : `owner:${today}`;
       setAt(doc, f.key, { text, from, en: english });
+      changed.push({ file: f.file, label: f.label });
+    } else if (f.kind === 'pair') {
+      const pt = edits[fieldName(f, 'pt')];
+      const en = edits[fieldName(f, 'en')];
+      if (pt === undefined && en === undefined) continue;
+      const before = getAt(doc, f.key) as { pt?: string; en?: string } | undefined;
+      if (!before || typeof before.pt !== 'string') throw new EditError(`«${f.label}» não existe neste ficheiro.`);
+      const nextPt = (pt ?? before.pt).trim();
+      const nextEn = (en ?? before.en ?? '').trim();
+      if (!nextPt) throw new EditError(`«${f.label}»: o texto em português não pode ficar vazio.`);
+      if (!nextEn) throw new EditError(`«${f.label}»: falta o texto em inglês.`);
+      if (/\n/.test(nextPt + nextEn)) throw new EditError(`«${f.label}»: tem de caber numa linha.`);
+      if (nextPt === before.pt && nextEn === before.en) continue;
+      setAt(doc, f.key, { pt: nextPt, en: nextEn });
       changed.push({ file: f.file, label: f.label });
     } else if (isListKind(f.kind)) {
       const raw = edits[fieldName(f)];
@@ -201,7 +215,8 @@ export function liveValue(docs: Partial<Record<PageFileName, unknown>>, name: st
   const [file, rest = ''] = name.split(':') as [PageFileName, string];
   const [path = '', lang] = rest.split('#');
   const v = getAt(docs[file], path);
-  if (lang === 'pt') return (v as Published | undefined)?.text;
+  // A published string is { text, from, en }; a plain name (`pair`) is { pt, en }.
+  if (lang === 'pt') return (v as Published | undefined)?.text ?? (v as { pt?: string } | undefined)?.pt;
   if (lang === 'en') return (v as Published | undefined)?.en ?? '';
   return Array.isArray(v) ? JSON.stringify(v) : v;
 }

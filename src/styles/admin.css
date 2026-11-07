@@ -532,3 +532,10 @@
   .ed-media__row { flex-direction: column; align-items: stretch; }
   .pub-list li { grid-template-columns: 1fr; }
 }
+
+/* Comercial's lists (ListGrid.astro): the projects that follow the carousel's images. */
+.ad-listgrid { display: grid; gap: var(--space-5); }
+.ad-following { display: grid; gap: var(--space-3); padding-block-start: var(--space-5); border-block-start: var(--admin-hairline) solid var(--a-line); }
+.ad-following__head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-3); }
+.ad-following h3 { font-size: var(--t-body); font-weight: 600; }
+.ad-following .ad-card__title { font-size: var(--t-body); font-weight: 600; line-height: var(--lh-tight); }

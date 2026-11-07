@@ -19,7 +19,7 @@
  * Pure data, no imports, so the edit rules and their test can use it anywhere.
  */
 
-export type PageFileName = 'home' | 'about' | 'services' | 'contact' | 'thanks' | 'portfolio' | 'bts';
+export type PageFileName = 'home' | 'about' | 'services' | 'contact' | 'thanks' | 'portfolio' | 'bts' | 'brand';
 
 export interface FieldDef {
   file: PageFileName;
@@ -35,7 +35,8 @@ export interface FieldDef {
    * reordered in the browser: `images` (image keys), `films` ({ id, title, poster }) and
    * `categories` (category slugs).
    */
-  kind: 'text' | 'image' | 'video' | 'film' | 'line' | ListKind;
+  /** `pair` is a plain name in both languages, `{ pt, en }`, with no archive behind it. */
+  kind: 'text' | 'image' | 'video' | 'film' | 'line' | 'pair' | ListKind;
   note?: string;
   /** Shown but not editable, and why. */
   locked?: string;
@@ -44,6 +45,12 @@ export interface FieldDef {
    * field above it already edits the value. Never a draft.
    */
   uploadOnly?: true;
+  /**
+   * Edited on its own screen rather than in the page form (the Serviços carousel and
+   * videos have their own Comercial tabs, ListGrid.astro). Still a field: Publicar
+   * accepts its drafts like any other.
+   */
+  elsewhere?: true;
 }
 
 export type ListKind = 'images' | 'films' | 'categories';
@@ -56,8 +63,6 @@ const LOCK_FORM = 'Os campos do formulário estão ligados ao envio das mensagen
 export const SCREENS: Record<PageFileName, FieldDef[]> = {
   home: [
     { file: 'home', path: 'heroVideo', label: 'Vídeo da página inicial', kind: 'video', note: 'O filme de fundo. A imagem de capa vem com ele.' },
-    { file: 'home', path: 'copy.heroLineA', label: 'Frase de abertura, 1.ª linha', kind: 'text' },
-    { file: 'home', path: 'copy.heroLineB', label: 'Frase de abertura, 2.ª linha', kind: 'text' },
     { file: 'home', path: 'copy.workBody', label: 'Frase para pesquisa no Google', kind: 'text', note: 'Não aparece na página: é a descrição que o Google mostra para a página inicial e o portfólio.' },
     { file: 'home', path: 'copy.copyright', label: 'Copyright', kind: 'text', locked: 'O ano é posto automaticamente. O resto do texto é fixo.' },
   ],
@@ -69,11 +74,11 @@ export const SCREENS: Record<PageFileName, FieldDef[]> = {
   ],
   services: [
     { file: 'home', path: 'copy.servicesTitle', label: 'Título da página', kind: 'text' },
-    { file: 'services', path: 'collage', label: 'Imagens do carrossel', kind: 'images', note: 'As imagens com que o carrossel abre, por ordem. A segunda aparece à frente. Depois delas vêm os projetos das categorias abaixo.' },
+    { file: 'services', path: 'collage', label: 'Imagens do carrossel', kind: 'images', elsewhere: true, note: 'As imagens com que o carrossel abre, por ordem. A segunda aparece à frente. Depois delas vêm os projetos das categorias abaixo.' },
     { file: 'services', path: 'collage.+', label: 'Nova imagem do carrossel', kind: 'image', uploadOnly: true },
-    { file: 'services', path: 'categories', label: 'Projetos no carrossel', kind: 'categories', note: 'Os projetos destas categorias entram no carrossel depois das imagens, pela ordem do portfólio.' },
-    { file: 'services', path: 'films', label: 'Vídeos do YouTube', kind: 'films', note: 'Os vídeos por baixo do carrossel, de cima para baixo. Pode não haver nenhum.' },
-    { file: 'services', path: 'films.*.poster', label: 'Capa do vídeo', kind: 'image', uploadOnly: true },
+    { file: 'services', path: 'categories', label: 'Projetos no carrossel', kind: 'categories', elsewhere: true, note: 'Os projetos destas categorias entram no carrossel depois das imagens, pela ordem do portfólio.' },
+    { file: 'services', path: 'films', label: 'Vídeos do YouTube', kind: 'films', elsewhere: true, note: 'Os vídeos por baixo do carrossel, de cima para baixo. Pode não haver nenhum.' },
+    { file: 'services', path: 'films.*.poster', label: 'Capa do vídeo', kind: 'image', uploadOnly: true, elsewhere: true },
     { file: 'services', path: 'leadImage', label: 'Imagem de partilha', kind: 'image', note: 'Não aparece na página: é a imagem mostrada quando a página é partilhada.' },
     { file: 'home', path: 'copy.servicesLeadFull', label: 'Frase para pesquisa no Google', kind: 'text', locked: LOCK_LEAD, note: 'Não aparece na página: é a descrição que o Google mostra para esta página.' },
   ],
@@ -101,6 +106,19 @@ export const SCREENS: Record<PageFileName, FieldDef[]> = {
     { file: 'portfolio', path: 'copy.all', label: 'Filtro «todos»', kind: 'text' },
   ],
   bts: [],
+  /* The words several pages repeat (page-content.ts `brand`), added 2026-11-07 after the
+     page-by-page audit: before, they were fixed in code. */
+  brand: [
+    { file: 'brand', path: 'tagline', label: 'Frase da marca', kind: 'line', note: 'Aparece por baixo do logótipo na página inicial, e nas páginas Sobre e Cinema.' },
+    { file: 'brand', path: 'hello', label: 'Palavra da abertura', kind: 'line', note: 'A palavra grande da animação de abertura, na primeira visita à página inicial.' },
+    { file: 'brand', path: 'talk.a', label: 'Bobine, 1.ª linha', kind: 'line', note: 'A bobine no fim das páginas Sobre e Serviços, que leva aos contactos.' },
+    { file: 'brand', path: 'talk.b', label: 'Bobine, 2.ª linha', kind: 'line' },
+    { file: 'brand', path: 'menu.home', label: 'Nome da secção Início', kind: 'pair', note: 'No menu, no rodapé e na lateral das páginas.' },
+    { file: 'brand', path: 'menu.about', label: 'Nome da secção Sobre', kind: 'pair' },
+    { file: 'brand', path: 'menu.commercial', label: 'Nome da secção Comercial', kind: 'pair' },
+    { file: 'brand', path: 'menu.cinema', label: 'Nome da secção Cinema', kind: 'pair' },
+    { file: 'brand', path: 'menu.bts', label: 'Nome da secção Know more about us', kind: 'pair', note: 'É também o título dessa página.' },
+  ],
 };
 
 /** Each screen's name, as the admin's navigation shows it. */
@@ -112,6 +130,7 @@ export const SCREEN_LABELS: Record<PageFileName, string> = {
   thanks: 'Página Obrigado',
   portfolio: 'Página Portfólio',
   bts: 'Página Know more about us',
+  brand: 'Textos do site',
 };
 
 /** Every repository path a screen may write. */

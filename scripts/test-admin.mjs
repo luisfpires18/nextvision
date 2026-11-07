@@ -39,20 +39,20 @@ const TODAY = '2026-10-22';
 {
   const docs = docsFor('home');
   const fields = expandFields(SCREENS.home, docs);
-  const hero = fields.find((f) => f.key === 'copy.heroLineA');
+  const hero = fields.find((f) => f.key === 'copy.workBody'); // a published, archived string
   const copyright = fields.find((f) => f.key === 'copy.copyright');
   const video = fields.find((f) => f.key === 'heroVideo');
 
   await check('a changed Portuguese text becomes owner copy, dated', () => {
     const { docs: next, changed } = applyEdits(fields, docs, { [fieldName(hero, 'pt')]: 'Captamos o mundo' }, TODAY);
-    assert.deepEqual(next.home.copy.heroLineA, { text: 'Captamos o mundo', from: `owner:${TODAY}`, en: docs.home.copy.heroLineA.en });
+    assert.deepEqual(next.home.copy.workBody, { text: 'Captamos o mundo', from: `owner:${TODAY}`, en: docs.home.copy.workBody.en });
     assert.deepEqual(changed, [{ file: 'home', label: hero.label }]);
-    assert.equal(docs.home.copy.heroLineA.from, '/', 'the original is not mutated');
+    assert.equal(docs.home.copy.workBody.from, '/', 'the original is not mutated');
   });
   await check('an English-only change keeps the archived source', () => {
     const { docs: next } = applyEdits(fields, docs, { [fieldName(hero, 'en')]: 'We capture emotions' }, TODAY);
-    assert.equal(next.home.copy.heroLineA.from, '/');
-    assert.equal(next.home.copy.heroLineA.en, 'We capture emotions');
+    assert.equal(next.home.copy.workBody.from, '/');
+    assert.equal(next.home.copy.workBody.en, 'We capture emotions');
   });
   await check('an empty Portuguese text is refused', () => {
     assert.throws(() => applyEdits(fields, docs, { [fieldName(hero, 'pt')]: '   ' }, TODAY), EditError);
@@ -68,7 +68,7 @@ const TODAY = '2026-10-22';
     assert.throws(() => applyEdits(fields, docs, { 'home:wordpressExcerpt': 'x' }, TODAY), /desconhecido/);
   });
   await check('the same value is no change', () => {
-    const { changed } = applyEdits(fields, docs, { [fieldName(hero, 'pt')]: docs.home.copy.heroLineA.text, [fieldName(video)]: docs.home.heroVideo }, TODAY);
+    const { changed } = applyEdits(fields, docs, { [fieldName(hero, 'pt')]: docs.home.copy.workBody.text, [fieldName(video)]: docs.home.heroVideo }, TODAY);
     assert.equal(changed.length, 0);
   });
   await check('a media field takes a key', () => {
@@ -77,7 +77,7 @@ const TODAY = '2026-10-22';
   });
   await check('Windows line endings are stored as \\n', () => {
     const { docs: next } = applyEdits(fields, docs, { [fieldName(hero, 'pt')]: 'a\r\nb' }, TODAY);
-    assert.equal(next.home.copy.heroLineA.text, 'a\nb');
+    assert.equal(next.home.copy.workBody.text, 'a\nb');
   });
   await check('serialise matches the files on disk byte for byte', () => {
     assert.equal(serialise(read('home')), fs.readFileSync('src/content/page-content/home.json', 'utf8'));
@@ -86,8 +86,8 @@ const TODAY = '2026-10-22';
 
 await check('per-field freshness reads the live value each draft name points at', () => {
   const docs = { home: read('home'), services: read('services') };
-  assert.equal(liveValue(docs, 'home:copy.heroLineA#pt'), docs.home.copy.heroLineA.text);
-  assert.equal(liveValue(docs, 'home:copy.heroLineA#en'), docs.home.copy.heroLineA.en);
+  assert.equal(liveValue(docs, 'home:copy.workBody#pt'), docs.home.copy.workBody.text);
+  assert.equal(liveValue(docs, 'home:copy.workBody#en'), docs.home.copy.workBody.en);
   assert.equal(liveValue(docs, 'home:heroVideo'), docs.home.heroVideo);
   assert.equal(liveValue(docs, 'services:leadImage'), docs.services.leadImage);
   assert.equal(liveValue(docs, 'home:nope#pt'), undefined, 'an unknown field is never "fresh"');
@@ -97,12 +97,29 @@ await check('drafts from several pages and files apply in one go', () => {
   const other = read('contact').banner;
   const fields = [...expandFields(SCREENS.home, docs), ...expandFields(SCREENS.about, docs), ...expandFields(SCREENS.services, docs)];
   const { docs: next, changed } = applyEdits(fields, docs, {
-    'home:copy.heroLineA#en': 'We capture feeling',
+    'home:copy.workBody#en': 'We capture feeling',
     'about:copy.storyB#en': 'x',
     'services:leadImage': other,
   }, TODAY);
   assert.deepEqual([...new Set(changed.map((c) => c.file))].sort(), ['about', 'home', 'services']);
   assert.equal(next.services.leadImage, other);
+});
+
+await check('the site texts: a line, and a name in both languages', () => {
+  const docs = { brand: read('brand') };
+  const fields = expandFields(SCREENS.brand, docs);
+  const tagline = fields.find((f) => f.key === 'tagline');
+  const bts = fields.find((f) => f.key === 'menu.bts');
+  const { docs: next, changed } = applyEdits(fields, docs, {
+    [fieldName(tagline)]: '  Loving every frame, always ',
+    [fieldName(bts, 'pt')]: 'Bastidores',
+  }, TODAY);
+  assert.equal(next.brand.tagline, 'Loving every frame, always');
+  assert.deepEqual(next.brand.menu.bts, { pt: 'Bastidores', en: docs.brand.menu.bts.en });
+  assert.equal(changed.length, 2);
+  assert.throws(() => applyEdits(fields, docs, { [fieldName(bts, 'en')]: '' }, TODAY), /inglês/);
+  assert.equal(liveValue(docs, 'brand:menu.bts#pt'), docs.brand.menu.bts.pt);
+  assert.equal(applyEdits(fields, docs, { [fieldName(bts, 'pt')]: docs.brand.menu.bts.pt }, TODAY).changed.length, 0);
 });
 
 await check('the services lists: add, remove, reorder, and each item checked', () => {
@@ -367,16 +384,23 @@ await check('every offered field exists in its file', () => {
     const both = applyEntryEdits(t, text, { 'description#pt': `${d.description.pt} Mais.`, 'excerpt#pt': 'Mais.' }, ectx);
     assert.equal(entryData(t, both.text).excerpt.pt, 'Mais.');
   });
-  await check('contacts: a phone is digits, a link is https, the email stays locked', () => {
+  await check('contacts: phones and networks are lists to add to and remove from; each row is checked', () => {
     const t = ENTRY_TYPES.definicoes;
     const text = read(t, 'site.yml');
-    const fields = entryFields(t, entryData(t, text)).map((f) => f.path);
-    assert.ok(fields.includes('phones.0.number') && fields.includes('socials.2.url'));
-    const { text: next } = applyEntryEdits(t, text, { 'phones.0.number': '+351 912 345 678' }, ectx);
-    assert.equal(entryData(t, next).phones[0].number, '+351912345678');
-    assert.equal(differing(text, next), 1);
-    assert.throws(() => applyEntryEdits(t, text, { 'phones.0.number': 'ligue-me' }, ectx), /algarismos/);
-    assert.throws(() => applyEntryEdits(t, text, { 'socials.0.url': 'youtube.com/x' }, ectx), /https/);
+    const d = entryData(t, text);
+    const fields = entryFields(t, d).map((f) => f.path);
+    assert.ok(fields.includes('phones') && fields.includes('socials'));
+    // Change the first number, drop the second, add a third: one list, in the order given.
+    const phones = [{ label: 'Principal', number: '+351 912 345 678' }, { label: 'Estúdio', number: '+351 210 000 000' }];
+    const { text: next } = applyEntryEdits(t, text, { phones: JSON.stringify(phones) }, ectx);
+    assert.deepEqual(entryData(t, next).phones, [{ label: 'Principal', number: '+351912345678' }, { label: 'Estúdio', number: '+351210000000' }]);
+    assert.deepEqual(entryData(t, next).socials, d.socials, 'the other list is untouched');
+    assert.throws(() => applyEntryEdits(t, text, { phones: JSON.stringify([{ label: 'x', number: 'ligue-me' }]) }, ectx), /algarismos/);
+    assert.throws(() => applyEntryEdits(t, text, { phones: JSON.stringify([{ label: '', number: '+351912345678' }]) }, ectx), /falta o nome/);
+    assert.throws(() => applyEntryEdits(t, text, { socials: JSON.stringify([{ platform: 'youtube', label: 'YouTube', url: 'youtube.com/x' }]) }, ectx), /https/);
+    assert.throws(() => applyEntryEdits(t, text, { socials: JSON.stringify([{ platform: 'myspace', label: 'x', url: 'https://x.pt/' }]) }, ectx), /rede da lista/);
+    assert.equal(applyEntryEdits(t, text, { socials: JSON.stringify(d.socials) }, ectx).changed.length, 0, 'the same list is no change');
+    assert.equal(entryData(t, applyEntryEdits(t, text, { socials: '[]' }, ectx).text).socials.length, 0);
     assert.throws(() => applyEntryEdits(t, text, { email: 'a@b.pt' }, ectx), /não pode ser alterado/);
   });
   await check('an entry the owners change is dated as theirs (decision A2)', () => {
@@ -384,15 +408,17 @@ await check('every offered field exists in its file', () => {
     const { text } = applyEntryEdits(t, read(t, 'helder-afonso.md'), { 'role#pt': 'Produção & Direção Artística' }, { ...ectx, today: '2026-10-22' });
     assert.match(text, /^ownerEdited: 2026-10-22$/m);
     const s = ENTRY_TYPES.definicoes;
-    assert.equal(entryData(s, applyEntryEdits(s, read(s, 'site.yml'), { 'phones.1.number': '+351911111111' }, { ...ectx, today: '2026-10-22' }).text).ownerEdited, '2026-10-22');
+    assert.equal(entryData(s, applyEntryEdits(s, read(s, 'site.yml'), { phones: JSON.stringify([{ label: 'Principal', number: '+351911111111' }]) }, { ...ectx, today: '2026-10-22' }).text).ownerEdited, '2026-10-22');
   });
   await check('a team portrait takes an image; unknown fields are refused', () => {
     const t = ENTRY_TYPES.equipa;
     const text = read(t, 'helder-afonso.md');
     assert.throws(() => applyEntryEdits(t, text, { 'portrait.key': 'owner/x/hero' }, ectx), /imagem/);
     assert.throws(() => applyEntryEdits(t, text, { order: '1' }, ectx), /desconhecido/);
-    const { changed } = applyEntryEdits(t, text, { 'links.0.url': 'https://www.instagram.com/outro/' }, ectx);
-    assert.deepEqual(changed, ['Ligação: Instagram']);
+    const links = [{ label: 'Instagram', url: 'https://www.instagram.com/outro/', platform: 'instagram' }, { label: 'Vimeo', url: 'https://vimeo.com/helder', platform: 'vimeo' }];
+    const { text: next, changed } = applyEntryEdits(t, text, { links: JSON.stringify(links) }, ectx);
+    assert.deepEqual(changed, ['Ligações']);
+    assert.deepEqual(entryData(t, next).links, links);
   });
 }
 

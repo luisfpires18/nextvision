@@ -28,7 +28,17 @@ const parseFront = (text: string): Document => {
   return doc;
 };
 
-export type EntryKind = 'pair' | 'text' | 'url' | 'phone' | 'image';
+/**
+ * `links`, `phones` and `socials` are a whole list in one field (JSON), added to,
+ * removed from and reordered in the browser (2026-11-07, after the page-by-page audit:
+ * before, an owner could change a link but not add or remove one).
+ */
+export type EntryKind = 'pair' | 'text' | 'url' | 'phone' | 'image' | EntryListKind;
+export type EntryListKind = 'links' | 'phones' | 'socials';
+export const isEntryList = (k: string): k is EntryListKind => k === 'links' || k === 'phones' || k === 'socials';
+/** The platforms each list accepts, as the content schema declares them. */
+export const LINK_PLATFORMS = ['instagram', 'linkedin', 'youtube', 'vimeo', 'other'] as const;
+export const SOCIAL_PLATFORMS = ['instagram', 'youtube', 'whatsapp', 'linkedin', 'vimeo', 'other'] as const;
 
 export interface EntryField {
   /** Dotted path; `*` expands to every item of a list that exists. */
@@ -89,7 +99,7 @@ export const ENTRY_TYPES: Record<string, EntryType> = {
       { path: 'name', label: 'Nome', kind: 'text' },
       { path: 'role', label: 'Função', kind: 'pair' },
       { path: 'portrait.key', label: 'Retrato', kind: 'image' },
-      { path: 'links.*.url', label: 'Ligação', kind: 'url' },
+      { path: 'links', label: 'Ligações', kind: 'links', note: 'Os ícones por baixo do nome, na página Sobre. Instagram e LinkedIn aparecem como ícone; os outros com o nome.' },
     ],
   },
   categoria: {
@@ -103,8 +113,8 @@ export const ENTRY_TYPES: Record<string, EntryType> = {
     prefix: 'definicoes', noun: 'Contactos', dir: 'src/content/settings', ext: '.yml', front: false, root: '0',
     name: () => 'Contactos e redes sociais',
     fields: [
-      { path: 'phones.*.number', label: 'Telefone', kind: 'phone' },
-      { path: 'socials.*.url', label: 'Rede social', kind: 'url' },
+      { path: 'phones', label: 'Telefones', kind: 'phones', note: 'Na página Contactos e no fim de outras páginas, por esta ordem.' },
+      { path: 'socials', label: 'Redes sociais', kind: 'socials', note: 'Na página Contactos, no rodapé e na página Know more about us, por esta ordem.' },
       {
         path: 'email', label: 'Email', kind: 'text',
         locked: 'Ainda não está decidido qual é o email oficial (há três diferentes no site antigo). Diga ao programador qual é, e ele ativa-o.',
@@ -157,6 +167,7 @@ export function entryFields(t: EntryType, data: Record<string, unknown>): EntryF
 export function entryValue(data: Record<string, unknown>, path: string, lang?: string): string {
   const v = getAt(data, path);
   if (lang) return (v as Pair | undefined)?.[lang as 'pt' | 'en'] ?? '';
+  if (Array.isArray(v)) return JSON.stringify(v);
   return v === undefined || v === null ? '' : String(v);
 }
 
@@ -206,6 +217,13 @@ export function applyEntryEdits(t: EntryType, text: string, edits: Record<string
     }
     const raw = edits[f.path];
     if (raw === undefined) continue;
+    if (isEntryList(f.kind)) {
+      const list = parseEntryList(f.kind, f.label, raw);
+      if (JSON.stringify(list) === entryValue(before, f.path)) continue;
+      doc.setIn(steps(t, f.path), list);
+      changed.push(f.label);
+      continue;
+    }
     const value = clean(raw);
     if (value === entryValue(before, f.path)) continue;
     if (!value) throw new EditError(`«${f.label}» não pode ficar vazio.`);
@@ -227,6 +245,37 @@ export function applyEntryEdits(t: EntryType, text: string, edits: Record<string
   // copy word for word (the two team roles) accept an entry that declares this.
   if (ctx.today) doc.setIn([...steps(t, 'ownerEdited')], ctx.today);
   return { text: close(t, doc, rest), changed };
+}
+
+/** A list field's JSON, checked item by item, in the order given. Refuses in the owners' words. */
+export function parseEntryList(kind: EntryListKind, label: string, raw: string): Record<string, string>[] {
+  let list: unknown;
+  try { list = JSON.parse(raw); } catch { list = null; }
+  if (!Array.isArray(list)) throw new EditError(`«${label}»: pedido inválido.`);
+  if (list.length > 12) throw new EditError(`«${label}»: no máximo 12.`);
+  const text = (v: unknown) => (typeof v === 'string' ? v.replace(/\s+/g, ' ').trim() : '');
+  const https = (n: string, v: string) => {
+    let ok = false;
+    try { ok = new URL(v).protocol === 'https:'; } catch { /* not a URL */ }
+    if (!ok) throw new EditError(`«${label}», ${n}: escreva o endereço completo, a começar por https://`);
+    return v;
+  };
+  return list.map((item, i) => {
+    const o = (item ?? {}) as Record<string, unknown>;
+    const n = `linha ${i + 1}`;
+    const name = text(o['label']);
+    if (!name) throw new EditError(`«${label}», ${n}: falta o nome.`);
+    if (kind === 'phones') {
+      const number = text(o['number']);
+      if (!/^\+?[0-9 ]{6,20}$/.test(number)) throw new EditError(`«${label}», ${n}: escreva só algarismos, com o indicativo, por exemplo +351 912 345 678.`);
+      return { label: name, number: number.replace(/ /g, '') };
+    }
+    const platforms: readonly string[] = kind === 'links' ? LINK_PLATFORMS : SOCIAL_PLATFORMS;
+    const platform = text(o['platform']) || 'other';
+    if (!platforms.includes(platform)) throw new EditError(`«${label}», ${n}: escolha a rede da lista.`);
+    const url = https(n, text(o['url']));
+    return kind === 'links' ? { label: name, url, platform } : { platform, url, label: name };
+  });
 }
 
 /** True when the file survives a parse and a write unchanged. */

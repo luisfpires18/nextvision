@@ -1,0 +1,15 @@
+{
+  "tagline": "Loving every frame",
+  "hello": "HELLO",
+  "talk": {
+    "a": "LET'S",
+    "b": "TALK"
+  },
+  "menu": {
+    "home": { "pt": "Homepage", "en": "Homepage" },
+    "about": { "pt": "About", "en": "About" },
+    "commercial": { "pt": "Commercial", "en": "Commercial" },
+    "cinema": { "pt": "Cinema", "en": "Cinema" },
+    "bts": { "pt": "Know more about us", "en": "Know more about us" }
+  }
+}

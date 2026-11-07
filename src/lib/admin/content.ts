@@ -69,6 +69,11 @@ export interface AdminGroup {
   id: string;
   label: string;
   load: () => Promise<AdminItem[]>;
+  /**
+   * A list inside a page file, shown as one card per item (ListGrid.astro): the carousel's
+   * images, the videos. Its items here only count; the grid is drawn from the file.
+   */
+  view?: 'images' | 'films';
 }
 
 export interface AdminArea {
@@ -121,24 +126,24 @@ export const AREAS: AdminArea[] = [
       },
     ],
   },
+  /*
+   * Comercial is what /servicos/ shows, in its order (owner feedback, 2026-11-07): the
+   * carousel, the videos, and the page's own words. The four services and the testimonials
+   * are not on the site (the owners took the services off on 2026-10-29), so they are not
+   * offered here; their files and the admin's add/delete for services stay, unused.
+   */
   {
     id: 'comercial', label: 'Comercial', section: 'commercial',
     groups: [
+      {
+        id: 'carrossel', label: 'Carrossel', view: 'images',
+        load: async () => PAGE_CONTENT.services.collage.map((key, i) => ({ id: String(i), label: `Imagem ${i + 1}`, data: key, viewPath: pagePath('services') })),
+      },
+      {
+        id: 'videos', label: 'Vídeos', view: 'films',
+        load: async () => PAGE_CONTENT.services.films.map((f, i) => ({ id: String(i), label: f.title, data: f, viewPath: pagePath('services') })),
+      },
       page('services', 'services'),
-      adding([{ id: 'servico', label: 'Novo serviço' }]),
-      {
-        id: 'servicos', label: 'Serviços',
-        load: async () => (await getCollection('services')).sort(byOrder).map((e) => ({
-          id: e.id, label: e.data.title.pt, data: e.data, body: e.body, viewPath: pagePath('services'),
-          draftKeys: [`servico/${e.id}:`], deletable: true, deleteHint: HINT.servico,
-        })),
-      },
-      {
-        id: 'testemunhos', label: 'Testemunhos',
-        load: async () => (await getCollection('testimonials')).sort(byOrder).map((e) => ({
-          id: e.id, label: e.data.attribution, data: e.data, body: e.body, viewPath: null,
-        })),
-      },
     ],
   },
   {
@@ -221,6 +226,7 @@ export const AREAS: AdminArea[] = [
           draftKeys: [`definicoes/${e.id}:`],
         })),
       },
+      page('brand', 'home'),
       page('contact', 'contact'),
       page('thanks', 'thank-you'),
       {

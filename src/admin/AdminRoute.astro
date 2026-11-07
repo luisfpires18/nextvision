@@ -30,6 +30,8 @@ import OrderEditor from './OrderEditor.astro';
 import NewProject from './NewProject.astro';
 import EntryEditor from './EntryEditor.astro';
 import EntryCreate from './EntryCreate.astro';
+import ListGrid from './ListGrid.astro';
+import { PAGE_CONTENT } from '../lib/page-content.ts';
 import { ENTRY_TYPES, entryData, entryDraftFile, entryFilePath, type EntryType } from '../lib/admin/entries.ts';
 import { getCollection } from 'astro:content';
 import { PROJECTS_DIR, portfolioSequence, projectData, projectDraftFile, projectFilePath, projectValue } from '../lib/admin/projects.ts';
@@ -197,7 +199,7 @@ const ACTION_GROUPS = new Set(['novo', 'ordem']);
  * "Geral" in Definições), so a section is never a row of tabs holding one card each. An
  * empty group nobody can add to (Coleções, Testemunhos) is not offered at all.
  */
-interface Tab { id: string; label: string; entries: { item: AdminItem; gid: string }[] }
+interface Tab { id: string; label: string; entries: { item: AdminItem; gid: string }[]; view?: 'images' | 'films' }
 const MERGED = 'paginas';
 /** Search earns its place only on a tab with more than this many cards. */
 const SEARCH_FROM = 6;
@@ -205,6 +207,7 @@ const tabs: Tab[] = [];
 if (current) {
   const merged: Tab['entries'] = [];
   for (const { group, items } of current.groups) {
+    if (group.view) { tabs.push({ id: group.id, label: group.label, entries: items.map((item) => ({ item, gid: group.id })), view: group.view }); continue; }
     if (ACTION_GROUPS.has(group.id) || (items.length === 0 && !ADD_TO[group.id])) continue;
     const single = !ADD_TO[group.id] && (items.length === 1 || items.every((i) => i.locked));
     if (single) merged.push(...items.map((item) => ({ item, gid: group.id })));
@@ -224,6 +227,22 @@ const activeTab = tabs.find((tb) => tb.id === asked) ?? tabs[0] ?? null;
 const addItem = activeTab && ADD_TO[activeTab.id]
   ? current?.groups.find((g) => g.group.id === 'novo')?.items.find((i) => i.id === ADD_TO[activeTab.id]) ?? null : null;
 const orderGroup = activeTab?.id === 'projetos' ? current?.groups.find((g) => g.group.id === 'ordem') ?? null : null;
+/*
+ * A list tab (the Serviços carousel and videos) is drawn from services.json as it is on
+ * master now, so a card's draft starts from the live list, like every other editor.
+ */
+let listDoc: { collage: string[]; films: { id: string; title: string; poster: string }[]; categories: string[] } | null = null;
+let listUploads: UploadEntry[] = [];
+if (activeTab?.view) {
+  const cfg = githubConfig();
+  listDoc = PAGE_CONTENT.services;
+  if (cfg) {
+    try {
+      listDoc = JSON.parse((await readFile(cfg, pageFilePath('services'))).text);
+      listUploads = await readFile(cfg, UPLOADS_PATH).then((f) => (JSON.parse(f.text) as UploadsDoc).uploads.filter((u) => u.target.file === 'services').reverse()).catch(() => []);
+    } catch { /* the build's copy, a few minutes behind at worst */ }
+  }
+}
 const tabHref = (id: string) => `${href(current!.area.id)}?g=${encodeURIComponent(id)}`;
 
 /* The projects toolbar: the categories and years that actually occur, newest year first. */
@@ -274,7 +293,11 @@ const modal = item && current ? {
         <h1>{current ? current.area.label : 'Conteúdo do site'}</h1>
         <div class="ad-head__actions">
           <button type="button" class="ad-button ad-button--primary" data-publish-open>Publicar <span data-draft-count></span></button>
-          {addItem ? (
+          {activeTab?.view ? (
+            <button type="button" class="ico ico--add ico--lg" data-list-add
+              aria-label={activeTab.view === 'images' ? 'Acrescentar imagem ao carrossel' : 'Acrescentar vídeo'}
+              title={activeTab.view === 'images' ? 'Acrescentar imagem ao carrossel' : 'Acrescentar vídeo'} set:html={ICON.add} />
+          ) : addItem ? (
             <a class="ico ico--add ico--lg" href={href(current!.area.id, 'novo', addItem.id)}
               aria-label={addItem.label} title={addItem.label} set:html={ICON.add} />
           ) : null}
@@ -308,6 +331,11 @@ const modal = item && current ? {
               </li>
             ))}
           </ul>
+        </main>
+      ) : activeTab?.view && listDoc ? (
+        <main class="ad-panel">
+          <h2 class="visually-hidden">{activeTab.label}</h2>
+          <ListGrid kind={activeTab.view} doc={listDoc} uploads={listUploads} />
         </main>
       ) : activeTab ? (
         <main class="ad-panel" data-grid data-create-prefix={activeTab.id !== 'projetos' && ADD_TO[activeTab.id] ? ADD_TO[activeTab.id] : undefined}>
