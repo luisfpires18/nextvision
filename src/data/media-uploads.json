@@ -164,6 +164,22 @@
       "by": "nextvisionfilmsagency@gmail.com",
       "at": "2026-11-07T15:39:52.185Z",
       "status": "ready"
+    },
+    {
+      "id": "3c317c905ab2",
+      "key": "owner/3c317c905ab2/image",
+      "kind": "image",
+      "source": "uploads/2026-11-07/3c317c905ab2/DSCF5936.jpg",
+      "name": "DSCF5936.jpg",
+      "target": {
+        "screen": "equipa",
+        "file": "equipa/helder-afonso",
+        "path": "portrait.key",
+        "label": "Equipa «Helder Afonso» — Retrato"
+      },
+      "by": "nextvisionfilmsagency@gmail.com",
+      "at": "2026-11-07T15:43:24.972Z",
+      "status": "pending"
     }
   ]
 }
