@@ -8,13 +8,13 @@
  *
  * ── The stage, 2026-11-06 ─────────────────────────────────────────────────────
  * The storyboard's collage (a large frame over two smaller ones), as a carousel. It opens on
- * the three stills the data names in `collage`, then runs through the projects of the
+ * the stills the data names in `collage` (the owners add and remove them in the admin), then runs through the projects of the
  * `categories` it also names, in portfolio order. A still that belongs to no published
  * project, such as a fresh owner upload, is still shown but links nowhere. The behaviour
  * is src/lib/stage.ts; without scripting the frames are a row of plain links.
  *
- * Under it, the film in `film` (services.json), on the same façade as a project page: nothing
- * reaches YouTube until someone presses play.
+ * Under it, the films in `films` (services.json), top to bottom, each on the same façade as a
+ * project page: nothing reaches YouTube until someone presses play. None is allowed.
  */
 import { getCollection, getEntry } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
@@ -70,7 +70,7 @@ const frames = [...new Set(keys)].flatMap((key) => {
   return [{ key, image, href: project?.href ?? null, title: project?.title ?? '' }];
 });
 /** The collage's middle still opens in front, as it does in the storyboard. */
-const OPENING_CENTRE = 1;
+const OPENING_CENTRE = Math.min(1, frames.length - 1);
 
 const schema = [
   organizationSchema({
@@ -143,14 +143,11 @@ const schema = [
       <p class="visually-hidden" aria-live="polite" data-stage-status></p>
     </section>
 
-    <div class="cm__film">
-      <FilmFacade
-        videoId={PAGE_CONTENT.services.film.id}
-        posterKey={PAGE_CONTENT.services.film.poster}
-        title={PAGE_CONTENT.services.film.title}
-        locale={locale}
-      />
-    </div>
+    {PAGE_CONTENT.services.films.map((film) => (
+      <div class="cm__film">
+        <FilmFacade videoId={film.id} posterKey={film.poster} title={film.title} locale={locale} />
+      </div>
+    ))}
   </section>
 
   <a class="spool" href={`${navHref('contact', locale)}#contactar`}>

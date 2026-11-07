@@ -94,6 +94,11 @@ export const AREAS: AdminArea[] = [
     id: 'cinema', label: 'Cinema', section: 'cinema',
     groups: [
       page('portfolio', 'portfolio'),
+      // Above the projects, not under all of them: an owner looked for it and did not find it (2026-11-07).
+      {
+        id: 'novo', label: 'Novo projeto',
+        load: async () => [{ id: 'projeto', label: 'Criar um projeto novo', data: null, viewPath: null }],
+      },
       {
         id: 'projetos', label: 'Projetos',
         load: async () => (await getCollection('projects'))
@@ -107,10 +112,6 @@ export const AREAS: AdminArea[] = [
             body: e.body,
             viewPath: e.data.draft ? null : projectPath(e.id),
           })),
-      },
-      {
-        id: 'novo', label: 'Novo projeto',
-        load: async () => [{ id: 'projeto', label: 'Criar um projeto novo', data: null, viewPath: null }],
       },
       {
         id: 'ordem', label: 'Ordem',

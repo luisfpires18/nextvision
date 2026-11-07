@@ -10,6 +10,7 @@
 import { REMOVE_FIELD, fieldsFor, projectDraftFile, projectValue, type ProjectField } from '../lib/admin/projects.ts';
 import { MEDIA, thumb } from './media-options.ts';
 import UploadPanel from './UploadPanel.astro';
+import { ICON } from './icons.ts';
 import BlocksEditor from './BlocksEditor.astro';
 import { requestsFor, type UploadEntry } from '../lib/admin/uploads.ts';
 
@@ -30,6 +31,9 @@ const rows = (v: string) => Math.min(8, Math.ceil(v.length / 60) + v.split('\n')
 ---
 
 <form class="admin-editor" data-editor data-screen="projeto" data-project={slug} novalidate>
+  {/* The removal is at the end of a long form; this is how an owner finds it (2026-11-07).
+      It starts the same removal as the bin at the end, and takes the reader there. */}
+  <p class="ed-top-actions"><button type="button" class="ico ico--remove" data-remove-top aria-label="Apagar este projeto" title="Apagar este projeto" set:html={ICON.remove} /></p>
   {fieldsFor(data).filter((f) => f.kind !== 'blocks').map((f) => {
     const value = projectValue(data, f.path);
     const id = `p-${f.path.replace(/\W/g, '-')}`;
@@ -127,12 +131,12 @@ const rows = (v: string) => Math.min(8, Math.ceil(v.length / 60) + v.split('\n')
   />
 
   {/* Removing the project: one draft whose value is the confirmed title (projects.ts `removalWrites`). */}
-  <fieldset class="ed-field" data-field data-remove>
+  <fieldset class="ed-field" data-field data-remove id="apagar">
     <legend>Apagar projeto</legend>
     <p class="ed-note">Tira o projeto do site e desta lista. Quem abrir o endereço antigo vai parar ao portfólio. As imagens e os vídeos ficam guardados.</p>
     <p class="ed-note">Só quer tirá-lo do site por agora? Em «No site», escolha «Escondido»: o projeto fica aqui e pode voltar a mostrá-lo.</p>
     <input type="hidden" name={`${projectDraftFile(slug)}:${REMOVE_FIELD}`} value="" data-original="" data-label={`Projeto «${title}» — Apagar projeto`} data-remove-input />
-    <button type="button" class="pub-cancel" data-remove-go data-title={title}>Apagar este projeto…</button>
+    <button type="button" class="ico ico--remove" data-remove-go data-title={title} aria-label="Apagar este projeto" title="Apagar este projeto" set:html={ICON.remove} />
     <p class="ed-note" data-remove-pending hidden>
       Este projeto vai ser apagado quando carregar em Publicar.{' '}
       <button type="button" class="pub-cancel" data-remove-undo>Não apagar</button>

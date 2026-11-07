@@ -6,15 +6,17 @@
  * Media: a list of the footage already on the site, of the right kind only (a still where
  * a still goes, a film with a poster where the opening film goes), with the picture shown.
  * Locked fields are shown with the reason, and have no input at all, so the form cannot
- * post them.
+ * post them. A list (the carousel's images, the videos) is one field with its own rows
+ * (ListEditor.astro); the upload slots that belong to it are drawn under it.
  *
  * There is no Save: every change is a draft kept in the browser the moment it is typed,
  * and one Publicar sends the drafts from every page together (A10, admin-client.ts).
  */
 import { MEDIA, thumb } from './media-options.ts';
 import UploadPanel from './UploadPanel.astro';
+import ListEditor from './ListEditor.astro';
 import { fieldName, getAt, type Field, type Published } from '../lib/admin/edit.ts';
-import { SCREEN_LABELS, type PageFileName } from '../lib/admin/fields.ts';
+import { SCREEN_LABELS, isListKind, type PageFileName } from '../lib/admin/fields.ts';
 import { requestsFor, type UploadEntry } from '../lib/admin/uploads.ts';
 
 interface Props {
@@ -36,8 +38,32 @@ const source = (from: string) => from.startsWith('owner:')
 ---
 
 <form class="admin-editor" data-editor data-screen={screen} novalidate>
-  {fields.map((f) => {
+  {fields.filter((f) => !f.uploadOnly).map((f) => {
     const value = getAt(docs[f.file], f.key);
+    if (isListKind(f.kind)) {
+      /* This list's upload slots: a new item at the end, or a film's cover as it is published now. */
+      const slots = fields.filter((u) => u.uploadOnly && u.file === f.file && u.key.startsWith(`${f.key}.`) && (u.key.endsWith('.+') || f.kind === 'films'));
+      const films = f.kind === 'films' ? (value as { title: string }[]) : [];
+      return (
+        <fieldset class="ed-field" data-field>
+          <legend>{f.label}</legend>
+          {f.note ? <p class="ed-note">{f.note}</p> : null}
+          <ListEditor name={fieldName(f)} value={value as unknown[]} label={named(f)} kind={f.kind} />
+          {slots.map((u) => {
+            const i = Number(u.key.split('.')[1]);
+            const caption = u.key.endsWith('.+')
+              ? 'Acrescentar com um ficheiro novo. A imagem entra no fim da lista quando terminar de ser processada.'
+              : `Capa nova para «${films[i]?.title ?? `vídeo ${i + 1}`}», a partir de um ficheiro.`;
+            return (
+              <>
+                <p class="ed-note">{caption}</p>
+                <UploadPanel target={`${u.file}:${u.key}`} kind="image" requests={requestsFor(uploads, u.file, u.key)} />
+              </>
+            );
+          })}
+        </fieldset>
+      );
+    }
     if (f.kind === 'text') {
       const p = value as Published;
       return (

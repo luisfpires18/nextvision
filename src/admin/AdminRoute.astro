@@ -15,6 +15,7 @@
  */
 export const prerender = false;
 
+import { ICON } from './icons.ts';
 import '../styles/tokens.colour.css';
 import '../styles/tokens.type.css';
 import '../styles/tokens.space.css';
@@ -152,6 +153,13 @@ const ENTRY_GROUPS: Record<string, EntryType> = {
 };
 let entryEditor: { type: EntryType; id: string; data: Record<string, unknown>; uploads: UploadEntry[] } | null = null;
 const entryType = item && groupId ? ENTRY_GROUPS[groupId] : undefined;
+
+/** Whether a row of the bin opens a form (it gets the pencil) or is only shown. */
+const editable = (gid: string, i: { id: string; locked?: string | undefined }) => !i.locked && (
+  (gid.startsWith('pagina-') && (SCREENS[i.id as PageFileName]?.length ?? 0) > 0)
+  || gid in ENTRY_GROUPS || gid === 'projetos' || gid === 'ordem');
+/** Groups that are a button, not a list: "Novo projeto" is the plus on Projetos. */
+const ADD_TO: Record<string, string> = { projetos: 'novo' };
 if (item && entryType) {
   const cfg = githubConfig();
   if (!cfg) editorNotice = 'Publicar ainda não está configurado neste servidor. Pode consultar, mas não alterar.';
@@ -224,9 +232,19 @@ const href = (...parts: string[]) => `/admin/${parts.map(encodeURIComponent).joi
       <div class="admin-bay" data-section={current.area.section ?? undefined}>
         <section class="admin-bin" aria-labelledby="bin-h">
           {item ? <p id="bin-h" class="admin-bin__title">{current.area.label}</p> : <h1 id="bin-h" class="admin-bin__title">{current.area.label}</h1>}
-          {current.groups.map(({ group, items }) => (
+          {current.groups.filter(({ group }) => !Object.values(ADD_TO).includes(group.id)).map(({ group, items }) => (
             <div class="admin-group">
-              <h2>{group.label} {items.length > 1 ? <span class="admin-count">{items.length}</span> : null}</h2>
+              <h2>
+                <span>{group.label} {items.length > 1 ? <span class="admin-count">{items.length}</span> : null}</span>
+                {ADD_TO[group.id] ? (() => {
+                  const add = current.groups.find((g) => g.group.id === ADD_TO[group.id]);
+                  const first = add?.items[0];
+                  return add && first ? (
+                    <a class="ico ico--add" href={href(current.area.id, add.group.id, first.id)} aria-label={add.group.label} title={add.group.label}
+                      aria-current={first === item ? 'page' : undefined} set:html={ICON.add} />
+                  ) : null;
+                })() : null}
+              </h2>
               {items.length === 0 ? <p class="admin-empty">Ainda não há nenhum.</p> : (
                 <ul>
                   {items.map((i) => (
@@ -234,6 +252,7 @@ const href = (...parts: string[]) => `/admin/${parts.map(encodeURIComponent).joi
                       <a href={href(current.area.id, group.id, i.id)} aria-current={i === item ? 'page' : undefined}>
                         <span>{i.label}</span>
                         {i.meta ? <span class="admin-meta">{i.meta}</span> : null}
+                        {editable(group.id, i) ? <span class="ico ico--edit" aria-hidden="true" title="Editar" set:html={ICON.edit} /> : null}
                       </a>
                     </li>
                   ))}

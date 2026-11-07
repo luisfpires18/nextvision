@@ -75,19 +75,19 @@ export const PAGE_SCHEMAS = {
   services: z.object({
     leadImage: imageKey,
     /** The portfolio categories whose projects join the stage after the collage. Slugs from src/content/categories/. */
-    categories: z.array(z.string().regex(/^[a-z0-9-]+$/)).min(1),
-    /** The stage's opening stills: left, centre, right. */
-    collage: z.array(imageKey).length(3),
-    /** The film under the stage. `title` is its name on YouTube, used only as the accessible name. */
-    film: z.object({
+    categories: z.array(z.string().regex(/^[a-z0-9-]+$/)),
+    /** The stage's opening stills. The second opens in front. Owners add and remove them in the admin. */
+    collage: z.array(imageKey),
+    /** The films under the stage, top to bottom; none is allowed. `title` is the film's name, used only as the accessible name. */
+    films: z.array(z.object({
       id: z.string().regex(/^[A-Za-z0-9_-]{11}$/, 'must be an 11-character YouTube video id'),
       title: z.string().min(1),
       poster: imageKey,
-    }),
+    })),
     lead: z.array(z.object({ text: z.string().min(1), en: z.string().min(1), mark: z.boolean().optional() })).min(1),
     copy: strings('closeLineA', 'closeLineB', 'closeBody'),
     wordpressExcerpt: z.string(),
-  }),
+  }).refine((s) => s.collage.length + s.categories.length > 0, { message: 'the stage needs at least one image or one category', path: ['collage'] }),
   contact: z.object({
     banner: imageKey,
     copy: strings('formHeading', 'directHeading', 'directBody'),

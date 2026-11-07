@@ -2221,3 +2221,40 @@ cycling logo and the tagline stay.
 The reel's windows are real holes now, cut with an SVG mask, on every page. They used to be painted
 cream, which showed as white squares on the blue of `/sobre/`. `--reel-hole` is gone, and the hub
 text's colour is `--reel-text`.
+
+## 37. Admin: lists on Comercial, findable add/remove on Cinema (2026-11-07)
+
+Owner feedback after publishing new photos: on Comercial they could swap the YouTube video but
+not add another, and on both Comercial and Cinema they wanted buttons to add and remove.
+
+- **Comercial edits three lists, each with Add, Remove and reorder.** These are the carousel's
+  opening images (`collage`, any number, the second opens in front), the categories whose projects
+  follow them (`categories`, checkboxes), and the videos under the carousel (`films`, any number,
+  none allowed). `services.json` `film` became `films`, a list. A list is ONE draft holding its JSON
+  (`src/admin/ListEditor.astro`), like a project's blocks. `edit.ts` `parseList` checks each item:
+  a YouTube address becomes its id, and a name and a cover are required. The page schema refuses a
+  stage with neither images nor categories.
+- **Uploads still reach a list.** A field may be `uploadOnly`, a slot an upload fills with no
+  control on the form: `collage.+` appends a new image (`media-ingest.mjs` `setAt` now treats a
+  final `+` as append), and `films.N.poster` replaces a published video's cover.
+- **Cinema already could add and remove projects. The owner could not find either.** "Novo
+  projeto" was listed under all 21 projects, and "Apagar projeto" sat at the end of a long form.
+  "Novo projeto" now comes straight after "Página Portfólio", and every project opens with an
+  "Apagar este projeto" link to its removal section.
+
+Checked: `test:admin` (65 checks, two of them new), and validate:data, test:access,
+validate:legal, check, build, validate:routes, validate:seo and validate:analytics, all on an LF
+copy. In `astro dev` against `mock:github`, the owner flow worked end to end: add an image, remove
+one, add a video by its address, tick a category, reload (the drafts came back), Publicar. The
+fake GitHub stored the video's id. `/servicos/` rendered two videos from a two-item list.
+`validate:media` was not run, because this machine has no media mirror.
+
+**Action icons, same day.** At the owners' request every add, remove and edit control in the admin
+is now an icon with no text: a green plus to add, a red bin to remove, and a cream pencil with an ink
+drawing to edit. The words stay in `aria-label` and the tooltip. One drawing of each lives in
+`src/admin/icons.ts`, and the colours are the brand tokens in `admin.css` (`.ico`). The pencil marks
+every row of the side list that opens a form; read-only and locked rows have none. "Novo projeto" is
+now the plus on the Projetos heading. A project has a bin at its top, which starts the same removal
+as the one at the end and scrolls there. A project's blocks are added from a green plus that opens
+the five block types. Team, services and categories still can only be edited, not added or removed,
+so they show only the pencil.

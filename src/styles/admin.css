@@ -372,3 +372,43 @@ button.admin-publish-link { border: 0; font: inherit; font-weight: 600; text-ali
   cursor: pointer;
 }
 .ed-blockhead button:disabled { visibility: hidden; }
+
+/* ── a page's lists (ListEditor.astro): categories are ticked, not ordered ── */
+.ed-checks { display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-4); }
+.ed-checks label { display: flex; gap: var(--space-2); align-items: center; min-block-size: var(--space-6); cursor: pointer; }
+
+/* ── the three action icons (icons.ts) ───────────────────────────────────────
+   Add is the logo's green, remove its red, edit cream with an ink pencil: the same three
+   everywhere in the admin, with no words on them (owner request, 2026-11-07). The words
+   are in aria-label and title. `.admin .ico` outranks the plain button rules above, which
+   would otherwise take the fill away. */
+.admin .ico {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  inline-size: var(--space-6);
+  block-size: var(--space-6);
+  min-inline-size: var(--space-6);
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-s);
+  cursor: pointer;
+  list-style: none;
+}
+.admin .ico::-webkit-details-marker { display: none; }
+.admin .ico svg { inline-size: 62%; block-size: 62%; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.admin .ico--add { background: var(--brand-green); color: var(--brand-cream); }
+.admin .ico--remove { background: var(--brand-red); color: var(--brand-cream); }
+.admin .ico--edit { background: var(--brand-cream); color: var(--brand-ink); }
+.admin .ico:hover { outline: var(--admin-hairline) solid var(--brand-cream); outline-offset: var(--admin-hairline); }
+
+.ed-top-actions { display: flex; justify-content: flex-end; }
+/* A block's type is chosen from a short menu that the green plus opens. */
+.ed-addmenu { position: relative; }
+.ed-addmenu[open] > div { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-block-start: var(--space-2); }
+
+/* A row of the bin: the name, its meta, then the pencil. A heading with a plus. */
+.admin-group a > span:first-child { flex: 1; }
+.admin-group a .ico { inline-size: var(--space-5); block-size: var(--space-5); min-inline-size: var(--space-5); }
+.admin-group h2 { display: flex; align-items: center; gap: var(--space-2); }
+.admin-group h2 .ico { margin-inline-start: auto; }

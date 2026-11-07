@@ -7,6 +7,7 @@
  * an owner can pick travel with the page, as data.
  */
 import { MEDIA, thumb } from './media-options.ts';
+import { ICON } from './icons.ts';
 
 interface Props {
   name: string;
@@ -26,13 +27,16 @@ const images = MEDIA.image.map(([group, keys]) => ({ group, items: keys.map((k) 
   <p class="ed-note">O que aparece na página do projeto, por baixo do filme, de cima para baixo. As imagens escolhem-se entre as que já estão no site.{englishProse ? ' Este projeto publica os textos já em inglês, por isso o campo inglês pode ficar vazio.' : ''}</p>
   <input type="hidden" name={name} value={value} data-original={value} data-label={label} data-default-image={defaultImage} data-blocks />
   <ol class="ed-blocklist" data-block-list></ol>
-  <div class="ed-blockadd">
-    <span class="f-lang">Acrescentar</span>
-    <button type="button" data-add="text">Texto</button>
-    <button type="button" data-add="full-width-image">Imagem</button>
-    <button type="button" data-add="image-pair">Duas imagens</button>
-    <button type="button" data-add="image-grid">Galeria</button>
-    <button type="button" data-add="embedded-film">Filme</button>
-  </div>
+  {/* The green plus opens the five kinds of block; picking one adds it and closes the menu. */}
+  <details class="ed-blockadd ed-addmenu">
+    <summary class="ico ico--add" aria-label="Acrescentar bloco" title="Acrescentar bloco" set:html={ICON.add} />
+    <div>
+      <button type="button" data-add="text">Texto</button>
+      <button type="button" data-add="full-width-image">Imagem</button>
+      <button type="button" data-add="image-pair">Duas imagens</button>
+      <button type="button" data-add="image-grid">Galeria</button>
+      <button type="button" data-add="embedded-film">Filme</button>
+    </div>
+  </details>
   <script type="application/json" data-block-images set:html={JSON.stringify(images)} />
 </fieldset>

@@ -9,11 +9,13 @@
     "projects/nazaryi/poster",
     "owner/4c2a888530be/image"
   ],
-  "film": {
-    "id": "8HjA-SOs7Ws",
-    "title": "NVF showreel 2026",
-    "poster": "projects/helder-praia/poster"
-  },
+  "films": [
+    {
+      "id": "8HjA-SOs7Ws",
+      "title": "NVF showreel 2026",
+      "poster": "projects/helder-praia/poster"
+    }
+  ],
   "lead": [
     {
       "text": "O vídeo certo tem o poder de ",
