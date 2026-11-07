@@ -8,7 +8,7 @@ role:
 # The photograph the live /sobre/ places beside this name and role. The pairing is the
 # source's — see docs/STATIC_PAGES_ROLLOUT.md question P1.
 portrait:
-  key: "team/francisco-cardoso/portrait"
+  key: "owner/b2dc7704183c/image"
   altStatus: todo
 links:
   - label: "Instagram"
@@ -22,6 +22,6 @@ links:
 # The role above was supplied by the owners on 2026-10-29 (bug report from a screenshot),
 # in English, for both locales. It replaces the archived /sobre/ role, which stays in
 # docs/source-archive/pages.json; ownerEdited is how validate:data records that (A2).
-ownerEdited: 2026-10-29
+ownerEdited: 2026-11-07
 order: 1
 ---
