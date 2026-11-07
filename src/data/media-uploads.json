@@ -116,6 +116,22 @@
       "start": 0,
       "duration": 8,
       "posterAt": 1
+    },
+    {
+      "id": "cc921e855f63",
+      "key": "owner/cc921e855f63/image",
+      "kind": "image",
+      "source": "uploads/2026-11-07/cc921e855f63/DSCF5887.jpg",
+      "name": "DSCF5887.jpg",
+      "target": {
+        "screen": "contact",
+        "file": "contact",
+        "path": "banner",
+        "label": "Imagem de topo"
+      },
+      "by": "nextvisionfilmsagency@gmail.com",
+      "at": "2026-11-07T15:24:58.245Z",
+      "status": "pending"
     }
   ]
 }
