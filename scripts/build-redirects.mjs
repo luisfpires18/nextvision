@@ -90,6 +90,19 @@ for (const r of gone) {
   count += 2;
 }
 
+/**
+ * Categories the owners removed in the admin (src/data/removed-categories.json): the
+ * archive's address lands on the portfolio, in its own language. Skipped when a category
+ * with that address exists again.
+ */
+const removedCats = JSON.parse(fs.readFileSync(path.join(ROOT, 'src/data/removed-categories.json'), 'utf8')).removed;
+const goneCats = removedCats.filter((r) => !['.yml', '.yaml'].some((ext) => fs.existsSync(path.join(ROOT, 'src/content/categories', `${r.slug}${ext}`))));
+if (goneCats.length) lines.push('', '# Categories removed in the admin (src/data/removed-categories.json).');
+for (const r of goneCats) {
+  lines.push(`/categoria-portfolio/${r.slug}/    /portfolio/    301`, `/en/portfolio-category/${r.slug}/    /en/portfolio/    301`);
+  count += 2;
+}
+
 lines.push(
   '',
   '# Trailing slash is NOT a rule here. `build.format: directory` writes every route as',

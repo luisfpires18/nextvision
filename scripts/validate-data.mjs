@@ -265,11 +265,11 @@ try {
    quietly. The excerpt-is-a-substring rule is enforced by the SCHEMA itself
    (src/content.config.ts), which is stricter than anything this file could do. */
 try {
+  // Since the admin redesign (2026-11-07) the owners add and remove services and people,
+  // so the counts are no longer fixed. /sobre/ needs at least one person.
   const services = fs.readdirSync(path.join(ROOT, 'src/content/services')).filter((f) => /\.mdx?$/.test(f));
-  if (services.length !== 4) errors.push(`content: expected 4 services, found ${services.length}`);
-
   const team = fs.readdirSync(path.join(ROOT, 'src/content/team')).filter((f) => /\.mdx?$/.test(f));
-  if (team.length !== 2) errors.push(`content: expected 2 team members, found ${team.length}`);
+  if (team.length < 1) errors.push('content: the team is empty, and /sobre/ needs at least one person');
 
   /* The two people and their roles are canonical and are the sort of thing a well-meaning
      edit "corrects" — `Produ\u00e7\u00e3o &Dire\u00e7\u00e3o Art\u00edstica` is missing a space in the source and stays
@@ -279,14 +279,16 @@ try {
     ['helder-afonso', 'Helder Afonso', 'Produ\u00e7\u00e3o &Dire\u00e7\u00e3o Art\u00edstica'],
   ];
   for (const [file, name, role] of ROLES) {
+    // A person the owners removed in the admin is their decision, not a lost file.
+    if (!fs.existsSync(path.join(ROOT, 'src/content/team', `${file}.md`))) continue;
     const src = fs.readFileSync(path.join(ROOT, 'src/content/team', `${file}.md`), 'utf8');
     // Decision A2: once the owners change an entry in the admin, its words are theirs.
     if (/^ownerEdited: \d{4}-\d{2}-\d{2}$/m.test(src)) continue;
     if (!src.includes(`"${name}"`)) errors.push(`content: ${file}.md no longer names "${name}"`);
     if (!src.includes(role)) errors.push(`content: ${file}.md role differs from the published one — expected "${role}"`);
   }
-  if (services.length === 4 && team.length === 2) {
-    ok.push('content: 4 services, 2 team members, both roles verbatim as published');
+  if (team.length >= 1) {
+    ok.push(`content: ${services.length} services, ${team.length} team members, archived roles verbatim unless the owners changed them`);
   }
 } catch (e) {
   errors.push(`content: ${e.message}`);

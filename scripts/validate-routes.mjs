@@ -208,7 +208,12 @@ const categoryDir = path.join(DIST, 'categoria-portfolio');
 const archives = exists(categoryDir)
   ? fs.readdirSync(categoryDir, { withFileTypes: true }).filter((d) => d.isDirectory()).map((d) => d.name)
   : [];
-if (archives.length !== 5) errors.push(`routes: expected 5 category archives, found ${archives.length}`);
+// One archive per visible category. The owners add and remove categories in the admin
+// (2026-11-07), so the number is read from the content, never typed.
+const visibleCategories = fs.readdirSync(path.join(ROOT, 'src/content/categories'))
+  .filter((f) => /\.ya?ml$/.test(f))
+  .filter((f) => !/^hidden:\s*true\s*$/m.test(fs.readFileSync(path.join(ROOT, 'src/content/categories', f), 'utf8')));
+if (archives.length !== visibleCategories.length) errors.push(`routes: expected ${visibleCategories.length} category archives (one per visible category), found ${archives.length}`);
 
 for (const slug of archives) {
   const html = read(path.join(categoryDir, slug, 'index.html'));

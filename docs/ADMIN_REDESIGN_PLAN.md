@@ -1,7 +1,7 @@
 # Admin redesign plan
 
-Status: **Phase 1 released** to the live admin (2026-11-07). Phases 2
-and 3 are not started. Scope is the owners' admin at `/admin/` only. The public site does not change.
+Status: **Phase 1 released** to the live admin (2026-11-07). **Phases 2 and 3 built** the same
+day (docs/PROJECT_CONTEXT.md §39). Scope is the owners' admin at `/admin/` only. The public site does not change.
 
 ## 1. Why
 

@@ -236,7 +236,9 @@ if (dialog) {
         change.className = 'pub-fields';
         change.textContent = d.label.endsWith('— Ordem') ? 'nova ordem'
           : d.label.endsWith('— Blocos da página') ? 'blocos alterados'
-          : d.label.endsWith('— Apagar projeto') ? 'o projeto sai do site'
+          : d.label.endsWith('— Apagar projeto') || n.endsWith(':apagar') ? 'sai do site'
+          : n.endsWith(':criar') ? 'entra no site'
+          : d.label.endsWith('— Lista') || d.from.startsWith('[') ? 'lista alterada'
           : `${short(d.from)} → ${short(d.to)}`;
         // One draft undone, the rest kept.
         const undo = document.createElement('button');
@@ -910,10 +912,13 @@ const saveView = (search: string) => {
 const cardState = (card: HTMLElement): 'delete' | 'changed' | null => {
   const keys = JSON.parse(card.dataset['draftKeys'] ?? '[]') as string[];
   const names = Object.keys(loadDrafts());
-  const slug = card.dataset['slug'];
-  if (slug && names.includes(`projeto/${slug}:apagar`)) return 'delete';
+  const del = card.dataset['deleteDraft'];
+  if (del && names.includes(del)) return 'delete';
   return names.some((n) => keys.some((k) => n.startsWith(k))) ? 'changed' : null;
 };
+
+/** What the publish list calls each kind of item, by its draft prefix. */
+const NOUNS: Record<string, string> = { projeto: 'Projeto', equipa: 'Equipa', servico: 'Serviço', categoria: 'Categoria' };
 
 /* A thumbnail that fails to load (a missing rendition, no network) gives way to the card's
    initial rather than showing the browser's broken-image mark. */
@@ -1023,24 +1028,32 @@ if (grid) {
     apply(true);
   });
 
-  /* Delete: ask first, then mark it for the next Publicar. It is the same draft the
-     project form's own "Apagar projeto" writes, so Publicar handles both the same way. */
+  /* Delete: ask first, then mark it for the next Publicar. For a project it is the same
+     draft the project form's own "Apagar projeto" writes. The server checks again, and
+     refuses a category still in use or the team's last person, naming why. */
   const confirmDialog = document.querySelector<HTMLDialogElement>('[data-confirm-dialog]');
   let pending: HTMLElement | null = null;
   grid.addEventListener('click', (e) => {
     const target = e.target as HTMLElement;
     const card = target.closest<HTMLElement>('[data-card]');
     if (!card) return;
-    const slug = card.dataset['slug'];
+    const draft = card.dataset['deleteDraft'];
     const name = card.dataset['name'] ?? '';
-    if (target.closest('[data-card-delete]') && slug && confirmDialog) {
-      pending = card;
-      confirmDialog.querySelector('[data-confirm-title]')!.textContent = `Apagar «${name}»?`;
+    if (target.closest('[data-card-delete]') && draft && confirmDialog) {
+      // Known to be refused (a category with projects, the team's last person): the same
+      // modal explains why and offers only to close.
+      const blocked = card.dataset['deleteBlocked'];
+      pending = blocked ? null : card;
+      confirmDialog.querySelector('[data-confirm-title]')!.textContent = blocked ? `Não é possível apagar «${name}»` : `Apagar «${name}»?`;
+      confirmDialog.querySelector('[data-confirm-body]')!.textContent = blocked ?? 'Sai do site quando carregar em Publicar. Até lá pode desfazer.';
+      confirmDialog.querySelector('[data-confirm-hint]')!.textContent = blocked ? '' : card.dataset['deleteHint'] ?? '';
+      confirmDialog.querySelector<HTMLElement>('[data-confirm-go]')!.hidden = Boolean(blocked);
+      confirmDialog.querySelector<HTMLElement>('[data-confirm-cancel]')!.textContent = blocked ? 'Fechar' : 'Cancelar';
       confirmDialog.showModal();
       confirmDialog.querySelector<HTMLButtonElement>('[data-confirm-cancel]')?.focus();
-    } else if (target.closest('[data-card-undo]') && slug) {
+    } else if (target.closest('[data-card-undo]') && draft) {
       const all = loadDrafts();
-      delete all[`projeto/${slug}:apagar`];
+      delete all[draft];
       storeDrafts(all);
       showCount();
       apply(false);
@@ -1050,11 +1063,12 @@ if (grid) {
   confirmDialog?.querySelector('[data-confirm-cancel]')?.addEventListener('click', () => confirmDialog.close());
   confirmDialog?.querySelector('[data-confirm-go]')?.addEventListener('click', () => {
     const card = pending;
-    const slug = card?.dataset['slug'];
+    const draft = card?.dataset['deleteDraft'];
     const name = card?.dataset['name'] ?? '';
-    if (card && slug) {
+    if (card && draft) {
+      const noun = NOUNS[draft.split('/')[0] ?? ''] ?? '';
       const all = loadDrafts();
-      all[`projeto/${slug}:apagar`] = { from: '', to: name, label: `Projeto «${name}» — Apagar projeto` };
+      all[draft] = { from: '', to: name, label: `${noun} «${name}» — Apagar` };
       storeDrafts(all);
       showCount();
       apply(false);
@@ -1063,7 +1077,127 @@ if (grid) {
     card?.querySelector<HTMLElement>('[data-card-undo]')?.focus();
   });
 
+  /* New entries waiting for Publicar: a card each, first in the grid, with Desfazer. They
+     exist only as drafts (`equipa/novo-…:criar`), so the page draws them from those. */
+  const createPrefix = grid.dataset['createPrefix'];
+  if (createPrefix) {
+    const target = list ?? (() => {
+      const ul = document.createElement('ul');
+      ul.className = 'ad-grid';
+      grid.querySelector('.ad-empty')?.replaceWith(ul);
+      return ul;
+    })();
+    const drawNew = () => {
+      for (const old of target.querySelectorAll('[data-new-card]')) old.remove();
+      for (const [key, d] of Object.entries(loadDrafts()).reverse()) {
+        if (!key.startsWith(`${createPrefix}/novo-`) || !key.endsWith(':criar')) continue;
+        let name = '';
+        try {
+          const v = JSON.parse(d.to) as { name?: string; namePt?: string };
+          name = v.name ?? v.namePt ?? '';
+        } catch { /* a damaged draft still shows, unnamed */ }
+        const li = document.createElement('li');
+        li.className = 'ad-card';
+        li.dataset['newCard'] = '';
+        li.innerHTML = '<div class="ad-card__media" aria-hidden="true"><span class="ad-card__initial"></span></div><div class="ad-card__body"><h3 class="ad-card__title"></h3><p class="ad-chip" data-tone="changed">Novo, por publicar</p></div><div class="ad-card__actions"><button type="button" class="ad-undo">Desfazer</button></div>';
+        li.querySelector('.ad-card__initial')!.textContent = name.trim().charAt(0).toUpperCase();
+        li.querySelector('.ad-card__title')!.textContent = name || 'Sem nome';
+        const undo = li.querySelector<HTMLButtonElement>('.ad-undo')!;
+        undo.setAttribute('aria-label', `Desfazer «${name}»`);
+        undo.addEventListener('click', () => {
+          const all = loadDrafts();
+          delete all[key];
+          storeDrafts(all);
+          showCount();
+          drawNew();
+        });
+        target.prepend(li);
+      }
+    };
+    drawNew();
+  }
+
   apply(false);
+}
+
+/* ── the overview: what is waiting in each section ──────────────────────────── */
+{
+  const all = Object.keys(loadDrafts());
+  for (const card of document.querySelectorAll<HTMLElement>('[data-section-keys]')) {
+    const keys = JSON.parse(card.dataset['sectionKeys'] ?? '[]') as string[];
+    const n = all.filter((name) => keys.some((k) => name.startsWith(k))).length;
+    const chip = card.querySelector<HTMLElement>('[data-section-waiting]');
+    if (chip && n) { chip.hidden = false; chip.textContent = n === 1 ? '1 alteração por publicar' : `${n} alterações por publicar`; }
+  }
+  const waiting = document.querySelector<HTMLElement>('[data-waiting]');
+  if (waiting && all.length) {
+    waiting.hidden = false;
+    waiting.textContent = all.length === 1
+      ? 'Há 1 alteração guardada neste computador à espera de Publicar.'
+      : `Há ${all.length} alterações guardadas neste computador à espera de Publicar.`;
+  }
+}
+
+/* ── the filters on a phone: folded behind one button (admin.css shows them inline on
+   a wider screen, where the button is hidden), with the number of filters in use ── */
+{
+  const box = document.querySelector<HTMLElement>('[data-filters]');
+  const toggle = box?.querySelector<HTMLButtonElement>('[data-filters-toggle]');
+  if (box && toggle) {
+    const paint = () => {
+      const n = [...box.querySelectorAll<HTMLSelectElement>('select')].filter((s) => s.value).length;
+      const count = box.querySelector<HTMLElement>('[data-filter-count]');
+      if (count) count.textContent = n ? `(${n})` : '';
+    };
+    toggle.addEventListener('click', () => {
+      const open = !box.hasAttribute('data-open');
+      box.toggleAttribute('data-open', open);
+      toggle.setAttribute('aria-expanded', String(open));
+    });
+    box.addEventListener('change', paint);
+    paint();
+  }
+}
+
+/* ── the add form (EntryCreate.astro) ────────────────────────────────────────
+   "Criar" checks the required fields here, so a missing one is named at once, and turns
+   the form into one draft. The server checks everything again at Publicar. */
+const createForm = document.querySelector<HTMLFormElement>('[data-create-entry]');
+if (createForm) {
+  const say = (text: string) => {
+    const m = createForm.querySelector<HTMLElement>('[data-message]');
+    if (m) { m.textContent = text; m.dataset['tone'] = text ? 'error' : ''; }
+  };
+  const portrait = createForm.querySelector<HTMLSelectElement>('select[name="portrait"]');
+  portrait?.addEventListener('change', () => {
+    const img = createForm.querySelector<HTMLImageElement>('[data-preview-for="create-portrait"]');
+    const src = portrait.selectedOptions[0]?.dataset['thumb'];
+    if (img && src) img.src = src;
+  });
+  const slugInput = createForm.querySelector<HTMLInputElement>('[data-slug-from]');
+  const slugOut = createForm.querySelector<HTMLElement>('[data-slug-preview]');
+  slugInput?.addEventListener('input', () => {
+    if (slugOut) slugOut.textContent = `/categoria-portfolio/${slugFrom(slugInput.value) || '…'}/`;
+  });
+  createForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const fields = [...createForm.querySelectorAll<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>('[name]')];
+    const empty = fields.find((f) => f.required && !f.value.trim());
+    if (empty) {
+      const label = empty.closest('fieldset')?.querySelector('legend')?.textContent ?? 'Este campo';
+      say(`«${label}» não pode ficar vazio.`);
+      empty.focus();
+      return;
+    }
+    const value = Object.fromEntries(fields.map((f) => [f.name, f.value.trim()]));
+    const prefix = createForm.dataset['prefix'] ?? '';
+    const name = value['name'] ?? value['namePt'] ?? '';
+    const id = `novo-${Math.random().toString(36).slice(2, 10)}`;
+    const all = loadDrafts();
+    all[`${prefix}/${id}:criar`] = { from: '', to: JSON.stringify(value), label: `${createForm.dataset['noun'] ?? ''} «${name}» — Novo` };
+    storeDrafts(all);
+    location.assign(document.querySelector<HTMLElement>('[data-edit-dialog]')?.dataset['back'] ?? '/admin/');
+  });
 }
 
 /* ── the edit modal ──────────────────────────────────────────────────────────

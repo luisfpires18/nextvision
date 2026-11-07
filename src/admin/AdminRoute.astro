@@ -29,6 +29,7 @@ import ProjectEditor from './ProjectEditor.astro';
 import OrderEditor from './OrderEditor.astro';
 import NewProject from './NewProject.astro';
 import EntryEditor from './EntryEditor.astro';
+import EntryCreate from './EntryCreate.astro';
 import { ENTRY_TYPES, entryData, entryDraftFile, entryFilePath, type EntryType } from '../lib/admin/entries.ts';
 import { getCollection } from 'astro:content';
 import { PROJECTS_DIR, portfolioSequence, projectData, projectDraftFile, projectFilePath, projectValue } from '../lib/admin/projects.ts';
@@ -38,7 +39,7 @@ import { UPLOADS_PATH, type UploadsDoc, type UploadEntry } from '../lib/admin/up
 import { SCREENS, pageFilePath, type PageFileName } from '../lib/admin/fields.ts';
 import { expandFields, type Field as EditField } from '../lib/admin/edit.ts';
 import { adminIdentity, LOGOUT_PATH } from '../lib/admin/guard.ts';
-import { AREAS, findArea, type AdminItem } from '../lib/admin/content.ts';
+import { AREAS, deleteDraftOf, findArea, type AdminItem } from '../lib/admin/content.ts';
 const HEADERS = {
   'Cache-Control': 'no-store',
   'X-Robots-Tag': 'noindex, nofollow',
@@ -145,7 +146,7 @@ if (item && groupId === 'ordem') {
 }
 
 /** A new project: the categories it may be filed under. Nothing is read from GitHub yet. */
-const newProject = item && groupId === 'novo'
+const newProject = item && groupId === 'novo' && item.id === 'projeto'
   ? (await getCollection('categories')).sort((a, b) => a.data.order - b.data.order).map((c) => ({ id: c.id, name: c.data.name.pt }))
   : null;
 
@@ -161,7 +162,15 @@ const editable = (gid: string, i: { id: string; locked?: string | undefined }) =
   (gid.startsWith('pagina-') && (SCREENS[i.id as PageFileName]?.length ?? 0) > 0)
   || gid in ENTRY_GROUPS || gid === 'projetos' || gid === 'ordem');
 /** Groups that are a button, not a list: "Novo projeto" is the plus on Projetos. */
-const ADD_TO: Record<string, string> = { projetos: 'novo' };
+/**
+ * Which tabs can add, and with what: the + in the header opens `novo/<this>`. Projects are
+ * created by their cover upload (NewProject.astro); the other three by EntryCreate.astro.
+ */
+const ADD_TO: Record<string, string> = { projetos: 'projeto', equipa: 'equipa', servicos: 'servico', categorias: 'categoria' };
+/** The draft prefix each deletable tab's items use (`equipa/<id>:apagar`). */
+const PREFIX_OF: Record<string, string> = { projetos: 'projeto', equipa: 'equipa', servicos: 'servico', categorias: 'categoria' };
+const entryCreate = item && groupId === 'novo' && ['equipa', 'servico', 'categoria'].includes(item.id)
+  ? (item.id as 'equipa' | 'servico' | 'categoria') : null;
 if (item && entryType) {
   const cfg = githubConfig();
   if (!cfg) editorNotice = 'Publicar ainda não está configurado neste servidor. Pode consultar, mas não alterar.';
@@ -206,11 +215,14 @@ if (current) {
   }
 }
 /** The tab an item's group belongs to; "Novo projeto" and "Ordem" belong to Projetos. */
-const tabOf = (gid: string) => (ACTION_GROUPS.has(gid) ? 'projetos' : tabs.find((tb) => tb.entries.some((e) => e.gid === gid))?.id ?? gid);
+const tabOf = (gid: string) => (gid === 'novo'
+  ? Object.keys(ADD_TO).find((tab) => ADD_TO[tab] === itemId) ?? 'projetos'
+  : gid === 'ordem' ? 'projetos'
+  : tabs.find((tb) => tb.entries.some((e) => e.gid === gid))?.id ?? gid);
 const asked = groupId ? tabOf(groupId) : Astro.url.searchParams.get('g');
 const activeTab = tabs.find((tb) => tb.id === asked) ?? tabs[0] ?? null;
-const addGroup = activeTab && ADD_TO[activeTab.id]
-  ? current?.groups.find((g) => g.group.id === ADD_TO[activeTab.id]) ?? null : null;
+const addItem = activeTab && ADD_TO[activeTab.id]
+  ? current?.groups.find((g) => g.group.id === 'novo')?.items.find((i) => i.id === ADD_TO[activeTab.id]) ?? null : null;
 const orderGroup = activeTab?.id === 'projetos' ? current?.groups.find((g) => g.group.id === 'ordem') ?? null : null;
 const tabHref = (id: string) => `${href(current!.area.id)}?g=${encodeURIComponent(id)}`;
 
@@ -224,7 +236,7 @@ const facetYears = [...new Set(facetItems.map((i) => i.facets!.year))].sort().re
 
 /* The open modal: what it holds, and where closing it goes. */
 const modal = item && current ? {
-  title: newProject ? 'Novo projeto' : orderEditor ? 'Ordem do portfólio' : item.label,
+  title: orderEditor ? 'Ordem do portfólio' : item.label,
   back: tabHref(activeTab?.id ?? groupId!),
   form: Boolean((screen && editor) || entryEditor || orderEditor || projectEditor),
   wide: Boolean(item.viewPath),
@@ -262,9 +274,9 @@ const modal = item && current ? {
         <h1>{current ? current.area.label : 'Conteúdo do site'}</h1>
         <div class="ad-head__actions">
           <button type="button" class="ad-button ad-button--primary" data-publish-open>Publicar <span data-draft-count></span></button>
-          {addGroup && addGroup.items[0] ? (
-            <a class="ico ico--add ico--lg" href={href(current!.area.id, addGroup.group.id, addGroup.items[0].id)}
-              aria-label={addGroup.group.label} title={addGroup.group.label} set:html={ICON.add} />
+          {addItem ? (
+            <a class="ico ico--add ico--lg" href={href(current!.area.id, 'novo', addItem.id)}
+              aria-label={addItem.label} title={addItem.label} set:html={ICON.add} />
           ) : null}
         </div>
         {tabs.length > 1 ? (
@@ -281,11 +293,16 @@ const modal = item && current ? {
       {!current ? (
         <main class="ad-panel">
           <p class="ad-lede">Escolha uma secção para ver e alterar o que lá aparece. As alterações ficam guardadas neste computador e só chegam ao site quando carregar em Publicar.</p>
+          <p class="ad-waiting" data-waiting hidden></p>
           <ul class="ad-grid">
             {loaded.map((l) => (
-              <li class="ad-card ad-card--section" data-section={l.area.section ?? undefined}>
+              <li class="ad-card ad-card--section" data-section={l.area.section ?? undefined}
+                data-section-keys={JSON.stringify([...new Set(l.groups.flatMap(({ group, items }) => (group.id === 'novo'
+                  ? items.map((i) => `${i.id}/`)
+                  : items.flatMap((i) => i.draftKeys ?? []))))])}>
                 <a class="ad-card__link" href={href(l.area.id)}>
                   <h2 class="ad-card__title">{l.area.label}</h2>
+                  <p class="ad-chip" data-tone="changed" data-section-waiting hidden></p>
                   <p class="ad-card__meta">{l.groups.filter(({ group, items }) => !ACTION_GROUPS.has(group.id) && (items.length > 0 || ADD_TO[group.id])).map((g) => `${g.group.label}${g.items.length > 1 ? ` (${g.items.length})` : ''}`).join(', ')}</p>
                 </a>
               </li>
@@ -293,7 +310,7 @@ const modal = item && current ? {
           </ul>
         </main>
       ) : activeTab ? (
-        <main class="ad-panel" data-grid>
+        <main class="ad-panel" data-grid data-create-prefix={activeTab.id !== 'projetos' && ADD_TO[activeTab.id] ? ADD_TO[activeTab.id] : undefined}>
           <h2 class="visually-hidden">{activeTab.label}</h2>
           {activeTab.entries.length > SEARCH_FROM || facetItems.length || orderGroup ? (
             <form class="ad-toolbar" role="search" data-toolbar>
@@ -305,7 +322,9 @@ const modal = item && current ? {
                 </label>
               ) : null}
               {facetItems.length ? (
-                <>
+                <div class="ad-filters" data-filters>
+                  <button type="button" class="ad-button ad-filters__toggle" aria-expanded="false" aria-controls="ad-filters-body" data-filters-toggle>Filtros <span data-filter-count></span></button>
+                  <div class="ad-filters__body" id="ad-filters-body">
                   <label class="ad-select"><span>Categoria</span>
                     <select name="categoria" data-filter="categoria">
                       <option value="">Todas</option>
@@ -334,7 +353,8 @@ const modal = item && current ? {
                       <option value="nome">Nome, A–Z</option>
                     </select>
                   </label>
-                </>
+                  </div>
+                </div>
               ) : null}
               {orderGroup && orderGroup.items[0] ? (
                 <a class="ad-button" href={href(current.area.id, orderGroup.group.id, orderGroup.items[0].id)}>Mudar a ordem</a>
@@ -345,7 +365,8 @@ const modal = item && current ? {
           {activeTab.entries.length ? (
             <ul class="ad-grid" data-cards>
               {activeTab.entries.map(({ item: i, gid }, n) => (
-                <ItemCard item={i} index={n} editHref={href(current.area.id, gid, i.id)} readOnly={!editable(gid, i)} />
+                <ItemCard item={i} index={n} editHref={href(current.area.id, gid, i.id)} readOnly={!editable(gid, i)}
+                  deleteDraft={i.deletable && PREFIX_OF[gid] ? deleteDraftOf(PREFIX_OF[gid]!, i.id) : undefined} />
               ))}
             </ul>
           ) : (
@@ -373,6 +394,8 @@ const modal = item && current ? {
               <EntryEditor type={entryEditor.type} id={entryEditor.id} data={entryEditor.data} uploads={entryEditor.uploads} />
             ) : newProject ? (
               <NewProject categories={newProject} />
+            ) : entryCreate ? (
+              <EntryCreate prefix={entryCreate} />
             ) : orderEditor ? (
               <OrderEditor projects={orderEditor} />
             ) : projectEditor ? (
@@ -399,7 +422,13 @@ const modal = item && current ? {
           ) : null}
         </div>
         <footer class="ad-modal__foot">
-          {modal.form ? (
+          {entryCreate ? (
+            <>
+              <p class="ad-modal__hint">A entrada nova fica guardada neste computador e chega ao site quando carregar em Publicar.</p>
+              <a class="ad-button" href={modal.back} data-modal-cancel>Cancelar</a>
+              <button type="submit" form="create-entry" class="ad-button ad-button--primary">Criar</button>
+            </>
+          ) : modal.form ? (
             <>
               <p class="ad-modal__hint">Guardar mantém as alterações neste computador. Chegam ao site quando carregar em Publicar.</p>
               <a class="ad-button" href={modal.back} data-modal-cancel>Cancelar</a>
@@ -415,8 +444,8 @@ const modal = item && current ? {
     {/* Delete: asks first; confirming marks the item for deletion at the next Publicar. */}
     <dialog class="ad-modal ad-modal--small" data-confirm-dialog aria-labelledby="confirm-h">
       <h2 id="confirm-h" data-confirm-title>Apagar?</h2>
-      <p>Sai do site quando carregar em Publicar. Até lá pode desfazer.</p>
-      <p class="ad-modal__hint">As imagens e os vídeos ficam guardados. Quem abrir o endereço antigo vai parar ao portfólio.</p>
+      <p data-confirm-body>Sai do site quando carregar em Publicar. Até lá pode desfazer.</p>
+      <p class="ad-modal__hint" data-confirm-hint></p>
       <div class="ad-modal__foot">
         <button type="button" class="ad-button" data-confirm-cancel>Cancelar</button>
         <button type="button" class="ad-button ad-button--danger" data-confirm-go>Apagar</button>
