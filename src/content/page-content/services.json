@@ -1,10 +1,13 @@
 {
   "leadImage": "pages/servicos/lead",
-  "categories": ["visual-storytelling", "corporativo"],
+  "categories": [
+    "visual-storytelling",
+    "corporativo"
+  ],
   "collage": [
     "projects/nvf-vs-antiqvvm/poster",
     "projects/nazaryi/poster",
-    "projects/susanarafael/poster"
+    "owner/4c2a888530be/image"
   ],
   "film": {
     "id": "iUGq6AtzUuY",

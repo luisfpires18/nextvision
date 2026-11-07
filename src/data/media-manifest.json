@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-07T15:44:37.979Z",
+  "generatedAt": "2026-11-07T15:54:57.752Z",
   "generatedBy": "scripts/media-build.mjs",
   "note": "Production media. Keys are storage-agnostic and carry NO URL: src/lib/media.ts joins a rendition path to PUBLIC_MEDIA_BASE_URL, which is the local mirror in development and the R2 delivery host in production. Rendition names are content-addressed, so a name that matches is bytes that match — that is what makes the cache immutable and the sync a set difference. Regenerate with `npm run media:build`.",
   "encoder": {
@@ -6956,6 +6956,91 @@
         "crop": null
       },
       "notes": "Uploaded in the admin by nextvisionfilmsagency@gmail.com, 2026-11-07: DSCF5936.jpg."
+    },
+    "owner/4c2a888530be/image": {
+      "key": "owner/4c2a888530be/image",
+      "kind": "image",
+      "storage": "r2",
+      "contentType": "image/webp",
+      "width": 1400,
+      "height": 632,
+      "aspectRatio": 2.2152,
+      "formats": [
+        "webp",
+        "avif"
+      ],
+      "renditions": [
+        {
+          "format": "webp",
+          "path": "owner/4c2a888530be/image/560.2b756b6a.webp",
+          "sha256": "2b756b6a64b190f08c46a3042f44f47dcbbc37fc568959b31546d63a5c890f07",
+          "width": 560,
+          "height": 254,
+          "bytes": 4778,
+          "contentType": "image/webp"
+        },
+        {
+          "format": "avif",
+          "path": "owner/4c2a888530be/image/560.a23f3bef.avif",
+          "sha256": "a23f3bef34cb289f0f7082d7115384037cf8b708ba5cbdf04f59126bda5f04d2",
+          "width": 560,
+          "height": 254,
+          "bytes": 2405,
+          "contentType": "image/avif"
+        },
+        {
+          "format": "webp",
+          "path": "owner/4c2a888530be/image/960.c935c595.webp",
+          "sha256": "c935c595dd1decfabeb5bff4990504d30507448330774b192bf38207bbefaf64",
+          "width": 960,
+          "height": 434,
+          "bytes": 9106,
+          "contentType": "image/webp"
+        },
+        {
+          "format": "avif",
+          "path": "owner/4c2a888530be/image/960.166f75a7.avif",
+          "sha256": "166f75a7363d6ab93051430bf4b4341685ab224cbf9a8b9cb5b91bb00f8692a9",
+          "width": 960,
+          "height": 434,
+          "bytes": 4014,
+          "contentType": "image/avif"
+        },
+        {
+          "format": "webp",
+          "path": "owner/4c2a888530be/image/1400.0925ad56.webp",
+          "sha256": "0925ad5670049ef4bbfd83814554082424e356abb211209505c4ae1160a8b083",
+          "width": 1400,
+          "height": 632,
+          "bytes": 14680,
+          "contentType": "image/webp"
+        },
+        {
+          "format": "avif",
+          "path": "owner/4c2a888530be/image/1400.30866660.avif",
+          "sha256": "30866660486a0067f09d5644972de76824310cb3a820ac826dfc5de38db0ef51",
+          "width": 1400,
+          "height": 632,
+          "bytes": 5784,
+          "contentType": "image/avif"
+        }
+      ],
+      "bytes": 40767,
+      "provenance": "owner",
+      "sourceQuality": "owner-upload",
+      "altStatus": "todo",
+      "alt": null,
+      "source": {
+        "file": "media/incoming/4c2a888530be/Captura-de-ecra-2026-11-07-as-15.53.17.png",
+        "size": 2148255,
+        "mtimeMs": 1794066895057,
+        "naturalWidth": 2862,
+        "naturalHeight": 1294
+      },
+      "recipe": {
+        "crop": null
+      },
+      "notes": "Uploaded in the admin by nextvisionfilmsagency@gmail.com, 2026-11-07: Captura de ecrã 2026-11-07, às 15.53.17.png."
     }
   }
 }
