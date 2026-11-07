@@ -132,6 +132,22 @@
       "by": "nextvisionfilmsagency@gmail.com",
       "at": "2026-11-07T15:24:58.245Z",
       "status": "ready"
+    },
+    {
+      "id": "b2dc7704183c",
+      "key": "owner/b2dc7704183c/image",
+      "kind": "image",
+      "source": "uploads/2026-11-07/b2dc7704183c/DSCF5924.jpg",
+      "name": "DSCF5924.jpg",
+      "target": {
+        "screen": "equipa",
+        "file": "equipa/francisco-cardoso",
+        "path": "portrait.key",
+        "label": "Equipa «Francisco Cardoso» — Retrato"
+      },
+      "by": "nextvisionfilmsagency@gmail.com",
+      "at": "2026-11-07T15:33:59.406Z",
+      "status": "pending"
     }
   ]
 }
