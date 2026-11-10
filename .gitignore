@@ -104,3 +104,4 @@ coverage/
 # media never goes in this repository (CLAUDE.md §7). skills-lock.json records its source;
 # reinstall with: npx skills add leonxlnx/taste-skill --skill design-taste-frontend --agent claude-code
 .claude/skills/design-taste-frontend/
+.ai/tmp/
