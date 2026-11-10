@@ -600,7 +600,10 @@ await check('the build of a save is followed from queued to completed', async ()
     assert.throws(() => removalWrites(all, new Map([['nao-existe', 'x']]), removedText, TODAY), /já não existe/);
   });
   await check('a project another one lists as related cannot be removed', () => {
-    const linked = all.map((p) => (p.slug === 'the-end' ? { ...p, text: p.text.replace(/^related: \[\]$/m, 'related:\n  - leonor') } : p));
+    // Any OTHER project will do: the owners delete projects, so none is named here.
+    const other = all.find((p) => p.slug !== 'leonor' && /^related: \[\]$/m.test(p.text));
+    assert.ok(other, 'the fixture needs a second project with an empty `related`');
+    const linked = all.map((p) => (p.slug === other.slug ? { ...p, text: p.text.replace(/^related: \[\]$/m, 'related:\n  - leonor') } : p));
     assert.throws(() => removalWrites(linked, new Map([['leonor', leonorTitle]]), removedText, TODAY), /relacionado/);
   });
   await check('removing a project is ONE commit: its file deleted, the removal recorded, nothing else', async () => {
@@ -613,7 +616,8 @@ await check('the build of a save is followed from queued to completed', async ()
     await commitFiles(cfg, writes, expected, 'content: Projeto', opts);
     assert.equal(gh.runs.length, 1, 'one push, one build');
     assert.equal(gh.file(projectFilePath('leonor')), undefined, 'the file is gone');
-    assert.deepEqual(JSON.parse(gh.file(REMOVED_PATH)).removed, [{ slug: 'leonor', title: leonorTitle, at: TODAY }]);
+    // The list already holds every removal the owners have made; this one is added to it.
+    assert.deepEqual(JSON.parse(gh.file(REMOVED_PATH)).removed, [...JSON.parse(removedText).removed, { slug: 'leonor', title: leonorTitle, at: TODAY }]);
     const touched = Object.keys(start).filter((p) => gh.file(p) !== start[p]).sort();
     assert.deepEqual(touched, [REMOVED_PATH, projectFilePath('leonor')].sort(), 'no other file changed');
   });
