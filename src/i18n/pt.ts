@@ -127,6 +127,7 @@ export const pt = {
   'cinema.view': 'Vista',
   'cinema.shelf': 'Prateleira',
   'cinema.list': 'Lista',
+  'cinema.empty': 'Ainda não há projetos.',
   'project.imdb': 'IMDb',
   'project.trailer': 'Trailer',
   'bts.social': 'Redes sociais',

@@ -31,7 +31,8 @@ const no = (i: number): string => String(i + 1).padStart(3, '0');
 ---
 
 <div class="shelf-view">
-  <ul class="shelf" aria-label={t('cinema.shelf', locale)}>
+  {projects.length === 0 && <p class="pf-empty" role="status">{t('cinema.empty', locale)}</p>}
+  {projects.length > 0 && <ul class="shelf" aria-label={t('cinema.shelf', locale)}>
     {projects.map((p, i) => (
       <li class={`vhs cat-${p.categoryToken}`}>
         <a
@@ -55,7 +56,7 @@ const no = (i: number): string => String(i + 1).padStart(3, '0');
         </a>
       </li>
     ))}
-  </ul>
+  </ul>}
 
   {lead && (
     <figure class="poster" data-poster aria-live="polite">

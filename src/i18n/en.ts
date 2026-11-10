@@ -114,6 +114,7 @@ export const en: Record<UIKey, string> = {
   'cinema.view': 'View',
   'cinema.shelf': 'Shelf',
   'cinema.list': 'List',
+  'cinema.empty': 'No projects yet.',
   'project.imdb': 'IMDb',
   'project.trailer': 'Trailer',
   'bts.social': 'Social',

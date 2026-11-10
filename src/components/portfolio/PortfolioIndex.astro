@@ -9,6 +9,7 @@
 import ProjectCard from '../site/ProjectCard.astro';
 import { PORTFOLIO, ROWS, ROW_CAPACITY, FILTERED_RATIO, FILTER_ALL } from '../../lib/portfolio.ts';
 import { say } from '../../lib/homepage.ts';
+import { t } from '../../i18n/index.ts';
 import { categoryFacets, type CuratedProject } from '../../lib/curated.ts';
 import { pagePath } from '../../i18n/routes.ts';
 import { categoryPath } from '../../i18n/routes.ts';
@@ -138,6 +139,9 @@ const twoDigits = (n: number): string => String(n).padStart(2, '0');
 >
   {/* Announced on filter change; silent on first paint. */}
   <p class="visually-hidden" role="status" data-portfolio-status></p>
+
+  {/* The owners can delete every project (or a whole category's): say so rather than leave a bare page. */}
+  {projects.length === 0 && <p class="pf-empty" role="status">{t('cinema.empty', locale)}</p>}
 
   <div class="pf-rows">
     {rows.map(({ row, take }, ri) => (
