@@ -322,7 +322,8 @@ try {
     if (slots.filter((s) => s === slot).length !== 1) errors.push(`page: /servicos/ stage needs exactly one "${slot}" frame`);
   }
   const hrefs = [...html.matchAll(/<a class="stage__link" href="([^"]+)"/g)].map((m) => m[1]);
-  if (hrefs.length === 0) errors.push('page: /servicos/ stage has no project links');
+  // No minimum: the owners choose the carousel's stills and delete projects, so a stage with no
+  // linked frame is a valid page. What may never happen is a link to a page that was not built.
   for (const href of hrefs) {
     if (!exists(path.join(DIST, href.replace(/^\/|\/$/g, ''), 'index.html'))) errors.push(`page: /servicos/ frame ${href} was not built`);
   }

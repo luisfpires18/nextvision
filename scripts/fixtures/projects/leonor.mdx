@@ -1,0 +1,111 @@
+---
+# Migrated from the Phase 0.5 preservation archive (docs/source-archive/pages.json).
+# Every value is verbatim from https://www.nextvisionfilms.com/portfolio/leonor/ —
+# title, tagline, date and category are the live page's own (CLAUDE.md §2, §8).
+#
+# Curated onto the Review B homepage. Reasoning: docs/HOMEPAGE_REVIEW.md §4.
+# Media: archived still + a 6 s silent loop cut from `Can´t live in you books
+# anymore.mp4` (HIGH-confidence match, docs/SMASH_MEDIA_INVENTORY.md §3.2).
+#
+# REVIEW D — this is the representative project page. It is the only entry with `blocks`,
+# and that is what selects the designed template; every other project still renders the
+# minimal placeholder. Reasoning: docs/PROJECT_PAGE_REVIEW.md §1.
+
+title:
+  pt: "Words of our story"
+tagline:
+  pt: |-
+    It’s like I’m reading a book, and it’s a book I deeply love, but I’m reading it slowly now.
+    I can still feel you and the words of our story.
+    This is who I am now. And I need you to let me go. As much as I want to I can’t live in your book anymore.
+
+# PHASE 11 — this project's PUBLISHED PROSE IS ALREADY ENGLISH. The live Portuguese page
+# prints these words exactly as they appear here, so there is nothing to translate and no
+# English variant is declared: `sourceLocale: en` states that as a fact about the entry
+# rather than leaving the gap to be guessed at. `npm run validate:i18n` reads this field
+# and therefore does not report a missing translation for prose that never had one.
+sourceLocale: en
+date: 2025-02-11
+year: 2025
+
+categories:
+  - visual-storytelling
+tags: []
+collections: []
+
+featured: false
+homepageOrder: 2
+portfolioOrder: 2
+draft: false
+
+film:
+  provider: youtube
+  id: 0C-yySHAzCI
+
+poster:
+  key: projects/leonor/poster
+  altStatus: todo # authored copy — Phase 11b, owner-reviewed
+
+previewVideo: projects/leonor/preview
+
+# The cinematic entry: a 4.6 s caption-free run, silent, at the crop's real width — never
+# upscaled — which doubles as the poster for the published film. Pressing play swaps
+# YouTube into the same frame.
+heroStill:
+  key: projects/leonor/hero/poster
+  altStatus: decorative
+heroVideo: projects/leonor/hero
+
+sourceOfTruth: smash
+masterRequired: true
+
+blocks:
+  # No `embedded-film` block: on this project the published film IS the hero, so a second
+  # player below it would be the same box twice. The block type stays in the closed set
+  # for projects whose film is not the entry (docs/PROJECT_PAGE_REVIEW.md §5).
+  #
+  # The only prose this project publishes, which is its tagline. Nothing is added.
+  - type: text
+    width: narrow
+    body:
+      pt: |-
+        It’s like I’m reading a book, and it’s a book I deeply love, but I’m reading it slowly now.
+        I can still feel you and the words of our story.
+        This is who I am now. And I need you to let me go. As much as I want to I can’t live in your book anymore.
+
+  # Six frames of the film, in the order they occur in it — a wide and a close first,
+  # then a strip, then the closing image at scale.
+  - type: image-pair
+    weight: left
+    media:
+      - key: projects/leonor/still-01
+        altStatus: todo
+      - key: projects/leonor/still-03
+        altStatus: todo
+
+  - type: image-grid
+    mode: strip
+    media:
+      - key: projects/leonor/still-02
+        altStatus: todo
+      - key: projects/leonor/still-04
+        altStatus: todo
+      - key: projects/leonor/still-05
+        altStatus: todo
+
+  - type: full-width-image
+    media:
+      key: projects/leonor/still-06
+      altStatus: todo
+
+related: []
+previousSlugs: []
+
+seo:
+  noindex: false
+---
+
+{/*
+  Body intentionally empty. The live project page carries no prose beyond the title
+  and the tagline above. Writing any here would invent content (CLAUDE.md §2).
+*/}

@@ -181,7 +181,10 @@ await check('every offered field exists in its file', () => {
 /* ── projects (MDX front matter) ────────────────────────────────────────── */
 
 {
-  const dir = 'src/content/projects';
+  // Frozen copies (scripts/fixtures/projects): the owners delete real projects from the admin,
+  // and a test that names one breaks every later deploy. The real files are only checked for
+  // round-tripping, below.
+  const dir = 'scripts/fixtures/projects';
   const leonor = fs.readFileSync(`${dir}/leonor.mdx`, 'utf8');
   const ctx = {
     categories: new Set(fs.readdirSync('src/content/categories').map((f) => f.replace(/\.yml$/, ''))),
@@ -190,7 +193,7 @@ await check('every offered field exists in its file', () => {
   const differing = (a, b) => { const y = b.split('\n'); return a.split('\n').filter((l, i) => l !== y[i]).length; };
 
   await check('every project file survives a read and a write byte for byte', () => {
-    const bad = fs.readdirSync(dir).filter((f) => !roundTrips(fs.readFileSync(`${dir}/${f}`, 'utf8')));
+    const bad = fs.readdirSync('src/content/projects').filter((f) => !roundTrips(fs.readFileSync(`src/content/projects/${f}`, 'utf8')));
     assert.deepEqual(bad, []);
   });
   await check('a project video can be marked the full film, and trailer is the default', () => {
@@ -589,9 +592,10 @@ await check('the build of a save is followed from queued to completed', async ()
 /* ── removing a project ─────────────────────────────────────────────────── */
 
 {
-  const dir = 'src/content/projects';
+  const dir = 'scripts/fixtures/projects';
   const all = fs.readdirSync(dir).map((f) => ({ slug: f.replace(/\.mdx$/, ''), text: fs.readFileSync(`${dir}/${f}`, 'utf8') }));
-  const removedText = fs.readFileSync(REMOVED_PATH, 'utf8');
+  // A fixed starting list, for the same reason as the fixtures: the real one grows with every removal.
+  const removedText = '{\n  "removed": []\n}\n';
   const leonorTitle = projectValue(projectData(all.find((p) => p.slug === 'leonor').text), 'title.pt');
 
   await check('removing a project needs its current title confirmed', () => {
@@ -617,7 +621,7 @@ await check('the build of a save is followed from queued to completed', async ()
     assert.equal(gh.runs.length, 1, 'one push, one build');
     assert.equal(gh.file(projectFilePath('leonor')), undefined, 'the file is gone');
     // The list already holds every removal the owners have made; this one is added to it.
-    assert.deepEqual(JSON.parse(gh.file(REMOVED_PATH)).removed, [...JSON.parse(removedText).removed, { slug: 'leonor', title: leonorTitle, at: TODAY }]);
+    assert.deepEqual(JSON.parse(gh.file(REMOVED_PATH)).removed, [{ slug: 'leonor', title: leonorTitle, at: TODAY }]);
     const touched = Object.keys(start).filter((p) => gh.file(p) !== start[p]).sort();
     assert.deepEqual(touched, [REMOVED_PATH, projectFilePath('leonor')].sort(), 'no other file changed');
   });
