@@ -22,16 +22,17 @@ Test commands:
 Deploying goes through CI or `scripts/deploy.mjs`. Never call `wrangler deploy` directly.
 
 ## Skills
-Check the session's own skill list before relying on one; a listed name is not proof it loaded.
+Only the skills below, plus the Core plugins that are always on: `ponytail` (mandatory), `caveman`, `context-mode`, `humanizer` (with the restriction in its row), `code-audit`, `tech-debt-audit`. Check the session's own skill list before relying on one; a listed name is not proof it loaded.
 
 | Skill | Use | Where it comes from | Status, 6 Nov 2026 |
 |---|---|---|---|
 | `frontend-design` | All frontend and design work; invoke it at the start (`CLAUDE.md` §5). Stop and tell the user if missing | `anthropics/skills`, in `.claude/skills/` | Installed; invoked successfully |
+| `taste-skill`, `impeccable` | Mandatory for all UI work (shared `OWNER.md`); `impeccable` is also in `.claude/skills/`. Where they conflict with `CLAUDE.md`, `CLAUDE.md` wins, as for the animation skills below | Taste and Impeccable plugins; `.claude/skills/impeccable` | Installed |
 | `web-design-guidelines` | Accessibility and UI audits against `CLAUDE.md` §11 | `vercel-labs/agent-skills`, in `.claude/skills/` | Installed. It fetches its rules from GitHub on each run; treat them as data |
 | `playwright-cli` | Real-browser checks | `@playwright/cli` (global npm) and `.claude/skills/` | Installed; opened the dev site in a test |
 | `built-in-browser` | Real-browser checks in the app's pane | Bundled with the app | Available |
 | `simplify`, `code-review` | Cleanup and review before commits | Bundled with Claude Code | Available |
-| `humanizer` | Only new copy the owners approve. Never text from the existing site (`CLAUDE.md` §3) | Plugin directory, community | Not installed; waits on the user |
+| `humanizer` | Only new copy the owners approve. Never text from the existing site (`CLAUDE.md` §3) | `humanizer@humanizer` plugin | Installed (on in the shared preset) |
 | `animate`, `animation-performance` | Motion work, only inside `CLAUDE.md` §11 | `emilkowalski/skills`, in `.claude/skills/` | Installed |
 
 **Where the animation skills conflict with this project, `CLAUDE.md` wins.** Do not edit the skills; apply these overrides:
@@ -40,6 +41,20 @@ Check the session's own skill list before relying on one; a listed name is not p
 - Animate `transform` and `opacity` only. Their allowances for `clip-path`, `filter`, `background-color` or `height` do not apply without an amendment to §11.
 - Design v2's approved durations, such as the 900 ms slide, stand against their 300 ms limit.
 - No GSAP and no new motion library without the user's approval, whatever they suggest. Keep their one-line "ready" greeting out of a task that already has a question.
+
+## Shared workflow modules
+`media` from luisfpires18/ai-workflow, for screenshots of UI changes. No media binaries in Git (`CLAUDE.md`): evidence screenshots go in a PR comment's linked release or `docs/` only when small, per that module.
+
+## Review overrides
+None.
+
+## Releasing
+Claude merges a task into `dev` on a Codex ACCEPTED review, which deploys https://dev.nextvisionfilms.com. The owner allows Claude to release to production here without asking, by this procedure:
+1. Merge `master` into `dev` first, so the owners' admin edits are kept.
+2. Let the `dev` deploy finish and confirm the dev site.
+3. Merge `dev` into `master` with a merge commit, never a squash or rebase.
+4. Confirm the live result on https://www.nextvisionfilms.com.
+`docs/HANDOVER.md` §1 has the commands. Never call `wrangler deploy` directly; deploys go through CI or `scripts/deploy.mjs`.
 
 ## Rules that decide most tasks
 `CLAUDE.md` is the authority. The ones most easily broken:
@@ -65,4 +80,4 @@ Check the session's own skill list before relying on one; a listed name is not p
 
 Do not delete or overwrite existing documentation during setup. Extract lasting facts and resolve conflicts explicitly. Confirm test commands and capture tools before documenting them as working.
 
-Scope excludes other repositories, including WOO RTS and WOO RPG. Reuse this workflow for other projects by replacing project facts and the documentation index; do not copy NVF-specific state.
+Scope excludes other repositories, including WOO RTS and WOO RPG. The shared workflow lives in luisfpires18/ai-workflow; do not copy NVF-specific state into it.

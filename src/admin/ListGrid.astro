@@ -93,6 +93,21 @@ const catsJson = JSON.stringify(doc.categories);
         <UploadPanel target="services:collage.+" kind="image" requests={requestsFor(uploads, 'services', 'collage.+')} />
       </div>
     ) : null}
+    {/* A new file for the card being edited (owner request 2026-11-11): one panel per
+        place in the list as it is on master, since that is where the upload lands. The
+        browser shows the edited card's, and only while the card is still in that place. */}
+    {(kind === 'images' ? doc.collage : doc.films).map((item, i) => {
+      const at = kind === 'films' ? `films.${i}.poster` : typeof item === 'string' ? `collage.${i}` : `collage.${i}.image`;
+      return (
+        <div class="admin-editor" data-editor data-screen="services" data-list-upload-at={i} hidden>
+          <p class="ed-note">{kind === 'images'
+            ? 'Ou carregue uma fotografia nova para este lugar. Substitui esta quando terminar de ser processada (alguns minutos), sem precisar de Publicar.'
+            : 'Ou carregue uma imagem nova para a capa. Substitui a atual quando terminar de ser processada (alguns minutos), sem precisar de Publicar.'}</p>
+          <UploadPanel target={`services:${at}`} kind="image" requests={requestsFor(uploads, 'services', at)} />
+        </div>
+      );
+    })}
+    <p class="ed-note" data-list-upload-later hidden></p>
     <p class="ed-message" role="status" aria-live="polite" data-list-message></p>
     <div class="ad-modal__foot">
       <button type="button" class="ad-button" data-list-cancel>Cancelar</button>

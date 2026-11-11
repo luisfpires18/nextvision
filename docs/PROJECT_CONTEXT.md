@@ -2387,3 +2387,19 @@ link added to a person, a phone removed and the networks reordered, all publishe
 On an LF copy built from the published files, "Bastidores" appeared in the Portuguese footer and as
 the BTS title (English unchanged), the new tagline on /portfolio/, the link on /sobre/, and one
 number on /contactos/. The verify chain passed (72 admin checks).
+
+## 42. Cover uploads in Comercial, and the link preview (2026-11-11)
+
+Owner request. Editing a carousel image or a video in Admin › Comercial now offers "Carregar
+novo ficheiro…": a new still for that carousel place (`services:collage.N`, or
+`collage.N.image` for a frame that plays a film, so the film stays) or a new video cover
+(`services:films.N.poster`, a target that already existed but had no button). An upload lands
+at the place the card has on `master`, so the panel shows only while the card is still there;
+a moved or new card says to Publicar first. `expandFields` now expands a `*` only for items
+that have the rest of the path.
+
+The homepage's og:image is `public/brand/share.png`, 1200x630: the colour mark over
+`We are NVF` in Barlow Condensed SemiBold, on cream. `npm run brand:build` makes it from
+`nvf-colour.png` and the TTF in `source-assets/fonts/`, colours read from
+`tokens.colour.css`. Other pages keep their own image. Released without the Codex review, on
+the user's instruction.

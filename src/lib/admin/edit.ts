@@ -59,7 +59,9 @@ export function expandFields(defs: FieldDef[], docs: Partial<Record<PageFileName
     const rest = def.path.slice(star + 2);
     const list = getAt(docs[def.file], base);
     if (!Array.isArray(list)) continue;
-    list.forEach((_, i) => {
+    list.forEach((item, i) => {
+      // Only the items that have the rest of the path (a carousel frame with a film has `.image`).
+      if (rest && getAt(item, rest.slice(1)) === undefined) return;
       const key = `${base}.${i}${rest}`;
       out.push({ ...def, path: key, key, label: `${def.label} ${i + 1}` });
     });

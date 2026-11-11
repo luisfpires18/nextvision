@@ -166,12 +166,18 @@ await check('the services lists: add, remove, reorder, and each item checked', (
   assert.throws(() => applyEdits(fields, docs, { [fieldName(slot)]: poster }, TODAY), /desconhecido/);
 });
 
-await check('an upload can add a carousel image or replace a film cover, and nothing else on the list', () => {
+await check('an upload can add or replace a carousel image or replace a film cover, and nothing else on the list', () => {
   const docs = { services: read('services') };
   const fields = expandFields(SCREENS.services, { ...docs, home: read('home') });
   const req = (target) => ({ screen: 'services', target, source: 'uploads/2026-11-07/abcdefgh12/a.jpg', name: 'a.jpg' });
   assert.equal(planUpload(fields, req('services:collage.+'), 'abcdefgh12', 'x', 'y').target.path, 'collage.+');
   assert.equal(planUpload(fields, req('services:films.0.poster'), 'abcdefgh12', 'x', 'y').target.path, 'films.0.poster');
+  assert.equal(planUpload(fields, req('services:collage.0'), 'abcdefgh12', 'x', 'y').target.path, 'collage.0');
+  // A frame that plays a film takes a new still at `.image`, so its film stays; a plain one does not have one.
+  assert.throws(() => planUpload(fields, req('services:collage.0.image'), 'abcdefgh12', 'x', 'y'), /não aceita/);
+  const withFilm = { ...docs.services, collage: [{ image: docs.services.collage[0], film: '8HjA-SOs7Ws' }] };
+  const filmFields = expandFields(SCREENS.services, { services: withFilm, home: read('home') });
+  assert.equal(planUpload(filmFields, req('services:collage.0.image'), 'abcdefgh12', 'x', 'y').target.path, 'collage.0.image');
   assert.throws(() => planUpload(fields, req('services:collage'), 'abcdefgh12', 'x', 'y'), /não aceita/);
 });
 
