@@ -8,13 +8,7 @@
     "projects/nvf-vs-antiqvvm/poster",
     "projects/nazaryi/poster"
   ],
-  "films": [
-    {
-      "id": "8HjA-SOs7Ws",
-      "title": "NVF showreel 2026",
-      "poster": "projects/helder-praia/poster"
-    }
-  ],
+  "films": [],
   "lead": [
     {
       "text": "O vídeo certo tem o poder de ",
