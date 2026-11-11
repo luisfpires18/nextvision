@@ -69,35 +69,21 @@ for (const [file, width, why] of TARGETS) {
 
 /*
  * The link preview (owner request, 2026-11-11): what WhatsApp and the like show for
- * nextvisionfilms.com. The colour mark, downscaled like the rest, over the tagline
- * `We are NVF` (the live site's own title suffix, src/config/site.ts), set in Barlow
- * Condensed from source-assets/fonts. 1200x630 is the size every preview crawler expects.
- * Colours are read from tokens.colour.css, never typed.
+ * nextvisionfilms.com. The colour mark alone on white, as the owners sent it (2026-11-12).
+ * 1200x630 is the size every preview crawler expects; WhatsApp's small preview crops the
+ * centre square, so the mark is narrower than 630 px to survive that crop whole.
+ * The white is read from tokens.colour.css, never typed.
  */
 const css = await fs.readFile(path.join(ROOT, 'src/styles/tokens.colour.css'), 'utf8');
-const token = (name) => css.match(new RegExp(`--${name}:\\s*(#[0-9a-fA-F]{6})`))?.[1];
-const [cream, ink] = [token('brand-cream'), token('brand-ink')];
-if (!cream || !ink) throw new Error('brand-cream or brand-ink missing from tokens.colour.css');
+const paper = css.match(/--print-paper:\s*(#[0-9a-fA-F]{6})/)?.[1];
+if (!paper) throw new Error('--print-paper missing from tokens.colour.css');
 
-const SHARE = { width: 1200, height: 630, mark: 640, text: 'We are NVF' };
+const SHARE = { width: 1200, height: 630, mark: 580 };
 const mark = await sharp(path.join(DIR, 'nvf-colour.png')).resize({ width: SHARE.mark, kernel: 'lanczos3' }).toBuffer();
 const markH = (await sharp(mark).metadata()).height;
-const words = await sharp({
-  text: {
-    text: `<span foreground="${ink}">${SHARE.text}</span>`,
-    fontfile: path.join(ROOT, 'source-assets/fonts/Barlow_Condensed/BarlowCondensed-SemiBold.ttf'),
-    font: 'Barlow Condensed SemiBold 64',
-    dpi: 72,
-    rgba: true,
-  },
-}).png().toBuffer();
-const wordsMeta = await sharp(words).metadata();
-const gap = 48;
-const top = Math.round((SHARE.height - markH - gap - wordsMeta.height) / 2);
-const share = await sharp({ create: { width: SHARE.width, height: SHARE.height, channels: 3, background: cream } })
+const share = await sharp({ create: { width: SHARE.width, height: SHARE.height, channels: 3, background: paper } })
   .composite([
-    { input: mark, left: Math.round((SHARE.width - SHARE.mark) / 2), top },
-    { input: words, left: Math.round((SHARE.width - wordsMeta.width) / 2), top: top + markH + gap },
+    { input: mark, left: Math.round((SHARE.width - SHARE.mark) / 2), top: Math.round((SHARE.height - markH) / 2) },
   ])
   .png({ compressionLevel: 9, adaptiveFiltering: true })
   .toBuffer();

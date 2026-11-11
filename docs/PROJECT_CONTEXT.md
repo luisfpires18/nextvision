@@ -2403,3 +2403,11 @@ The homepage's og:image is `public/brand/share.png`, 1200x630: the colour mark o
 `nvf-colour.png` and the TTF in `source-assets/fonts/`, colours read from
 `tokens.colour.css`. Other pages keep their own image. Released without the Codex review, on
 the user's instruction.
+
+## 43. Link preview: the plain mark and "Loving every frame" (2026-11-12)
+
+The owners replaced the §42 card. `share.png` is now the colour mark alone on white
+(`--print-paper`), 580 px wide so WhatsApp's centre-square crop keeps all of it. The
+homepage's `og:description` is the owners' own line, `Loving every frame`, in both locales;
+the meta description is unchanged. The image URL carries `?v=2` because WhatsApp caches a
+preview image by its URL.
