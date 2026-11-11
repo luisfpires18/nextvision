@@ -2,7 +2,7 @@
 
 Last refreshed: 6 November 2026. Git and GitHub can have moved since; refresh them before any mutation.
 
-Workflow status: adapted from `luisfpires18/woo-rts` on 6 November 2026 and loaded from `CLAUDE.md`, as the user directed.
+Workflow: shared luisfpires18/ai-workflow since 11 November 2026 (Claude implements, Codex reviews, Claude merges into dev on ACCEPTED and releases to master).
 Roadmap: none. No Roadmap Issue or milestones exist, and the repository had 0 open Issues and PRs.
 Current task: bug fixing, directed in conversation with no Issue. More fixes are coming.
 Next task: none queued.

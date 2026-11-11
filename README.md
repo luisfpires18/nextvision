@@ -107,7 +107,7 @@ domains, attached in Cloudflare rather than in `wrangler.jsonc`.
 | File | Purpose |
 |---|---|
 | [`CLAUDE.md`](CLAUDE.md) | The rules. Content preservation, motion, media, forms, analytics. |
-| [`.ai/WORKFLOW.md`](.ai/WORKFLOW.md) | The shared workflow, with `.ai/PROJECT.md` and `.ai/STATE.md`. |
+| [luisfpires18/ai-workflow](https://github.com/luisfpires18/ai-workflow) | The shared workflow, with `.ai/PROJECT.md` and `.ai/STATE.md`. |
 | [`docs/HANDOVER.md`](docs/HANDOVER.md) | How to run, edit and deploy this site. |
 | [`docs/PROJECT_CONTEXT.md`](docs/PROJECT_CONTEXT.md) | Living state: decisions, phase, open questions. |
 | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Technical decisions and rejected alternatives. |
