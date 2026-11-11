@@ -48,7 +48,6 @@ const heroItem = getMedia(heroKey);
 const hero = videoProps(heroKey);
 /* The LCP image on the site's front page: eager, high priority, and never lazy. */
 const heroPosterImg = imageProps(`${heroKey}/poster`, { alt: '', sizes: '100vw', priority: true });
-const heroPoster = hero?.poster ?? null;
 const heroLg = hero?.mp4[0]?.src ?? null;
 const heroSm = hero?.mp4[1]?.src ?? heroLg;
 const heroWebmLg = hero?.webm[0]?.src ?? null;
@@ -75,7 +74,7 @@ const schema = [
   description={pageDescription('home', locale) ?? undefined}
   locale={locale}
   ground="dark"
-  ogImage={heroPoster ? absoluteUrl(heroPoster) : null}
+  ogImage={absoluteUrl('/brand/share.png')}
   ogImageAlt={BRAND_LINES.wordmark}
   schema={schema}
 >

@@ -67,5 +67,51 @@ for (const [file, width, why] of TARGETS) {
   console.log(`  ${path.basename(out)}  ${(size / 1024).toFixed(1)} KB → ${(bytes.length / 1024).toFixed(1)} KB  (${why})`);
 }
 
+/*
+ * The link preview (owner request, 2026-11-11): what WhatsApp and the like show for
+ * nextvisionfilms.com. The colour mark, downscaled like the rest, over the tagline
+ * `We are NVF` (the live site's own title suffix, src/config/site.ts), set in Barlow
+ * Condensed from source-assets/fonts. 1200x630 is the size every preview crawler expects.
+ * Colours are read from tokens.colour.css, never typed.
+ */
+const css = await fs.readFile(path.join(ROOT, 'src/styles/tokens.colour.css'), 'utf8');
+const token = (name) => css.match(new RegExp(`--${name}:\\s*(#[0-9a-fA-F]{6})`))?.[1];
+const [cream, ink] = [token('brand-cream'), token('brand-ink')];
+if (!cream || !ink) throw new Error('brand-cream or brand-ink missing from tokens.colour.css');
+
+const SHARE = { width: 1200, height: 630, mark: 640, text: 'We are NVF' };
+const mark = await sharp(path.join(DIR, 'nvf-colour.png')).resize({ width: SHARE.mark, kernel: 'lanczos3' }).toBuffer();
+const markH = (await sharp(mark).metadata()).height;
+const words = await sharp({
+  text: {
+    text: `<span foreground="${ink}">${SHARE.text}</span>`,
+    fontfile: path.join(ROOT, 'source-assets/fonts/Barlow_Condensed/BarlowCondensed-SemiBold.ttf'),
+    font: 'Barlow Condensed SemiBold 64',
+    dpi: 72,
+    rgba: true,
+  },
+}).png().toBuffer();
+const wordsMeta = await sharp(words).metadata();
+const gap = 48;
+const top = Math.round((SHARE.height - markH - gap - wordsMeta.height) / 2);
+const share = await sharp({ create: { width: SHARE.width, height: SHARE.height, channels: 3, background: cream } })
+  .composite([
+    { input: mark, left: Math.round((SHARE.width - SHARE.mark) / 2), top },
+    { input: words, left: Math.round((SHARE.width - wordsMeta.width) / 2), top: top + markH + gap },
+  ])
+  .png({ compressionLevel: 9, adaptiveFiltering: true })
+  .toBuffer();
+const shareOut = path.join(DIR, 'share.png');
+if (CHECK) {
+  const onDisk = await fs.readFile(shareOut).catch(() => null);
+  if (!onDisk || !onDisk.equals(share)) {
+    console.error('  ✗ share.png is missing or stale — run `npm run brand:build`');
+    failed = true;
+  }
+} else {
+  await fs.writeFile(shareOut, share);
+  console.log(`  share.png  ${(share.length / 1024).toFixed(1)} KB  (link preview, ${SHARE.width}x${SHARE.height})`);
+}
+
 if (failed) process.exit(1);
 if (CHECK) console.log('brand:check — every derivative matches its original');

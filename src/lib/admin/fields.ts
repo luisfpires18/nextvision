@@ -76,6 +76,9 @@ export const SCREENS: Record<PageFileName, FieldDef[]> = {
     { file: 'home', path: 'copy.servicesTitle', label: 'Título da página', kind: 'text' },
     { file: 'services', path: 'collage', label: 'Imagens do carrossel', kind: 'images', elsewhere: true, note: 'As imagens com que o carrossel abre, por ordem. A segunda aparece à frente. Depois delas vêm os projetos das categorias abaixo.' },
     { file: 'services', path: 'collage.+', label: 'Nova imagem do carrossel', kind: 'image', uploadOnly: true },
+    { file: 'services', path: 'collage.*', label: 'Imagem do carrossel', kind: 'image', uploadOnly: true, elsewhere: true },
+    // A frame that plays a film keeps its film: the upload replaces only its still.
+    { file: 'services', path: 'collage.*.image', label: 'Imagem do carrossel com filme', kind: 'image', uploadOnly: true, elsewhere: true },
     { file: 'services', path: 'categories', label: 'Projetos no carrossel', kind: 'categories', elsewhere: true, note: 'Os projetos destas categorias entram no carrossel depois das imagens, pela ordem do portfólio.' },
     { file: 'services', path: 'films', label: 'Vídeos do YouTube', kind: 'films', elsewhere: true, note: 'Os vídeos por baixo do carrossel, de cima para baixo. Pode não haver nenhum.' },
     { file: 'services', path: 'films.*.poster', label: 'Capa do vídeo', kind: 'image', uploadOnly: true, elsewhere: true },

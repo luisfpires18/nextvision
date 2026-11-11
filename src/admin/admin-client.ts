@@ -1361,6 +1361,18 @@ if (editDialog) {
       body.replaceChildren();
       const upload = root!.querySelector<HTMLElement>('[data-list-upload]');
       if (upload) upload.hidden = index !== null;
+      /* An upload lands at the card's place in the PUBLISHED list, so it is offered only
+         while the card is still there; a moved or new card waits for Publicar. */
+      const idOf = (x: unknown) => (kind === 'images' ? JSON.stringify(x) : (x as Film | undefined)?.id);
+      const settled = index !== null && idOf((JSON.parse(base) as unknown[])[index]) === idOf(item);
+      for (const at of root!.querySelectorAll<HTMLElement>('[data-list-upload-at]')) {
+        at.hidden = !settled || Number(at.dataset['listUploadAt']) !== index;
+      }
+      const later = root!.querySelector<HTMLElement>('[data-list-upload-later]')!;
+      later.hidden = settled || (kind === 'images' && index === null);
+      later.textContent = index === null
+        ? 'Para carregar uma capa nova, acrescente o vídeo e carregue em Publicar; depois volte a abri-lo aqui.'
+        : 'Para carregar um ficheiro novo para este lugar, carregue primeiro em Publicar.';
       if (kind === 'images') {
         const frame = frameFilm(item);
         body.append(
