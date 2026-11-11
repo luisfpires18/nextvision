@@ -59,6 +59,21 @@ function strings<const K extends string>(...keys: K[]) {
   return z.object(Object.fromEntries(keys.map((k) => [k, provenanced])) as Record<K, typeof provenanced>);
 }
 
+/**
+ * One frame of the services stage: a still, or a still that plays a YouTube film when it is
+ * pressed. A plain key stays a plain key, so every frame published before this still reads.
+ * `title` is the film's accessible name; without it the button says "Ver o filme".
+ */
+const collageItem = z.union([
+  imageKey,
+  z.object({
+    image: imageKey,
+    film: z.string().regex(/^[A-Za-z0-9_-]{11}$/, 'must be an 11-character YouTube video id'),
+    title: z.string().min(1).optional(),
+  }),
+]);
+export type CollageItem = z.infer<typeof collageItem>;
+
 export const PAGE_SCHEMAS = {
   home: z.object({
     heroVideo: videoKey,
@@ -77,8 +92,8 @@ export const PAGE_SCHEMAS = {
     leadImage: imageKey,
     /** The portfolio categories whose projects join the stage after the collage. Slugs from src/content/categories/. */
     categories: z.array(z.string().regex(/^[a-z0-9-]+$/)),
-    /** The stage's opening stills. The second opens in front. Owners add and remove them in the admin. */
-    collage: z.array(imageKey),
+    /** The stage's opening frames, stills or stills that play a film. The second opens in front. Owners add and remove them in the admin. */
+    collage: z.array(collageItem),
     /** The films under the stage, top to bottom; none is allowed. `title` is the film's name, used only as the accessible name. */
     films: z.array(z.object({
       id: z.string().regex(/^[A-Za-z0-9_-]{11}$/, 'must be an 11-character YouTube video id'),
@@ -88,7 +103,7 @@ export const PAGE_SCHEMAS = {
     lead: z.array(z.object({ text: z.string().min(1), en: z.string().min(1), mark: z.boolean().optional() })).min(1),
     copy: strings('closeLineA', 'closeLineB', 'closeBody'),
     wordpressExcerpt: z.string(),
-  }).refine((s) => s.collage.length + s.categories.length > 0, { message: 'the stage needs at least one image or one category', path: ['collage'] }),
+  }),
   contact: z.object({
     banner: imageKey,
     copy: strings('formHeading', 'directHeading', 'directBody'),

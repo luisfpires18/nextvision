@@ -197,6 +197,12 @@
     opacity var(--dur-cinematic) var(--ease-cinematic);
 }
 .stage__link { display: block; block-size: 100%; }
+.stage__empty { padding: var(--space-8) var(--gutter); text-align: center; }
+/* A frame that plays a film: the still with the façade button over it; the player replaces the
+   button in place (stage.ts), so nothing shifts. With scripting off only the <noscript> link shows. */
+.stage__film { position: relative; block-size: 100%; }
+.stage__film iframe { position: absolute; inset: 0; inline-size: 100%; block-size: 100%; border: 0; display: block; }
+:root:not(.js) .stage__film [data-stage-play] { display: none; }
 .stage__frame picture { display: block; block-size: 100%; }
 .stage__frame img { display: block; inline-size: 100%; block-size: 100%; object-fit: cover; }
 .stage__frame[data-slot='centre'] { z-index: 2; }

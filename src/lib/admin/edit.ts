@@ -92,8 +92,27 @@ export function parseList(kind: 'images' | 'films' | 'categories', label: string
       return { id, title, poster };
     });
   }
+  if (kind === 'images') {
+    // A frame is a still, or a still with a film that plays when it is pressed. Without a
+    // film it is stored as the bare key, exactly as before, so nothing already published changes.
+    return list.map((item, i) => {
+      if (typeof item === 'string') {
+        if (!item) throw new EditError(`«${label}»: escolha uma imagem em cada linha.`);
+        return item;
+      }
+      const f = (item ?? {}) as Record<string, unknown>;
+      const image = String(f['image'] ?? '');
+      if (!image) throw new EditError(`«${label}»: escolha uma imagem em cada linha.`);
+      const address = String(f['film'] ?? '').trim();
+      if (!address) return image;
+      const film = youtubeId(address);
+      if (!film) throw new EditError(`«${label}», imagem ${i + 1}: não reconheço o endereço do vídeo. Cole o link, por exemplo https://www.youtube.com/watch?v=…`);
+      const title = String(f['title'] ?? '').trim();
+      return title ? { image, film, title } : { image, film };
+    });
+  }
   const strings = list.map((v) => (typeof v === 'string' ? v : ''));
-  if (strings.some((v) => !v)) throw new EditError(kind === 'images' ? `«${label}»: escolha uma imagem em cada linha.` : `«${label}»: pedido inválido.`);
+  if (strings.some((v) => !v)) throw new EditError(`«${label}»: pedido inválido.`);
   if (kind === 'categories') {
     if (strings.some((v) => !/^[a-z0-9-]+$/.test(v))) throw new EditError(`«${label}»: pedido inválido.`);
     return [...new Set(strings)];

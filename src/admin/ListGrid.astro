@@ -17,11 +17,12 @@ import UploadPanel from './UploadPanel.astro';
 import { ICON } from './icons.ts';
 import { requestsFor, type UploadEntry } from '../lib/admin/uploads.ts';
 import { portfolioProjects } from '../lib/curated.ts';
+import type { CollageItem } from '../lib/page-content.ts';
 
 interface Props {
   kind: 'images' | 'films';
   /** services.json as it is on master now. */
-  doc: { collage: string[]; films: { id: string; title: string; poster: string }[]; categories: string[] };
+  doc: { collage: CollageItem[]; films: { id: string; title: string; poster: string }[]; categories: string[] };
   uploads: UploadEntry[];
 }
 const { kind, doc, uploads } = Astro.props;

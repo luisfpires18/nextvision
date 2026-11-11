@@ -31,7 +31,7 @@ import NewProject from './NewProject.astro';
 import EntryEditor from './EntryEditor.astro';
 import EntryCreate from './EntryCreate.astro';
 import ListGrid from './ListGrid.astro';
-import { PAGE_CONTENT } from '../lib/page-content.ts';
+import { PAGE_CONTENT, type CollageItem } from '../lib/page-content.ts';
 import { ENTRY_TYPES, entryData, entryDraftFile, entryFilePath, type EntryType } from '../lib/admin/entries.ts';
 import { getCollection } from 'astro:content';
 import { PROJECTS_DIR, portfolioSequence, projectData, projectDraftFile, projectFilePath, projectValue } from '../lib/admin/projects.ts';
@@ -231,7 +231,7 @@ const orderGroup = activeTab?.id === 'projetos' ? current?.groups.find((g) => g.
  * A list tab (the Serviços carousel and videos) is drawn from services.json as it is on
  * master now, so a card's draft starts from the live list, like every other editor.
  */
-let listDoc: { collage: string[]; films: { id: string; title: string; poster: string }[]; categories: string[] } | null = null;
+let listDoc: { collage: CollageItem[]; films: { id: string; title: string; poster: string }[]; categories: string[] } | null = null;
 let listUploads: UploadEntry[] = [];
 if (activeTab?.view) {
   const cfg = githubConfig();

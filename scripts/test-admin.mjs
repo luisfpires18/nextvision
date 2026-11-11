@@ -149,6 +149,14 @@ await check('the services lists: add, remove, reorder, and each item checked', (
   const reversed = [...docs.services.collage].reverse().slice(0, 2);
   assert.deepEqual(applyEdits(fields, docs, { [fieldName(collage)]: JSON.stringify(reversed) }, TODAY).docs.services.collage, reversed);
   assert.throws(() => applyEdits(fields, docs, { [fieldName(collage)]: JSON.stringify(['']) }, TODAY), /escolha uma imagem/);
+  // A frame that plays a film: the address becomes an id, an empty address is a plain image
+  // again, a bad one is refused. (The page schema itself is exercised by the build.)
+  const withFilm = JSON.stringify([poster, { image: poster, film: `https://youtu.be/${id}?t=3`, title: '  Showreel  ' }, { image: poster, film: '  ' }]);
+  const framed = applyEdits(fields, docs, { [fieldName(collage)]: withFilm }, TODAY).docs.services;
+  assert.deepEqual(framed.collage, [poster, { image: poster, film: id, title: 'Showreel' }, poster]);
+  assert.deepEqual(applyEdits(fields, docs, { [fieldName(collage)]: JSON.stringify([{ image: poster, film: id }]) }, TODAY).docs.services.collage, [{ image: poster, film: id }]);
+  assert.throws(() => applyEdits(fields, docs, { [fieldName(collage)]: JSON.stringify([{ image: poster, film: 'https://vimeo.com/1' }]) }, TODAY), /não reconheço/);
+  assert.throws(() => applyEdits(fields, docs, { [fieldName(collage)]: JSON.stringify([{ image: '', film: id }]) }, TODAY), /escolha uma imagem/);
   // Categories: a set of slugs.
   assert.deepEqual(applyEdits(fields, docs, { [fieldName(cats)]: '["ficcao","ficcao"]' }, TODAY).docs.services.categories, ['ficcao']);
   assert.throws(() => applyEdits(fields, docs, { [fieldName(cats)]: '["../x"]' }, TODAY), /inválido/);

@@ -318,8 +318,13 @@ for (const page of STATIC_PAGES) {
 try {
   const html = read(path.join(DIST, 'servicos', 'index.html'));
   const slots = [...html.matchAll(/class="stage__frame"[^>]*data-slot="([a-z]+)"/g)].map((m) => m[1]);
+  // The owners choose how many frames the stage has, so the slots follow from the count (stage.ts
+  // slotOf): none when it is empty, else one in front, one on the right from two frames and one on
+  // the left from three. What may not happen is a frame in a slot it cannot hold.
+  const total = slots.length;
+  const expected = { centre: Math.min(total, 1), right: total >= 2 ? 1 : 0, left: total >= 3 ? 1 : 0 };
   for (const slot of ['centre', 'left', 'right']) {
-    if (slots.filter((s) => s === slot).length !== 1) errors.push(`page: /servicos/ stage needs exactly one "${slot}" frame`);
+    if (slots.filter((s) => s === slot).length !== expected[slot]) errors.push(`page: /servicos/ stage with ${total} frame(s) needs exactly ${expected[slot]} "${slot}" frame`);
   }
   const hrefs = [...html.matchAll(/<a class="stage__link" href="([^"]+)"/g)].map((m) => m[1]);
   // No minimum: the owners choose the carousel's stills and delete projects, so a stage with no

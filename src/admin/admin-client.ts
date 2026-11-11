@@ -874,7 +874,9 @@ for (const input of document.querySelectorAll<HTMLInputElement>('[data-list]')) 
           picker(f.poster, (k) => { f.poster = k; }, `Capa do vídeo ${n}`),
         );
       } else {
-        body.append(picker(item as string, (k) => { items[i] = k; }, `Imagem ${n}`));
+        // A frame that plays a film keeps its film when only the image is changed here.
+        const frame = typeof item === 'string' ? null : (item as { image: string });
+        body.append(picker(frame ? frame.image : (item as string), (k) => { items[i] = frame ? { ...frame, image: k } : k; }, `Imagem ${n}`));
       }
       rows.append(el('li', { className: 'ed-block' },
         el('div', { className: 'ed-blockhead' }, el('strong', { textContent: `${kind === 'films' ? 'Vídeo' : 'Imagem'} ${n}` }),
@@ -1245,6 +1247,10 @@ if (editDialog) {
   const root = document.querySelector<HTMLElement>('[data-list-grid]');
   if (root) {
     type Film = { id: string; title: string; poster: string };
+    /** A carousel frame: the bare image key, or the image with the film it plays (edit.ts parseList). */
+    type Frame = string | { image: string; film: string; title?: string };
+    const imageOf = (f: unknown): string => (typeof f === 'string' ? f : (f as { image: string }).image);
+    const frameFilm = (f: unknown) => (typeof f === 'object' && f ? (f as Exclude<Frame, string>) : null);
     const kind = root.dataset['kind'] as 'images' | 'films';
     const name = root.dataset['name']!;
     const label = root.dataset['label']!;
@@ -1295,13 +1301,13 @@ if (editDialog) {
       paintFollowing();
       empty.hidden = list.length > 0;
       list.forEach((item, i) => {
-        const key = kind === 'images' ? String(item) : (item as Film).poster;
+        const key = kind === 'images' ? imageOf(item) : (item as Film).poster;
         const title = kind === 'images' ? `Imagem ${i + 1}` : (item as Film).title || 'Sem nome';
         const meta = kind === 'images'
-          ? [i === 1 ? 'À frente quando a página abre' : null, posters[key] ? `Do projeto «${posters[key]}»` : null].filter(Boolean).join(' · ')
+          ? [i === 1 ? 'À frente quando a página abre' : null, frameFilm(item) ? 'Toca um vídeo do YouTube' : null, posters[key] ? `Do projeto «${posters[key]}»` : null].filter(Boolean).join(' · ')
           : `YouTube · ${(item as Film).id}`;
         const isNew = JSON.stringify(baseList[i]) !== JSON.stringify(item);
-        const media = el('div', { className: 'ad-card__media' }, el('span', { className: 'ad-card__initial', textContent: kind === 'images' ? String(i + 1) : '▶' }));
+        const media = el('div', { className: 'ad-card__media' }, el('span', { className: 'ad-card__initial', textContent: kind === 'images' && !frameFilm(item) ? String(i + 1) : '▶' }));
         media.setAttribute('aria-hidden', 'true');
         const src = thumbOf.get(key);
         if (src) {
@@ -1356,7 +1362,14 @@ if (editDialog) {
       const upload = root!.querySelector<HTMLElement>('[data-list-upload]');
       if (upload) upload.hidden = index !== null;
       if (kind === 'images') {
-        body.append(field(index === null ? 'Escolher uma imagem do site' : 'Imagem', picker(item ? String(item) : (images[0]?.items[0]?.key ?? ''))));
+        const frame = frameFilm(item);
+        body.append(
+          field(index === null ? 'Escolher uma imagem do site' : 'Imagem', picker(item ? imageOf(item) : (images[0]?.items[0]?.key ?? ''))),
+          field('Vídeo no YouTube (opcional)', el('input', { type: 'text', name: 'film', value: frame?.film ? `https://youtu.be/${frame.film}` : '', placeholder: 'https://www.youtube.com/watch?v=…', spellcheck: false, autocomplete: 'off' })),
+          el('p', { className: 'ed-note', textContent: 'Se puser um vídeo, a imagem passa a ter o botão «Ver o filme» e, ao carregar nela, o vídeo toca no carrossel. Deixe vazio para ser só uma imagem.' }),
+          field('Nome do vídeo (opcional)', el('input', { type: 'text', name: 'filmTitle', value: frame?.title ?? '', autocomplete: 'off' })),
+          el('p', { className: 'ed-note', textContent: 'O nome não aparece na página: é o que os leitores de ecrã anunciam.' }),
+        );
       } else {
         const f = (item ?? { id: '', title: '', poster: images[0]?.items[0]?.key ?? '' }) as Film;
         body.append(
@@ -1379,8 +1392,12 @@ if (editDialog) {
     dialog.querySelector('[data-list-save]')!.addEventListener('click', () => {
       const value = (n: string) => body.querySelector<HTMLInputElement | HTMLSelectElement>(`[name="${n}"]`)?.value.trim() ?? '';
       let item: unknown;
-      if (kind === 'images') item = value('image');
-      else {
+      if (kind === 'images') {
+        const address = value('film');
+        const film = address ? youtubeIdOf(address) : null;
+        if (address && !film) { say('Não reconheço o endereço do vídeo. Cole o link, por exemplo https://www.youtube.com/watch?v=…'); return; }
+        item = film ? { image: value('image'), film, ...(value('filmTitle') ? { title: value('filmTitle') } : {}) } : value('image');
+      } else {
         const id = youtubeIdOf(value('id'));
         if (!id) { say('Não reconheço este endereço. Cole o link do vídeo, por exemplo https://www.youtube.com/watch?v=…'); return; }
         if (!value('title')) { say('Escreva o nome do vídeo.'); return; }
@@ -1412,7 +1429,7 @@ if (editDialog) {
       const box = root!.querySelector<HTMLElement>('[data-following]');
       if (!box) return;
       const chosen = now();
-      const above = new Set(current().map(String));
+      const above = new Set(current().map(imageOf));
       for (const li of box.querySelectorAll<HTMLElement>('li')) {
         li.hidden = !(li.dataset['cats'] ?? '').split(' ').some((c) => chosen.includes(c)) || above.has(li.dataset['poster'] ?? '');
       }

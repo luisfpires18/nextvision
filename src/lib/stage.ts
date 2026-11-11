@@ -6,6 +6,11 @@
  * link in a native scroller (sections.css). With it, only the centre frame is a link you can
  * follow, and pressing a side frame moves it to the centre instead.
  *
+ * A frame can be a still that plays a film (`.stage__film`, ServicesPage.astro). Pressing the
+ * frame in front swaps in the privacy-enhanced player, as the façade under the stage does;
+ * nothing reaches YouTube before that press. When the frame leaves the front the player is
+ * removed, so a film never plays behind a frame the reader has moved away from.
+ *
  * The slots are attributes and CSS does the moving, so duration and easing stay tokens and
  * the motion tiers apply without this file knowing they exist. No autoplay: nothing moves
  * unless the reader asks, so there is nothing to pause.
@@ -43,6 +48,33 @@ export function initStage(): Teardown {
     cleanups.push(() => t.removeEventListener(type, fn, o));
   };
 
+  /* The play button of a frame whose player is mounted, kept so it can be put back. */
+  const parked = new WeakMap<HTMLElement, HTMLElement>();
+
+  const mount = (button: HTMLElement) => {
+    const film = button.closest<HTMLElement>('.stage__film');
+    const embed = film?.dataset['embed'];
+    if (!film || !embed || film.querySelector('iframe')) return;
+    const player = document.createElement('iframe');
+    player.src = `${embed}&autoplay=1`;
+    player.title = film.dataset['title'] ?? '';
+    player.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+    player.allowFullscreen = true;
+    parked.set(film, button);
+    button.remove();
+    film.append(player);
+    player.focus();
+  };
+
+  const unmount = (frame: HTMLElement) => {
+    const film = frame.querySelector<HTMLElement>('.stage__film');
+    const player = film?.querySelector('iframe');
+    const button = film ? parked.get(film) : undefined;
+    if (!film || !player || !button) return;
+    player.remove();
+    film.append(button);
+  };
+
   const paint = (announce: boolean) => {
     frames.forEach((frame, i) => {
       const slot = slotOf(i, centre, count);
@@ -52,7 +84,8 @@ export function initStage(): Teardown {
       // the frame in front is in the tab order and the accessibility tree.
       if (isCentre) frame.removeAttribute('aria-hidden');
       else frame.setAttribute('aria-hidden', 'true');
-      frame.querySelector('a')?.setAttribute('tabindex', isCentre ? '0' : '-1');
+      frame.querySelector('a, [data-stage-play]')?.setAttribute('tabindex', isCentre ? '0' : '-1');
+      if (!isCentre) unmount(frame);
     });
     if (announce && status) status.textContent = frames[centre]?.dataset['title'] ?? '';
   };
@@ -80,6 +113,23 @@ export function initStage(): Teardown {
     event.stopPropagation();
     go(frames.indexOf(frame));
   }) as EventListener, { capture: true });
+
+  /* A side frame's press never gets here (the capture handler above moves it to the front),
+     so this is the frame in front. The press IS the consent, so the connection to YouTube
+     opens on its first half (pointer down), never on hover. */
+  on(root, 'pointerdown', ((event: PointerEvent) => {
+    const embed = (event.target as Element).closest<HTMLElement>('[data-stage-play]')?.closest<HTMLElement>('.stage__film')?.dataset['embed'];
+    if (!embed || document.head.querySelector('link[data-film-preconnect]')) return;
+    const link = document.createElement('link');
+    link.rel = 'preconnect';
+    link.href = new URL(embed).origin;
+    link.dataset['filmPreconnect'] = '';
+    document.head.append(link);
+  }) as EventListener);
+  on(root, 'click', ((event: MouseEvent) => {
+    const button = (event.target as Element).closest<HTMLElement>('[data-stage-play]');
+    if (button) mount(button);
+  }) as EventListener);
 
   for (const button of root.querySelectorAll<HTMLButtonElement>('[data-stage-step]')) {
     on(button, 'click', () => go(centre + Number(button.dataset['stageStep'])));
