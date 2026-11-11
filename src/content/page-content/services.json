@@ -8,7 +8,13 @@
     "projects/nvf-vs-antiqvvm/poster",
     "projects/nazaryi/poster"
   ],
-  "films": [],
+  "films": [
+    {
+      "id": "iUGq6AtzUuY",
+      "title": "Showreel",
+      "poster": "projects/dont-let-it-fool-you/poster"
+    }
+  ],
   "lead": [
     {
       "text": "O vídeo certo tem o poder de ",
