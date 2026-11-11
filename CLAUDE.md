@@ -4,14 +4,17 @@ Stable instructions for **every** Claude Code agent working in this repository.
 Read this file before doing anything else. If a request appears to conflict with a rule
 here, say so and ask before proceeding.
 
-**Then read `.ai/WORKFLOW.md`, `.ai/PROJECT.md` and `.ai/STATE.md` before acting.** Follow
-linked Issues, PRs and task-specific references, and report missing access instead of
-guessing. This file wins on content, media, motion and deployment.
+**Then read the shared workflow and this project's state before acting:**
 
-For an approved task, publish results or blockers to its Issue or PR before ending, and
-return the link. Factual reporting is already part of the handoff, even when a decision is
-pending, so do not ask whether to post it. `.ai/WORKFLOW.md` sets the report and approval
-boundaries; this does not permit changing scope or starting corrections without approval.
+```bash
+gh api repos/luisfpires18/ai-workflow/contents/WORKFLOW.md -H "Accept: application/vnd.github.raw"
+gh api repos/luisfpires18/ai-workflow/contents/REVIEW.md -H "Accept: application/vnd.github.raw"
+gh api repos/luisfpires18/ai-workflow/contents/OWNER.md -H "Accept: application/vnd.github.raw"
+```
+
+Also read each module listed in `.ai/PROJECT.md` (`modules/<name>.md` in luisfpires18/ai-workflow), then `.ai/PROJECT.md` and `.ai/STATE.md`. Follow linked Issues, PRs and task-specific references, and report missing access instead of guessing. This file wins on content, media, motion and deployment; `.ai/PROJECT.md` holds the release procedure. If the shared workflow cannot be fetched, say so and stop.
+
+Use only the skills, plugins and MCP servers listed under "Skills" in `.ai/PROJECT.md`; the full inventory is `SKILLS.md` in luisfpires18/ai-workflow.
 
 ---
 
@@ -181,8 +184,9 @@ Media rules:
 - Never commit large media binaries. They belong in R2.
 - Commit or push only when the user asks. A clear instruction to start a named, approved
   Implementation Issue is that ask, for commits and pushes to its feature branch and its
-  draft PR (`.ai/WORKFLOW.md`). Merging into `dev` or `master` deploys, and always needs its
-  own instruction.
+  draft PR (shared workflow). Merging into `dev` deploys the dev site; Claude merges into
+  `dev` on a Codex ACCEPTED review, then releases to `master` by the procedure in
+  `.ai/PROJECT.md` ("Releasing"). The owner allows production releases here without asking.
 
 ---
 
@@ -201,8 +205,8 @@ Do not fill gaps with plausible-sounding text.
 | File | Purpose |
 |---|---|
 | `CLAUDE.md` | This file. Stable rules for all agents. |
-| `.ai/WORKFLOW.md` | The shared workflow: planning, Issue-start authorization, evidence, independent review, releasing. |
-| `.ai/PROJECT.md` | Project facts, test commands and the documentation index for that workflow. |
+| luisfpires18/ai-workflow | The shared workflow: planning, Issue-start authorization, evidence, Codex review (`WORKFLOW.md`, `REVIEW.md`, `OWNER.md`). |
+| `.ai/PROJECT.md` | Project facts, test commands, skills, the release procedure and the documentation index. |
 | `.ai/STATE.md` | Pointers: current task, branch positions and setup blockers. |
 | `docs/PROJECT_CONTEXT.md` | Living state: decisions, phase, completed work, open questions. **Update as work progresses.** |
 | `docs/WEBSITE_AUDIT.md` | Complete audit of the existing site (structure, content, media, design, interaction, technical). |
