@@ -23,5 +23,5 @@ links:
 # in English, for both locales. It replaces the archived /sobre/ role, which stays in
 # docs/source-archive/pages.json; ownerEdited is how validate:data records that (A2).
 ownerEdited: 2026-11-07
-order: 1
+order: 2
 ---
