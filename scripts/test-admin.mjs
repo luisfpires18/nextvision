@@ -129,7 +129,8 @@ await check('the services lists: add, remove, reorder, and each item checked', (
   const collage = fields.find((f) => f.key === 'collage');
   const cats = fields.find((f) => f.key === 'categories');
   const id = 'dQw4w9WgXcQ';
-  const poster = docs.services.collage[0];
+  // A fixed key, not the live carousel: the owners can turn any frame into a film at any time.
+  const poster = 'projects/nazaryi/poster';
   // Two films, the second given as an address: stored as ids, names trimmed.
   const two = JSON.stringify([...docs.services.films, { id: `https://youtu.be/${id}?t=3`, title: '  Outro  ', poster }]);
   const { docs: next, changed } = applyEdits(fields, docs, { [fieldName(films)]: two }, TODAY);
@@ -167,7 +168,8 @@ await check('the services lists: add, remove, reorder, and each item checked', (
 });
 
 await check('an upload can add or replace a carousel image or replace a film cover, and nothing else on the list', () => {
-  const docs = { services: read('services') };
+  // Plain frames by construction, whatever the owners last saved to the live carousel.
+  const docs = { services: { ...read('services'), collage: ['projects/nazaryi/poster'] } };
   const fields = expandFields(SCREENS.services, { ...docs, home: read('home') });
   const req = (target) => ({ screen: 'services', target, source: 'uploads/2026-11-07/abcdefgh12/a.jpg', name: 'a.jpg' });
   assert.equal(planUpload(fields, req('services:collage.+'), 'abcdefgh12', 'x', 'y').target.path, 'collage.+');
