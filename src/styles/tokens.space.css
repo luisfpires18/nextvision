@@ -59,10 +59,11 @@
   --film-line: 0.5625rem;
   /* The stage on /servicos/. Side offsets are percentages of the frame itself. */
   --stage-max: 60rem;
-  --stage-ar: 15 / 7;
+  /* Frames are 16:9 (owner request); the box's ratio is sized so the frame fills 86% of its height. */
+  --stage-frame-ar: 16 / 9;
+  --stage-ar: 3 / 1;
   --stage-top: 12%;
   --stage-frame-w: 51%;
-  --stage-frame-h: 86%;
   --stage-side-scale: 0.63;
   --stage-side-x: 67%;
   --stage-side-y: -34%;
@@ -78,10 +79,9 @@
     --reel-m: 4.5rem;
     --reel-l: 6.5rem;
     /* A phone: the centre frame nearly fills the width and the sides peek in. */
-    --stage-ar: 5 / 4;
+    --stage-ar: 2 / 1;
     --stage-top: 8%;
     --stage-frame-w: 76%;
-    --stage-frame-h: 84%;
     --stage-side-scale: 0.7;
     --stage-side-x: 74%;
     --stage-side-y: -5%;

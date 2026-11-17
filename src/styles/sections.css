@@ -191,7 +191,7 @@
   inset-block-start: var(--stage-top);
   inset-inline-start: calc((100% - var(--stage-frame-w)) / 2);
   inline-size: var(--stage-frame-w);
-  block-size: var(--stage-frame-h);
+  aspect-ratio: var(--stage-frame-ar);
   transition:
     transform var(--dur-cinematic) var(--ease-cinematic),
     opacity var(--dur-cinematic) var(--ease-cinematic);
