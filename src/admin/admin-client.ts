@@ -358,9 +358,15 @@ for (const panel of document.querySelectorAll<HTMLDetailsElement>('[data-upload]
     if (!uploading) say(p ?? (kind === 'video' ? `Excerto de ${(Number(time('end')!.value) - Number(time('start')!.value)).toFixed(1)} s pronto a carregar.` : 'Pronto a carregar.'));
   };
 
+  const still = panel.querySelector<HTMLImageElement>('[data-upload-image]');
   input.addEventListener('change', () => {
     file = input.files?.[0] ?? null;
     duration = Number.NaN;
+    if (still) {
+      if (still.src) URL.revokeObjectURL(still.src);
+      still.hidden = !file;
+      if (file) still.src = URL.createObjectURL(file); else still.removeAttribute('src');
+    }
     if (video && windowBox && file) {
       windowBox.hidden = false;
       video.src = URL.createObjectURL(file);

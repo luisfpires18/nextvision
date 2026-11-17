@@ -40,6 +40,9 @@ const shortName = (n: string) => (n.length > 32 ? `${n.slice(0, 14)}…${n.slice
     <input type="file" data-upload-file
       accept={kind === 'video' ? 'video/mp4,video/quicktime,video/webm,.mp4,.m4v,.mov,.webm' : 'image/jpeg,image/png,image/webp,image/tiff,.jpg,.jpeg,.png,.webp,.tif,.tiff'} />
   </label>
+  {/* The chosen file itself, so the owner sees what will be uploaded: the thumbnail
+      above this panel is the site image picked in the list, not this file. */}
+  {kind === 'image' ? <img class="ed-upload__preview" data-upload-image alt="Pré-visualização do ficheiro escolhido" hidden /> : null}
   {kind === 'video' ? (
     <div class="ed-window" data-window hidden>
       <video controls muted playsinline preload="metadata" data-upload-video></video>

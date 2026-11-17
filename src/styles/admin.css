@@ -433,6 +433,8 @@
 .ed-upload__file { display: grid; gap: var(--space-1); margin-block-end: var(--space-3); }
 .ed-upload__file input { font: inherit; color: var(--a-text); }
 .ed-window { display: grid; gap: var(--space-3); }
+.ed-upload__preview { display: block; inline-size: 100%; max-block-size: var(--admin-viewer-h); object-fit: contain; background: var(--brand-black); border-radius: var(--radius-m); margin-block-end: var(--space-3); }
+.ed-upload__preview[hidden] { display: none; }
 .ed-window video { inline-size: 100%; max-block-size: var(--admin-viewer-h); background: var(--brand-black); border-radius: var(--radius-m); }
 .ed-marks { display: grid; grid-template-columns: auto 1fr; gap: var(--space-2) var(--space-3); align-items: end; }
 .ed-marks label { display: grid; gap: var(--space-1); }
