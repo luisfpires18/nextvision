@@ -58,6 +58,9 @@
   --reel-l: 10.5rem;
   --film-line: 0.5625rem;
   /* The stage on /servicos/. Side offsets are percentages of the frame itself. */
+  /* The homepage sign: the logo's box (2:1) and its distance from the frame's foot. */
+  --hero-mark-w: clamp(8rem, 38vw, 11rem);
+  --hero-sign-foot: var(--space-8);
   --stage-max: 60rem;
   /* Frames are 16:9 (owner request); the box's ratio is sized so the frame fills 86% of its height. */
   --stage-frame-ar: 16 / 9;
