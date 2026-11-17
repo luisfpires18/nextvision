@@ -6,14 +6,14 @@
   ],
   "collage": [
     {
-      "image": "projects/nvf-vs-antiqvvm/poster",
-      "film": "seuAOrDs3oo",
-      "title": "NVF vs Antiqvvm"
-    },
-    {
       "image": "projects/nazaryi/poster",
       "film": "8HjA-SOs7Ws",
       "title": "NVF Vs FILMIN"
+    },
+    {
+      "image": "projects/nvf-vs-antiqvvm/poster",
+      "film": "seuAOrDs3oo",
+      "title": "NVF vs Antiqvvm"
     }
   ],
   "films": [
