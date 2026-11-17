@@ -5,8 +5,16 @@
     "corporativo"
   ],
   "collage": [
-    "projects/nvf-vs-antiqvvm/poster",
-    "projects/nazaryi/poster"
+    {
+      "image": "projects/nazaryi/poster",
+      "film": "8HjA-SOs7Ws",
+      "title": "NVF Vs FILMIN"
+    },
+    {
+      "image": "projects/nvf-vs-antiqvvm/poster",
+      "film": "seuAOrDs3oo",
+      "title": "NVF vs Antiqvvm"
+    }
   ],
   "films": [
     {
