@@ -196,6 +196,22 @@
       "by": "nextvisionfilmsagency@gmail.com",
       "at": "2026-11-07T15:53:48.367Z",
       "status": "ready"
+    },
+    {
+      "id": "a2ed18ed5207",
+      "key": "owner/a2ed18ed5207/image",
+      "kind": "image",
+      "source": "uploads/2026-11-19/a2ed18ed5207/NVF_Antiqvvm_VS_capa_01_corrigida.png",
+      "name": "NVF_Antiqvvm_VS_capa_01_corrigida.png",
+      "target": {
+        "screen": "services",
+        "file": "services",
+        "path": "collage.1.image",
+        "label": "Imagem do carrossel com filme 2"
+      },
+      "by": "nextvisionfilmsagency@gmail.com",
+      "at": "2026-11-19T18:25:51.524Z",
+      "status": "pending"
     }
   ]
 }
