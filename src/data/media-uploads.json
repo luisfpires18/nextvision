@@ -212,6 +212,22 @@
       "by": "nextvisionfilmsagency@gmail.com",
       "at": "2026-11-19T18:25:51.524Z",
       "status": "ready"
+    },
+    {
+      "id": "ee4b37071ff8",
+      "key": "owner/ee4b37071ff8/image",
+      "kind": "image",
+      "source": "uploads/2026-11-19/ee4b37071ff8/NVF_Filmin_VS_capa_02.png",
+      "name": "NVF_Filmin_VS_capa_02.png",
+      "target": {
+        "screen": "services",
+        "file": "services",
+        "path": "collage.0.image",
+        "label": "Imagem do carrossel com filme 1"
+      },
+      "by": "nextvisionfilmsagency@gmail.com",
+      "at": "2026-11-19T18:39:32.728Z",
+      "status": "pending"
     }
   ]
 }
