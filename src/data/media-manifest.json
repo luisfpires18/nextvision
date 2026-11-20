@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-19T18:40:42.618Z",
+  "generatedAt": "2026-11-20T18:50:51.758Z",
   "generatedBy": "scripts/media-build.mjs",
   "note": "Production media. Keys are storage-agnostic and carry NO URL: src/lib/media.ts joins a rendition path to PUBLIC_MEDIA_BASE_URL, which is the local mirror in development and the R2 delivery host in production. Rendition names are content-addressed, so a name that matches is bytes that match — that is what makes the cache immutable and the sync a set difference. Regenerate with `npm run media:build`.",
   "encoder": {
@@ -7211,6 +7211,91 @@
         "crop": null
       },
       "notes": "Uploaded in the admin by nextvisionfilmsagency@gmail.com, 2026-11-19: NVF_Filmin_VS_capa_02.png."
+    },
+    "owner/f8b9074cef15/image": {
+      "key": "owner/f8b9074cef15/image",
+      "kind": "image",
+      "storage": "r2",
+      "contentType": "image/webp",
+      "width": 1400,
+      "height": 780,
+      "aspectRatio": 1.7949,
+      "formats": [
+        "webp",
+        "avif"
+      ],
+      "renditions": [
+        {
+          "format": "webp",
+          "path": "owner/f8b9074cef15/image/560.1c2a29ab.webp",
+          "sha256": "1c2a29aba601b862c2bb26b757635d960b93c533caa4e516b950985bf3cb7330",
+          "width": 560,
+          "height": 312,
+          "bytes": 10888,
+          "contentType": "image/webp"
+        },
+        {
+          "format": "avif",
+          "path": "owner/f8b9074cef15/image/560.11915f8d.avif",
+          "sha256": "11915f8df7a2c4fb8b74d9aec41762d445f06811084aba558bcf3594e67d4fc2",
+          "width": 560,
+          "height": 312,
+          "bytes": 5735,
+          "contentType": "image/avif"
+        },
+        {
+          "format": "webp",
+          "path": "owner/f8b9074cef15/image/960.aa483bd1.webp",
+          "sha256": "aa483bd1dba54a2760a224ec251e9af47a1e26d00abda1b9e0b4f3b655410ace",
+          "width": 960,
+          "height": 534,
+          "bytes": 20574,
+          "contentType": "image/webp"
+        },
+        {
+          "format": "avif",
+          "path": "owner/f8b9074cef15/image/960.3954e95b.avif",
+          "sha256": "3954e95b2536d514a2400773b4b9c3a051cf318fc45e41393f75b636d15dd8b0",
+          "width": 960,
+          "height": 534,
+          "bytes": 9995,
+          "contentType": "image/avif"
+        },
+        {
+          "format": "webp",
+          "path": "owner/f8b9074cef15/image/1400.66bab457.webp",
+          "sha256": "66bab4570ace60fece8410d06ba4d3d7ddefcc2cc5936293285414d889ae01cb",
+          "width": 1400,
+          "height": 780,
+          "bytes": 31084,
+          "contentType": "image/webp"
+        },
+        {
+          "format": "avif",
+          "path": "owner/f8b9074cef15/image/1400.9f27bdec.avif",
+          "sha256": "9f27bdec532a3bae57b32b01bda02d0c998c84d81ebbcb81ac52279a9a46a04e",
+          "width": 1400,
+          "height": 780,
+          "bytes": 14362,
+          "contentType": "image/avif"
+        }
+      ],
+      "bytes": 92638,
+      "provenance": "owner",
+      "sourceQuality": "owner-upload",
+      "altStatus": "todo",
+      "alt": null,
+      "source": {
+        "file": "media/incoming/f8b9074cef15/NVF_Karl_Lagerfeld_VS_capa_03.png",
+        "size": 1130404,
+        "mtimeMs": 1795200649041,
+        "naturalWidth": 2048,
+        "naturalHeight": 1141
+      },
+      "recipe": {
+        "crop": null
+      },
+      "notes": "Uploaded in the admin by nextvisionfilmsagency@gmail.com, 2026-11-20: NVF_Karl_Lagerfeld_VS_capa_03.png."
     }
   }
 }
