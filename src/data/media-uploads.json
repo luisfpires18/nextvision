@@ -228,6 +228,22 @@
       "by": "nextvisionfilmsagency@gmail.com",
       "at": "2026-11-19T18:39:32.728Z",
       "status": "ready"
+    },
+    {
+      "id": "f8b9074cef15",
+      "key": "owner/f8b9074cef15/image",
+      "kind": "image",
+      "source": "uploads/2026-11-20/f8b9074cef15/NVF_Karl_Lagerfeld_VS_capa_03.png",
+      "name": "NVF_Karl_Lagerfeld_VS_capa_03.png",
+      "target": {
+        "screen": "services",
+        "file": "services",
+        "path": "collage.+",
+        "label": "Nova imagem do carrossel"
+      },
+      "by": "nextvisionfilmsagency@gmail.com",
+      "at": "2026-11-20T18:49:10.478Z",
+      "status": "pending"
     }
   ]
 }
