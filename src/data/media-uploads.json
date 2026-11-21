@@ -244,6 +244,22 @@
       "by": "nextvisionfilmsagency@gmail.com",
       "at": "2026-11-20T18:49:10.478Z",
       "status": "ready"
+    },
+    {
+      "id": "cdcb3e01bfc8",
+      "key": "owner/cdcb3e01bfc8/image",
+      "kind": "image",
+      "source": "uploads/2026-11-21/cdcb3e01bfc8/portfolio_NVF_vs_Digiup.png",
+      "name": "portfolio_NVF_vs_Digiup.png",
+      "target": {
+        "screen": "services",
+        "file": "services",
+        "path": "collage.+",
+        "label": "Nova imagem do carrossel"
+      },
+      "by": "nextvisionfilmsagency@gmail.com",
+      "at": "2026-11-21T00:39:28.222Z",
+      "status": "pending"
     }
   ]
 }
