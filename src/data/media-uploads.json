@@ -292,6 +292,22 @@
       "by": "nextvisionfilmsagency@gmail.com",
       "at": "2026-11-21T01:32:38.984Z",
       "status": "ready"
+    },
+    {
+      "id": "0b3b237bdd90",
+      "key": "owner/0b3b237bdd90/image",
+      "kind": "image",
+      "source": "uploads/2026-11-21/0b3b237bdd90/The_Book_NVF.png",
+      "name": "The_Book_NVF.png",
+      "target": {
+        "screen": "services",
+        "file": "services",
+        "path": "collage.6.image",
+        "label": "Imagem do carrossel com filme 7"
+      },
+      "by": "nextvisionfilmsagency@gmail.com",
+      "at": "2026-11-21T01:46:13.818Z",
+      "status": "pending"
     }
   ]
 }
