@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-21T01:07:58.326Z",
+  "generatedAt": "2026-11-21T01:33:35.773Z",
   "generatedBy": "scripts/media-build.mjs",
   "note": "Production media. Keys are storage-agnostic and carry NO URL: src/lib/media.ts joins a rendition path to PUBLIC_MEDIA_BASE_URL, which is the local mirror in development and the R2 delivery host in production. Rendition names are content-addressed, so a name that matches is bytes that match — that is what makes the cache immutable and the sync a set difference. Regenerate with `npm run media:build`.",
   "encoder": {
@@ -7430,6 +7430,73 @@
         "crop": null
       },
       "notes": "Uploaded in the admin by nextvisionfilmsagency@gmail.com, 2026-11-21: MADRUGADA_NVF.png."
+    },
+    "owner/7a24834e17c2/image": {
+      "key": "owner/7a24834e17c2/image",
+      "kind": "image",
+      "storage": "r2",
+      "contentType": "image/webp",
+      "width": 960,
+      "height": 530,
+      "aspectRatio": 1.8113,
+      "formats": [
+        "webp",
+        "avif"
+      ],
+      "renditions": [
+        {
+          "format": "webp",
+          "path": "owner/7a24834e17c2/image/560.4b8bf99c.webp",
+          "sha256": "4b8bf99cd6f38c2b32f309e0069047c5845c1494d0626bef87bd89ff274df9b2",
+          "width": 560,
+          "height": 310,
+          "bytes": 23578,
+          "contentType": "image/webp"
+        },
+        {
+          "format": "avif",
+          "path": "owner/7a24834e17c2/image/560.c32abe7e.avif",
+          "sha256": "c32abe7ede61bd870c0f149e76e317f89e7c4c2ceb863ac54b28d2de3e52d7bb",
+          "width": 560,
+          "height": 310,
+          "bytes": 11626,
+          "contentType": "image/avif"
+        },
+        {
+          "format": "webp",
+          "path": "owner/7a24834e17c2/image/960.911c12dd.webp",
+          "sha256": "911c12dd1b9521fc807347a8734dffa6b0b8f51ea50151321b1182d37bbf2420",
+          "width": 960,
+          "height": 530,
+          "bytes": 54314,
+          "contentType": "image/webp"
+        },
+        {
+          "format": "avif",
+          "path": "owner/7a24834e17c2/image/960.b2d0e3d0.avif",
+          "sha256": "b2d0e3d0f7c91d9be22b8c67b81486e41236dc5239de38e4cf128984774a4fe1",
+          "width": 960,
+          "height": 530,
+          "bytes": 25892,
+          "contentType": "image/avif"
+        }
+      ],
+      "bytes": 115410,
+      "provenance": "owner",
+      "sourceQuality": "owner-upload",
+      "altStatus": "todo",
+      "alt": null,
+      "source": {
+        "file": "media/incoming/7a24834e17c2/The_End_NVF.png",
+        "size": 1323772,
+        "mtimeMs": 1795224814077,
+        "naturalWidth": 1310,
+        "naturalHeight": 724
+      },
+      "recipe": {
+        "crop": null
+      },
+      "notes": "Uploaded in the admin by nextvisionfilmsagency@gmail.com, 2026-11-21: The_End_NVF.png."
     }
   }
 }
