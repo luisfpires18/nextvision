@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-21T01:47:16.986Z",
+  "generatedAt": "2026-11-21T01:58:53.143Z",
   "generatedBy": "scripts/media-build.mjs",
   "note": "Production media. Keys are storage-agnostic and carry NO URL: src/lib/media.ts joins a rendition path to PUBLIC_MEDIA_BASE_URL, which is the local mirror in development and the R2 delivery host in production. Rendition names are content-addressed, so a name that matches is bytes that match — that is what makes the cache immutable and the sync a set difference. Regenerate with `npm run media:build`.",
   "encoder": {
@@ -7564,6 +7564,73 @@
         "crop": null
       },
       "notes": "Uploaded in the admin by nextvisionfilmsagency@gmail.com, 2026-11-21: The_Book_NVF.png."
+    },
+    "owner/5f408022fe08/image": {
+      "key": "owner/5f408022fe08/image",
+      "kind": "image",
+      "storage": "r2",
+      "contentType": "image/webp",
+      "width": 960,
+      "height": 452,
+      "aspectRatio": 2.1239,
+      "formats": [
+        "webp",
+        "avif"
+      ],
+      "renditions": [
+        {
+          "format": "webp",
+          "path": "owner/5f408022fe08/image/560.a213f3ef.webp",
+          "sha256": "a213f3ef96e20395eac845b4cb44429c31a03bc409343f7dcfca97e1d04addf1",
+          "width": 560,
+          "height": 264,
+          "bytes": 6730,
+          "contentType": "image/webp"
+        },
+        {
+          "format": "avif",
+          "path": "owner/5f408022fe08/image/560.da921d85.avif",
+          "sha256": "da921d857f443619ba14bbcdf3a9f9cfe40273f0761f7b5d33199f3c77370957",
+          "width": 560,
+          "height": 264,
+          "bytes": 3245,
+          "contentType": "image/avif"
+        },
+        {
+          "format": "webp",
+          "path": "owner/5f408022fe08/image/960.99f42961.webp",
+          "sha256": "99f42961e34fa74e27012d6e430f14283dad347b2c11befb5eafdda96060e671",
+          "width": 960,
+          "height": 452,
+          "bytes": 12696,
+          "contentType": "image/webp"
+        },
+        {
+          "format": "avif",
+          "path": "owner/5f408022fe08/image/960.7c038f03.avif",
+          "sha256": "7c038f031c7291ff869ee0bc46b22c442582ebd97f22a910062045ca358e6f09",
+          "width": 960,
+          "height": 452,
+          "bytes": 5169,
+          "contentType": "image/avif"
+        }
+      ],
+      "bytes": 27840,
+      "provenance": "owner",
+      "sourceQuality": "owner-upload",
+      "altStatus": "todo",
+      "alt": null,
+      "source": {
+        "file": "media/incoming/5f408022fe08/Scene_NVF.png",
+        "size": 518418,
+        "mtimeMs": 1795226331734,
+        "naturalWidth": 1307,
+        "naturalHeight": 616
+      },
+      "recipe": {
+        "crop": null
+      },
+      "notes": "Uploaded in the admin by nextvisionfilmsagency@gmail.com, 2026-11-21: Scene_NVF.png."
     }
   }
 }
