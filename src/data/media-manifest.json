@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-21T00:40:56.786Z",
+  "generatedAt": "2026-11-21T01:07:58.326Z",
   "generatedBy": "scripts/media-build.mjs",
   "note": "Production media. Keys are storage-agnostic and carry NO URL: src/lib/media.ts joins a rendition path to PUBLIC_MEDIA_BASE_URL, which is the local mirror in development and the R2 delivery host in production. Rendition names are content-addressed, so a name that matches is bytes that match — that is what makes the cache immutable and the sync a set difference. Regenerate with `npm run media:build`.",
   "encoder": {
@@ -7363,6 +7363,73 @@
         "crop": null
       },
       "notes": "Uploaded in the admin by nextvisionfilmsagency@gmail.com, 2026-11-21: portfolio_NVF_vs_Digiup.png."
+    },
+    "owner/2b793d1f67eb/image": {
+      "key": "owner/2b793d1f67eb/image",
+      "kind": "image",
+      "storage": "r2",
+      "contentType": "image/webp",
+      "width": 960,
+      "height": 464,
+      "aspectRatio": 2.069,
+      "formats": [
+        "webp",
+        "avif"
+      ],
+      "renditions": [
+        {
+          "format": "webp",
+          "path": "owner/2b793d1f67eb/image/560.f0781576.webp",
+          "sha256": "f0781576d2ec3693f30980d385375db318ea959e207c36c562dd6e8cc4ee5a5d",
+          "width": 560,
+          "height": 270,
+          "bytes": 5564,
+          "contentType": "image/webp"
+        },
+        {
+          "format": "avif",
+          "path": "owner/2b793d1f67eb/image/560.96277ec3.avif",
+          "sha256": "96277ec34bee0b0d1852eec11eb7140c65bb3ef300c4010a9dfc031ce1d9cf3f",
+          "width": 560,
+          "height": 270,
+          "bytes": 3163,
+          "contentType": "image/avif"
+        },
+        {
+          "format": "webp",
+          "path": "owner/2b793d1f67eb/image/960.f8663855.webp",
+          "sha256": "f8663855b26a0677185f51cfd969abab23783bda5cd1e96c445e276207b2cc26",
+          "width": 960,
+          "height": 464,
+          "bytes": 10584,
+          "contentType": "image/webp"
+        },
+        {
+          "format": "avif",
+          "path": "owner/2b793d1f67eb/image/960.d5844898.avif",
+          "sha256": "d58448989bea15967c6d1d4fcdc512317229d1195e34c419be775c73bd9ecf75",
+          "width": 960,
+          "height": 464,
+          "bytes": 6066,
+          "contentType": "image/avif"
+        }
+      ],
+      "bytes": 25377,
+      "provenance": "owner",
+      "sourceQuality": "owner-upload",
+      "altStatus": "todo",
+      "alt": null,
+      "source": {
+        "file": "media/incoming/2b793d1f67eb/MADRUGADA_NVF.png",
+        "size": 196995,
+        "mtimeMs": 1795223276463,
+        "naturalWidth": 1329,
+        "naturalHeight": 641
+      },
+      "recipe": {
+        "crop": null
+      },
+      "notes": "Uploaded in the admin by nextvisionfilmsagency@gmail.com, 2026-11-21: MADRUGADA_NVF.png."
     }
   }
 }
