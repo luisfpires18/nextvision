@@ -308,6 +308,22 @@
       "by": "nextvisionfilmsagency@gmail.com",
       "at": "2026-11-21T01:46:13.818Z",
       "status": "ready"
+    },
+    {
+      "id": "5f408022fe08",
+      "key": "owner/5f408022fe08/image",
+      "kind": "image",
+      "source": "uploads/2026-11-21/5f408022fe08/Scene_NVF.png",
+      "name": "Scene_NVF.png",
+      "target": {
+        "screen": "services",
+        "file": "services",
+        "path": "collage.7.image",
+        "label": "Imagem do carrossel com filme 8"
+      },
+      "by": "nextvisionfilmsagency@gmail.com",
+      "at": "2026-11-21T01:57:55.943Z",
+      "status": "pending"
     }
   ]
 }
