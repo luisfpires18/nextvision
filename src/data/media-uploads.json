@@ -260,6 +260,22 @@
       "by": "nextvisionfilmsagency@gmail.com",
       "at": "2026-11-21T00:39:28.222Z",
       "status": "ready"
+    },
+    {
+      "id": "2b793d1f67eb",
+      "key": "owner/2b793d1f67eb/image",
+      "kind": "image",
+      "source": "uploads/2026-11-21/2b793d1f67eb/MADRUGADA_NVF.png",
+      "name": "MADRUGADA_NVF.png",
+      "target": {
+        "screen": "services",
+        "file": "services",
+        "path": "collage.+",
+        "label": "Nova imagem do carrossel"
+      },
+      "by": "nextvisionfilmsagency@gmail.com",
+      "at": "2026-11-21T01:06:51.856Z",
+      "status": "pending"
     }
   ]
 }
