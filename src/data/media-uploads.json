@@ -276,6 +276,22 @@
       "by": "nextvisionfilmsagency@gmail.com",
       "at": "2026-11-21T01:06:51.856Z",
       "status": "ready"
+    },
+    {
+      "id": "7a24834e17c2",
+      "key": "owner/7a24834e17c2/image",
+      "kind": "image",
+      "source": "uploads/2026-11-21/7a24834e17c2/The_End_NVF.png",
+      "name": "The_End_NVF.png",
+      "target": {
+        "screen": "services",
+        "file": "services",
+        "path": "collage.5.image",
+        "label": "Imagem do carrossel com filme 6"
+      },
+      "by": "nextvisionfilmsagency@gmail.com",
+      "at": "2026-11-21T01:32:38.984Z",
+      "status": "pending"
     }
   ]
 }
