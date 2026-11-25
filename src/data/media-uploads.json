@@ -340,6 +340,22 @@
       "by": "nextvisionfilmsagency@gmail.com",
       "at": "2026-11-21T02:23:49.087Z",
       "status": "ready"
+    },
+    {
+      "id": "8e16730f2aca",
+      "key": "owner/8e16730f2aca/image",
+      "kind": "image",
+      "source": "uploads/2026-11-25/8e16730f2aca/Comuna_Rental_VS.png",
+      "name": "Comuna_Rental_VS.png",
+      "target": {
+        "screen": "services",
+        "file": "services",
+        "path": "collage.+",
+        "label": "Nova imagem do carrossel"
+      },
+      "by": "nextvisionfilmsagency@gmail.com",
+      "at": "2026-11-25T21:46:31.539Z",
+      "status": "pending"
     }
   ]
 }
