@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-25T21:47:49.194Z",
+  "generatedAt": "2026-11-25T22:37:07.319Z",
   "generatedBy": "scripts/media-build.mjs",
   "note": "Production media. Keys are storage-agnostic and carry NO URL: src/lib/media.ts joins a rendition path to PUBLIC_MEDIA_BASE_URL, which is the local mirror in development and the R2 delivery host in production. Rendition names are content-addressed, so a name that matches is bytes that match — that is what makes the cache immutable and the sync a set difference. Regenerate with `npm run media:build`.",
   "encoder": {
@@ -7783,6 +7783,176 @@
         "crop": null
       },
       "notes": "Uploaded in the admin by nextvisionfilmsagency@gmail.com, 2026-11-25: Comuna_Rental_VS.png."
+    },
+    "owner/282d01a67d6e/image": {
+      "key": "owner/282d01a67d6e/image",
+      "kind": "image",
+      "storage": "r2",
+      "contentType": "image/webp",
+      "width": 1400,
+      "height": 634,
+      "aspectRatio": 2.2082,
+      "formats": [
+        "webp",
+        "avif"
+      ],
+      "renditions": [
+        {
+          "format": "webp",
+          "path": "owner/282d01a67d6e/image/560.f229f0ec.webp",
+          "sha256": "f229f0ecd419c7280e1ba949b32e3cb84cfda2e47e4ef0632bc37ac6ed6b6e2a",
+          "width": 560,
+          "height": 254,
+          "bytes": 8172,
+          "contentType": "image/webp"
+        },
+        {
+          "format": "avif",
+          "path": "owner/282d01a67d6e/image/560.b3a360e4.avif",
+          "sha256": "b3a360e4b6bcb21d8cc8789284acd8347db5b122ab95a5861e792ecd9080968b",
+          "width": 560,
+          "height": 254,
+          "bytes": 4699,
+          "contentType": "image/avif"
+        },
+        {
+          "format": "webp",
+          "path": "owner/282d01a67d6e/image/960.7eb997ef.webp",
+          "sha256": "7eb997ef8da2a36cc3785aa1c051d003ef06e5f3af4fb7411805d4a08d7134f2",
+          "width": 960,
+          "height": 436,
+          "bytes": 15262,
+          "contentType": "image/webp"
+        },
+        {
+          "format": "avif",
+          "path": "owner/282d01a67d6e/image/960.d023404c.avif",
+          "sha256": "d023404c2f897f2d8ed82472608cc760eb783ca97c347afec17e1d0bcb371bff",
+          "width": 960,
+          "height": 436,
+          "bytes": 8021,
+          "contentType": "image/avif"
+        },
+        {
+          "format": "webp",
+          "path": "owner/282d01a67d6e/image/1400.2936b6ce.webp",
+          "sha256": "2936b6cea2aafac98de5575068f9678109c644bf8e91e039a6a067a0d2cba7a4",
+          "width": 1400,
+          "height": 634,
+          "bytes": 23538,
+          "contentType": "image/webp"
+        },
+        {
+          "format": "avif",
+          "path": "owner/282d01a67d6e/image/1400.0f3838a4.avif",
+          "sha256": "0f3838a4a5988b2c6bc76508f11a24e806a1d436a4c2700e997dd8595720ce2a",
+          "width": 1400,
+          "height": 634,
+          "bytes": 11141,
+          "contentType": "image/avif"
+        }
+      ],
+      "bytes": 70833,
+      "provenance": "owner",
+      "sourceQuality": "owner-upload",
+      "altStatus": "todo",
+      "alt": null,
+      "source": {
+        "file": "media/incoming/282d01a67d6e/YSL_VS_NVF.png",
+        "size": 686486,
+        "mtimeMs": 1795646223056,
+        "naturalWidth": 2048,
+        "naturalHeight": 928
+      },
+      "recipe": {
+        "crop": null
+      },
+      "notes": "Uploaded in the admin by nextvisionfilmsagency@gmail.com, 2026-11-25: YSL_VS_NVF.png."
+    },
+    "owner/463dcb85f0c5/image": {
+      "key": "owner/463dcb85f0c5/image",
+      "kind": "image",
+      "storage": "r2",
+      "contentType": "image/webp",
+      "width": 1400,
+      "height": 634,
+      "aspectRatio": 2.2082,
+      "formats": [
+        "webp",
+        "avif"
+      ],
+      "renditions": [
+        {
+          "format": "webp",
+          "path": "owner/463dcb85f0c5/image/560.f229f0ec.webp",
+          "sha256": "f229f0ecd419c7280e1ba949b32e3cb84cfda2e47e4ef0632bc37ac6ed6b6e2a",
+          "width": 560,
+          "height": 254,
+          "bytes": 8172,
+          "contentType": "image/webp"
+        },
+        {
+          "format": "avif",
+          "path": "owner/463dcb85f0c5/image/560.b3a360e4.avif",
+          "sha256": "b3a360e4b6bcb21d8cc8789284acd8347db5b122ab95a5861e792ecd9080968b",
+          "width": 560,
+          "height": 254,
+          "bytes": 4699,
+          "contentType": "image/avif"
+        },
+        {
+          "format": "webp",
+          "path": "owner/463dcb85f0c5/image/960.7eb997ef.webp",
+          "sha256": "7eb997ef8da2a36cc3785aa1c051d003ef06e5f3af4fb7411805d4a08d7134f2",
+          "width": 960,
+          "height": 436,
+          "bytes": 15262,
+          "contentType": "image/webp"
+        },
+        {
+          "format": "avif",
+          "path": "owner/463dcb85f0c5/image/960.d023404c.avif",
+          "sha256": "d023404c2f897f2d8ed82472608cc760eb783ca97c347afec17e1d0bcb371bff",
+          "width": 960,
+          "height": 436,
+          "bytes": 8021,
+          "contentType": "image/avif"
+        },
+        {
+          "format": "webp",
+          "path": "owner/463dcb85f0c5/image/1400.2936b6ce.webp",
+          "sha256": "2936b6cea2aafac98de5575068f9678109c644bf8e91e039a6a067a0d2cba7a4",
+          "width": 1400,
+          "height": 634,
+          "bytes": 23538,
+          "contentType": "image/webp"
+        },
+        {
+          "format": "avif",
+          "path": "owner/463dcb85f0c5/image/1400.0f3838a4.avif",
+          "sha256": "0f3838a4a5988b2c6bc76508f11a24e806a1d436a4c2700e997dd8595720ce2a",
+          "width": 1400,
+          "height": 634,
+          "bytes": 11141,
+          "contentType": "image/avif"
+        }
+      ],
+      "bytes": 70833,
+      "provenance": "owner",
+      "sourceQuality": "owner-upload",
+      "altStatus": "todo",
+      "alt": null,
+      "source": {
+        "file": "media/incoming/463dcb85f0c5/YSL_VS_NVF.png",
+        "size": 686486,
+        "mtimeMs": 1795646225592,
+        "naturalWidth": 2048,
+        "naturalHeight": 928
+      },
+      "recipe": {
+        "crop": null
+      },
+      "notes": "Uploaded in the admin by nextvisionfilmsagency@gmail.com, 2026-11-25: YSL_VS_NVF.png."
     }
   }
 }
