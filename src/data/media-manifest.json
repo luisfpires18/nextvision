@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-21T02:24:43.825Z",
+  "generatedAt": "2026-11-25T21:47:49.194Z",
   "generatedBy": "scripts/media-build.mjs",
   "note": "Production media. Keys are storage-agnostic and carry NO URL: src/lib/media.ts joins a rendition path to PUBLIC_MEDIA_BASE_URL, which is the local mirror in development and the R2 delivery host in production. Rendition names are content-addressed, so a name that matches is bytes that match — that is what makes the cache immutable and the sync a set difference. Regenerate with `npm run media:build`.",
   "encoder": {
@@ -7698,6 +7698,91 @@
         "crop": null
       },
       "notes": "Uploaded in the admin by nextvisionfilmsagency@gmail.com, 2026-11-21: Subtitle_NVF.png."
+    },
+    "owner/8e16730f2aca/image": {
+      "key": "owner/8e16730f2aca/image",
+      "kind": "image",
+      "storage": "r2",
+      "contentType": "image/webp",
+      "width": 1400,
+      "height": 764,
+      "aspectRatio": 1.8325,
+      "formats": [
+        "webp",
+        "avif"
+      ],
+      "renditions": [
+        {
+          "format": "webp",
+          "path": "owner/8e16730f2aca/image/560.f06bf241.webp",
+          "sha256": "f06bf24177dab5a546728c44c89c56f1262d9c36f6fa48584facec5256c61f17",
+          "width": 560,
+          "height": 306,
+          "bytes": 16552,
+          "contentType": "image/webp"
+        },
+        {
+          "format": "avif",
+          "path": "owner/8e16730f2aca/image/560.6fea873b.avif",
+          "sha256": "6fea873be6a326242121a91a9f8100f11b29997b730c0a7ee59762625e4d931f",
+          "width": 560,
+          "height": 306,
+          "bytes": 8829,
+          "contentType": "image/avif"
+        },
+        {
+          "format": "webp",
+          "path": "owner/8e16730f2aca/image/960.c37cb0b6.webp",
+          "sha256": "c37cb0b689dac65c2ffecaa5b355cb3461803efc8b6f53232296a3c31a182e3f",
+          "width": 960,
+          "height": 524,
+          "bytes": 34888,
+          "contentType": "image/webp"
+        },
+        {
+          "format": "avif",
+          "path": "owner/8e16730f2aca/image/960.221bf32d.avif",
+          "sha256": "221bf32dc7c54bddcf262d4644241c8e58132aa6e31c353d27bb318a9d596b6f",
+          "width": 960,
+          "height": 524,
+          "bytes": 16800,
+          "contentType": "image/avif"
+        },
+        {
+          "format": "webp",
+          "path": "owner/8e16730f2aca/image/1400.fa611df3.webp",
+          "sha256": "fa611df346ca0ec3203e7b66c1e7d3e3cdcf681659b07687e95685fa29b228a8",
+          "width": 1400,
+          "height": 764,
+          "bytes": 57140,
+          "contentType": "image/webp"
+        },
+        {
+          "format": "avif",
+          "path": "owner/8e16730f2aca/image/1400.192cc7fd.avif",
+          "sha256": "192cc7fd27c387140e55b2a15a135550936277bfcfbff7ec92846fd2051b967f",
+          "width": 1400,
+          "height": 764,
+          "bytes": 25727,
+          "contentType": "image/avif"
+        }
+      ],
+      "bytes": 159936,
+      "provenance": "owner",
+      "sourceQuality": "owner-upload",
+      "altStatus": "todo",
+      "alt": null,
+      "source": {
+        "file": "media/incoming/8e16730f2aca/Comuna_Rental_VS.png",
+        "size": 2361519,
+        "mtimeMs": 1795643266975,
+        "naturalWidth": 2048,
+        "naturalHeight": 1118
+      },
+      "recipe": {
+        "crop": null
+      },
+      "notes": "Uploaded in the admin by nextvisionfilmsagency@gmail.com, 2026-11-25: Comuna_Rental_VS.png."
     }
   }
 }
