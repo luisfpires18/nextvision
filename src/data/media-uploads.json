@@ -372,6 +372,22 @@
       "by": "nextvisionfilmsagency@gmail.com",
       "at": "2026-11-25T22:20:26.016Z",
       "status": "pending"
+    },
+    {
+      "id": "463dcb85f0c5",
+      "key": "owner/463dcb85f0c5/image",
+      "kind": "image",
+      "source": "uploads/2026-11-25/463dcb85f0c5/YSL_VS_NVF.png",
+      "name": "YSL_VS_NVF.png",
+      "target": {
+        "screen": "services",
+        "file": "services",
+        "path": "collage.10.image",
+        "label": "Imagem do carrossel com filme 11"
+      },
+      "by": "nextvisionfilmsagency@gmail.com",
+      "at": "2026-11-25T22:36:02.056Z",
+      "status": "pending"
     }
   ]
 }
