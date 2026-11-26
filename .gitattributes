@@ -1,0 +1,4 @@
+src/content/** text eol=lf
+docs/content/** text eol=lf
+scripts/fixtures/** text eol=lf
+*.sh text eol=lf

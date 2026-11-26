@@ -21,6 +21,9 @@ Test commands:
 
 Deploying goes through CI or `scripts/deploy.mjs`. Never call `wrangler deploy` directly.
 
+## Commands
+- Pre-push gate: `.ai/checks.sh` (run by `scripts/gate.py`)
+
 ## Skills
 Only the skills below, plus the Core plugins that are always on: `ponytail` (mandatory), `caveman`, `context-mode`, `humanizer` (with the restriction in its row), `code-audit`, `tech-debt-audit`. Check the session's own skill list before relying on one; a listed name is not proof it loaded.
 
